@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const subUserSchema = new mongoose.Schema({
     adminId: {
       type: mongoose.Schema.Types.ObjectId,
