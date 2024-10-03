@@ -286,39 +286,7 @@
       }
       window.onload = validateToken;
 
-      //function payment
-
-      // const buyfunction = async () => {
-      //   try {
-      //     let response = await fetch(`http://localhost:3000/api/auth/payment`, {
-      //       method: "POST",
-      //       headers: {
-      //         "Content-Type": "application/json",
-      //       },
-      //       body: JSON.stringify({}),
-      //     });
-
-      //     if (response && response.ok) {
-      //       let data = await response.json();
-      //       console.log(
-      //         "Payment session created successfully: " +
-      //           JSON.stringify(data, null, 2)
-      //       );
-
-      //       if (data.url) {
-      //         window.location.href = data.url;
-      //       } else {
-      //         console.error("No URL found in the payment session data.");
-      //       }
-      //     } else {
-      //       let errorData = await response.json();
-      //       console.error(`Failed to fetch: ${response.status}`, errorData);
-      //     }
-      //   } catch (error) {
-      //     console.error("Error in fetching payment data:", error);
-      //   }
-      // };
-
+   
 
       const buyfunction = async () => {
     try {
@@ -333,7 +301,7 @@
       }
 
    
-      let response = await fetch(`http://localhost:3000/api/auth/payment`, {
+      let response = await fetch("http://localhost:3000/api/auth/payment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
