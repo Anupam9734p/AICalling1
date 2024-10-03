@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Mazer Admin Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.0/fullcalendar.min.css"
+    />
+    <link rel="stylesheet" href="assets/css/bootstrap.css" />
+    <link rel="stylesheet" href="assets/vendors/iconly/bold.css" />
+    <link
+      rel="stylesheet"
+      href="assets/vendors/perfect-scrollbar/perfect-scrollbar.css"
+    />
+    <link
+      rel="stylesheet"
+      href="assets/vendors/bootstrap-icons/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" href="assets/css/app.css" />
+    <link
+      rel="shortcut icon"
+      href="assets/images/favicon.svg"
+      type="image/x-icon"
+    />
+    <style>
+      #main {
+        /* flex: 1; */
+        padding: 4rem;
+        background-color: #ffffff;
+      }
+
+      .iframe-container {
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+
+        background-color: #2450c1dd;
+      }
+
+      iframe {
+        border: none;
+        border-radius: 0.25rem;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        height: 600px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div id="sidebar" class="active">
+        <div class="sidebar-wrapper active">
+          <div class="sidebar-header">
+            <div class="d-flex justify-content-between">
+              <div class="logo">
+                <a href="index.html"
+                  ><img src="assets/images/logo/logo.png" alt="Logo"
+                /></a>
+              </div>
+              <div class="toggler">
+                <a href="#" class="sidebar-hide d-xl-none d-block"
+                  ><i class="bi bi-x bi-middle"></i
+                ></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="sidebar-menu">
+            <ul class="menu">
+              <li class="sidebar-title">Menu</li>
+
+              <li class="sidebar-item">
+                <a href="index.html" class="sidebar-link">
+                  <i class="bi bi-grid-fill"></i>
+                  <span>Dashboard</span>
+                </a>
+              </li>
+
+              <li class="sidebar-item">
+                <a href="single-call.html" class="sidebar-link">
+                  <i class="bi bi-telephone-fill"></i>
+                  <span>Single Call</span>
+                </a>
+              </li>
+
+              <li class="sidebar-item">
+                <a href="bulk-call.html" class="sidebar-link">
+                  <i class="bi bi-stack"></i>
+                  <span>Bulk Call</span>
+                </a>
+              </li>
+
+              <li class="sidebar-item">
+                <a href="call-logs.html" class="sidebar-link">
+                  <i class="bi bi-journal-text"></i>
+                  <span>Call Logs</span>
+                </a>
+              </li>
+
+              <li class="sidebar-item">
+                <a href="sms-email.html" class="sidebar-link">
+                  <i class="bi bi-envelope-fill"></i>
+                  <span>SMS & Email</span>
+                </a>
+              </li>
+
+              <li class="sidebar-item active">
+                <a href="appointment.html" class="sidebar-link">
+                  <i class="bi bi-calendar-check-fill"></i>
+                  <span>Appointment</span>
+                </a>
+              </li>
+              <li class="sidebar-item">
+                <a href="bulk-call-email.html" class="sidebar-link">
+                  <i class="bi bi-calendar-check-fill"></i>
+                  <span>Send Bulk EMAIL</span>
+                </a>
+              </li>
+              <li class="sidebar-item">
+                <a href="bulk-sms.html" class="sidebar-link">
+                  <i class="bi bi-calendar-check-fill"></i>
+                  <span>Send Bulk SMS</span>
+                </a>
+              </li>
+              <li class="sidebar-item "></li>
+                <a href="buy-membership.html" class="sidebar-link">
+                  <i class="fa-solid fa-money-bill"></i>
+                  <span>Buy Membership</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div id="main">
+        <div class="iframe-container">
+          <iframe
+            src="https://calendar.google.com/calendar/embed?src=aiengage007%40gmail.com&ctz=Asia%2FKolkata"
+            style="border: 0"
+            width="800"
+            height="600"
+            frameborder="0"
+            scrolling="no"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+  </body>
+
+  <script>
+    async function validateToken() {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        // If no token, redirect to login page
+        window.location.href = "login.html";
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          "https://aicalling-osdb.onrender.com/api/auth/validate",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Token validation failed");
+        }
+
+        const data = await response.json();
+        if (!data.valid) {
+          // If token is not valid, redirect to login page
+          window.location.href = "login.html";
+        }
+      } catch (error) {
+        console.error("Error validating token:", error);
+        // Redirect to login if there's an error
+        window.location.href = "login.html";
+      }
+    }
+
+    // Call the validateToken function when the page loads
+    window.onload = validateToken;
+  </script>
+</html>
