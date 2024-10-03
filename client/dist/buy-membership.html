@@ -261,7 +261,7 @@
         try {
           const response = await fetch(
          //   "https://aicalling-osdb.onrender.com/api/auth/validate",
-            "http://localhost:3000/api/auth/validate",
+         "http://localhost:3000/api/auth/validate-profile",
             {
               method: "GET",
               headers: {
@@ -276,6 +276,10 @@
           }
 
           const data = await response.json();
+          const userEmail = document.getElementById("userEmail");
+          userEmail.value  = data.data.email
+          userEmail.disabled = true; 
+          console.log(data.data.email)
           if (!data.valid) {
             window.location.href = "login.html";
           }
@@ -292,6 +296,7 @@
     try {
      
       const userEmail = document.getElementById("userEmail").value;
+
       const paymentAmount = document.getElementById("paymentAmount").value;
       const currency = document.getElementById("currency").value;
 
