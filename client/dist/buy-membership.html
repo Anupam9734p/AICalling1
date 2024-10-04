@@ -130,6 +130,7 @@
                   <span>Appointment</span>
                 </a>
               </li>
+
               <li class="sidebar-item">
                 <a href="bulk-call-email.html" class="sidebar-link">
                   <i class="bi bi-calendar-check-fill"></i>
@@ -144,7 +145,7 @@
               </li>
               <li class="sidebar-item active">
                 <a href="buy-membership.html" class="sidebar-link">
-                  <i class="bi bi-stack"></i>
+                  <i class="fa fa-money-bill"></i> 
                   <span>Buy Membership</span>
                 </a>
               </li>
@@ -208,8 +209,9 @@
                     type="number"
                     id="paymentAmount"
                     class="form-control"
-                    placeholder="Enter amount"
-                    required
+                    value="100" 
+                    readonly  
+                    style="pointer-events: none;"   
                   />
                 </div>
         
@@ -219,12 +221,16 @@
                     <option value="USD">USD</option>
                     <option value="INR" selected>INR</option>
                     <option value="EUR">EUR</option>
+                    
+                    <option value="GBP">GBP</option> 
+                    <option value="JPY">JPY</option> 
+                    <option value="AUD">AUD</option>
                   </select>
                 </div>
         
                 <div class="d-flex justify-content-around my-3">
-                  <button class="btn btn-primary btn-lg" onclick="buyfunction()">Buy Now</button>
-                  <button class="btn btn-success btn-lg">Get Membership</button>
+                  <button class="btn btn-primary btn-lg" onclick="buyfunction()">Buy Membership</button>
+                  
                 </div>
               </div>
             </div>
@@ -260,8 +266,8 @@
 
         try {
           const response = await fetch(
-         //   "https://aicalling-osdb.onrender.com/api/auth/validate",
-         "http://localhost:3000/api/auth/validate-profile",
+            // "https://aicalling-osdb.onrender.com/api/auth/validate",
+            "http://localhost:3000/api/auth/validate-profile",
             {
               method: "GET",
               headers: {
@@ -278,11 +284,41 @@
           const data = await response.json();
           const userEmail = document.getElementById("userEmail");
           userEmail.value  = data.data.email
-          userEmail.disabled = true; 
-          console.log(data.data.email)
+          userEmail.disabled = true;
+
           if (!data.valid) {
             window.location.href = "login.html";
           }
+          const role = data.role;
+console.log(role);
+
+if (role === "admin") {
+  const sidebarMenu = document.querySelector(".sidebar-menu > ul");
+
+  const newListItem = document.createElement("li");
+  newListItem.classList.add("sidebar-item");
+
+  newListItem.innerHTML = `
+    <a href="add-member.html" class="sidebar-link">
+      <i class="bi bi-shield-lock-fill"></i>
+      <span>Add Member</span>
+    </a>
+  `;
+  sidebarMenu.appendChild(newListItem);
+
+  const adminLink = newListItem.querySelector("a");
+  
+  adminLink.addEventListener("click", (event) => {
+    event.preventDefault(); 
+    document.querySelectorAll(".sidebar-menu .sidebar-link").forEach((link) => {
+      link.classList.remove("active");
+    });
+    adminLink.classList.add("active");
+    window.location.href = "add-member.html";
+  });
+}
+
+          
         } catch (error) {
           console.error("Error validating token:", error);
           window.location.href = "login.html";
@@ -290,23 +326,131 @@
       }
       window.onload = validateToken;
 
-   
+      //function payment
 
-      const buyfunction = async () => {
-    try {
+      // const buyfunction = async () => {
+      //   try {
+      //     let response = await fetch(`http://localhost:3000/api/auth/payment`, {
+      //       method: "POST",
+      //       headers: {
+      //         "Content-Type": "application/json",
+      //       },
+      //       body: JSON.stringify({}),
+      //     });
+
+      //     if (response && response.ok) {
+      //       let data = await response.json();
+      //       console.log(
+      //         "Payment session created successfully: " +
+      //           JSON.stringify(data, null, 2)
+      //       );
+
+      //       if (data.url) {
+      //         window.location.href = data.url;
+      //       } else {
+      //         console.error("No URL found in the payment session data.");
+      //       }
+      //     } else {
+      //       let errorData = await response.json();
+      //       console.error(`Failed to fetch: ${response.status}`, errorData);
+      //     }
+      //   } catch (error) {
+      //     console.error("Error in fetching payment data:", error);
+      //   }
+      // };
+
+
+  //     const buyfunction = async () => {
+  //   try {
      
-      const userEmail = document.getElementById("userEmail").value;
+  //     const userEmail = document.getElementById("userEmail").value;
+  //     const paymentAmount = document.getElementById("paymentAmount").value;
+  //     const currency = document.getElementById("currency").value;
 
-      const paymentAmount = document.getElementById("paymentAmount").value;
-      const currency = document.getElementById("currency").value;
+  //     if (!userEmail || !paymentAmount || !currency) {
+  //       alert("Please fill in all fields.");
+  //       return;
+  //     }
+
+   
+  //     let response = await fetch(`http://localhost:3000/api/auth/payment`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         userEmail: userEmail,
+  //         amount: paymentAmount,
+  //         currency: currency,
+  //       }),
+  //     });
+
+  //     if (response && response.ok) {
+  //       let data = await response.json();
+  //       console.log("Payment session created successfully:", data);
+
+  //       if (data.url) {
+  //         window.location.href = data.url;
+  //       } else {
+  //         console.error("No URL found in the payment session data.");
+  //       }
+  //     } else {
+  //       let errorData = await response.json();
+  //       console.error(`Failed to fetch: ${response.status}`, errorData);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error in fetching payment data:", error);
+  //   }
+  // };
+
+
+
+  const amountField = document.getElementById("paymentAmount");
+  const currencyField = document.getElementById("currency");
+
+  // Set default amount
+  amountField.value = "100";
+
+  // Update amount based on selected currency
+  function updateAmount() {
+    const selectedCurrency = currencyField.value;
+
+    switch (selectedCurrency) {
+      case "USD":
+        amountField.value = "100"; 
+        break;
+      case "INR":
+        amountField.value = "7500"; 
+        break;
+      case "EUR":
+        amountField.value = "90"; 
+        break;
+      case "GBP":
+        amountField.value = "75"; 
+        break;
+      case "JPY":
+        amountField.value = "11000"; 
+        break;
+      case "AUD":
+        amountField.value = "130"; 
+        break;
+      default:
+        amountField.value = "100"; 
+    }
+  }
+  
+  async function buyfunction() {
+    try {
+      const userEmail = document.getElementById("userEmail").value;
+      const paymentAmount = amountField.value;
+      const currency = currencyField.value;
 
       if (!userEmail || !paymentAmount || !currency) {
         alert("Please fill in all fields.");
         return;
       }
 
-   
-      let response = await fetch("http://localhost:3000/api/auth/payment", {
+      let response = await fetch(`http://localhost:3000/api/auth/payment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -334,7 +478,7 @@
     } catch (error) {
       console.error("Error in fetching payment data:", error);
     }
-  };
+  }
     </script>
   </body>
 </html>

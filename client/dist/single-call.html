@@ -32,6 +32,8 @@
     rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
   />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <style>
     .dashboard-header {
         display: flex;
@@ -135,7 +137,7 @@
             </li>
             <li class="sidebar-item">
               <a href="buy-membership.html" class="sidebar-link">
-                <i class="fa-solid fa-money-bill"></i>
+                <i class="fa fa-money-bill"></i>
                 <span>Buy Membership</span>
               </a>
             </li>
@@ -361,9 +363,12 @@ async function validateToken() {
           return;
         }
 
+       
         try {
           const response = await fetch(
-            "https://aicalling-osdb.onrender.com/api/auth/validate",
+            // "https://aicalling-osdb.onrender.com/api/auth/validate",
+            "http://localhost:3000/api/auth/validate",
+
             {
               method: "GET",
               headers: {
@@ -382,6 +387,36 @@ async function validateToken() {
             // If token is not valid, redirect to login page
             window.location.href = "login.html";
           }
+          const role = data.role;
+//console.log(role);
+
+if (role === "admin") {
+  const sidebarMenu = document.querySelector(".sidebar-menu > ul");
+
+  const newListItem = document.createElement("li");
+  newListItem.classList.add("sidebar-item");
+
+  newListItem.innerHTML = `
+    <a href="add-member.html" class="sidebar-link">
+      <i class="bi bi-shield-lock-fill"></i>
+      <span>Add Member</span>
+    </a>
+  `;
+  sidebarMenu.appendChild(newListItem);
+
+  const adminLink = newListItem.querySelector("a");
+  
+  adminLink.addEventListener("click", (event) => {
+    event.preventDefault(); 
+    document.querySelectorAll(".sidebar-menu .sidebar-link").forEach((link) => {
+      link.classList.remove("active");
+    });
+    adminLink.classList.add("active");
+    window.location.href = "add-member.html";
+  });
+}
+
+
         } catch (error) {
           console.error("Error validating token:", error);
           // Redirect to login if there's an error

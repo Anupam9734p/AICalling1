@@ -14,75 +14,86 @@
     <link rel="shortcut icon" href="assets/images/favicon.svg" type="image/x-icon" />
 </head>
 <body style="background-color: #eee" onload="validateToken()">
-    <section style="background-color: #eee">
+    <section style="background-color: #f7f7f7;">
         <div class="container py-5">
-            <div class="row">
-                <div class="col">
-                    <nav aria-label="breadcrumb" class="bg-body-tertiary rounded-3 p-3 mb-4">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item active" aria-current="page">Profile</li>
+            <div class="row justify-content-center mb-4">
+                <div class="col-lg-8">
+                    <nav aria-label="breadcrumb" class="bg-white shadow-sm rounded-3 p-3">
+                        <ol class="breadcrumb mb-0 justify-content-center">
+                            <li class="breadcrumb-item active text-center" aria-current="page">
+                                <h4 class="mb-0">Profile</h4>
+                            </li>
                         </ol>
                     </nav>
                 </div>
+                
             </div>
-
-            <div class="row" style="display: flex; flex-direction: column; justify-content: center;">
-                <div class="col-lg-6">
-                    <div class="card mb-4">
+    
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card mb-4 shadow-sm border-0">
                         <div class="card-body text-center">
                             <img
                                 src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp"
                                 alt="avatar"
-                                class="rounded-circle img-fluid"
-                                style="width: 150px"
+                                class="rounded-circle img-fluid mb-3"
+                                style="width: 150px; border: 5px solid #fff; box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);"
                             />
+                            <h4 class="card-title mb-0" style="font-weight: 700;">Johnatan Smith</h4>
+                            <p class="text-muted" style="font-size: 0.9rem;">example@example.com</p>
                         </div>
                     </div>
                 </div>
-
-                <div class="col-lg-6">
-                    <div class="card mb-4">
-                        <div class="card-body">
+    
+                <div class="col-lg-8">
+                    <div class="card mb-4 shadow-sm border-0">
+                        <div class="card-body p-4">
                             <!-- Full Name -->
-                            <div class="row">
+                            <div class="row mb-3">
                                 <div class="col-sm-3">
-                                    <p class="mb-0">Full Name</p>
+                                    <p class="mb-0 text-muted">Full Name</p>
                                 </div>
                                 <div class="col-sm-9 d-flex align-items-center">
-                                    <p class="text-muted mb-0" id="name" onclick="openEdit('name')">Johnatan Smith</p>
-                                    <i class="bi bi-pencil ms-2" onclick="openEdit('name')"></i>
+                                    <p class="text-dark mb-0" id="name" onclick="openEdit('name')">Johnatan Smith</p>
+                                    <i class="bi bi-pencil ms-2 text-muted" onclick="openEdit('name')" style="cursor: pointer;"></i>
                                 </div>
                             </div>
                             <hr />
-
+    
                             <!-- Email -->
-                            <div class="row">
+                            <div class="row mb-3">
                                 <div class="col-sm-3">
-                                    <p class="mb-0">Email</p>
+                                    <p class="mb-0 text-muted">Email</p>
                                 </div>
                                 <div class="col-sm-9 d-flex align-items-center">
-                                    <p class="text-muted mb-0" id="email">example@example.com</p>
-                                    <i class="bi bi-pencil ms-2" onclick="openEdit('email')"></i>
+                                    <p class="text-dark mb-0" id="email">example@example.com</p>
+                                    <i class="bi bi-pencil ms-2 text-muted" onclick="openEdit('email')" style="cursor: pointer;"></i>
                                 </div>
                             </div>
                             <hr />
-
+    
                             <!-- Phone -->
-                            <div class="row">
+                            <div class="row mb-3">
                                 <div class="col-sm-3">
-                                    <p class="mb-0">Phone</p>
+                                    <p class="mb-0 text-muted">Phone</p>
                                 </div>
                                 <div class="col-sm-9 d-flex align-items-center">
-                                    <p class="text-muted mb-0" id="phone">(097) 234-5678</p>
-                                    <i class="bi bi-pencil ms-2" onclick="openEdit('phone')"></i>
+                                    <p class="text-dark mb-0" id="phone">(097) 234-5678</p>
+                                    <i class="bi bi-pencil ms-2 text-muted" onclick="openEdit('phone')" style="cursor: pointer;"></i>
                                 </div>
+                            </div>
+                            <hr />
+    
+                            <!-- Go to Dashboard Button -->
+                            <div class="text-center">
+                                <a href="index.html" class="btn btn-primary mt-3" style="padding: 10px 30px; font-size: 1rem;">Go to Dashboard</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
+    
         <!-- Edit Modal -->
         <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -102,6 +113,8 @@
             </div>
         </div>
     </section>
+    
+    
 
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
