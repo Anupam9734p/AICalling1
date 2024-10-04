@@ -65,12 +65,16 @@ router.get("/validate", (req, res) => {
     return res.status(401).json({ valid: false, message: "No token provided" });
   }
 
-  jwt.verify(token, JWT_SECRET, (err) => {
+  jwt.verify(token, JWT_SECRET, async(err,data) => {
     if (err) {
       return res.status(401).json({ valid: false, message: "Invalid token" });
     }
+  //  console.log(data);
+   const role = await User.findById(data.userId);
 
-    return res.status(200).json({ valid: true });
+  //  console.log(role);
+   
+    return res.status(200).json({ valid: true,role:role.role});
   });
 });
 

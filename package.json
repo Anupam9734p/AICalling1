@@ -22,8 +22,8 @@
     "nodemailer": "^6.9.15",
     "openai": "^4.55.7",
     "serverr": "^1.0.0",
-    "stripe": "^17.0.0",
-    "twilio": "^5.2.2"
+    "stripe": "^17.1.0",
+    "twilio": "^5.3.3"
   },
   "keywords": []
 }
