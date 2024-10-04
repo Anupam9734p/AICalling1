@@ -8,6 +8,7 @@ require("dotenv").config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const authMiddleware = require("../middlewares/authMiddleware");
+const subUserSchema = require("../models/subUserSchema.js");
 
 router.post("/signup", async (req, res) => {
   const { name, email, password, phone } = req.body;
@@ -107,25 +108,85 @@ const verifyToken = (req, res, next) => {
 };
 
 router.post("/update-profile", verifyToken, async (req, res) => {
-  const { field, value } = req.body; 
+  const { field, value } = req.body;
   try {
-      const user = await User.findById(req.userId);
+    const user = await User.findById(req.userId);
 
-      console.log(user)
-      if (!user) {
-          return res.status(404).json({ message: "User not found" });
-      }
+    console.log(user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      user[field] = value; 
-      await user.save();
+    user[field] = value;
+    await user.save();
 
-      res.status(200).json({ message: "Profile updated successfully", data: user });
+    res
+      .status(200)
+      .json({ message: "Profile updated successfully", data: user });
   } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: "Error updating profile" });
+    console.error(error);
+    res.status(500).json({ message: "Error updating profile" });
   }
 });
 
+router.post("/add-subUser", async (req, res) => {
+  try {
+    console.log(req.body);
+    const { name, email, password, phone } = req.body;
+
+    // Check if sub-user with the same email already exists
+    const checkUser = await subUserSchema.findOne({ email });
+    if (checkUser) {
+      return res
+        .status(401)
+        .json({ message: "Sub-user with this email already exists" });
+    }
+
+    // Get token and verify it
+    const token = req.headers.authorization?.split(" ")[1];
+    console.log(token)
+    if (!token) {
+      return res.status(403).json({ message: "Authorization token missing" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: "Invalid or expired token" });
+    }
+
+    console.log(decoded)
+    // Find admin user from decoded token
+    const adminData = await User.findById(decoded.userId);
+    if (!adminData || adminData.role !== "admin") {
+      return res.status(401).json({ message: "No permission to add sub-user" });
+    }
+
+    // Create new sub-user
+    const user = new subUserSchema({
+      adminId: adminData._id, // Adding reference to admin
+      name,
+      email,
+      password, // Password will be hashed by subUserSchema pre-save hook
+      phone,
+    });
+
+    // Save the new sub-user
+    await user.save();
+    const subUserId = user._id;
+
+    // Add sub-user to the admin's subUsers list
+    adminData.subUsers.push(subUserId);
+    await adminData.save();
+
+    console.log(adminData);
+    res.status(201).json({ message: "Sub-user added successfully" });
+  } catch (error) {
+    console.error("Error occurred while adding sub-user: ", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 router.get("/home", authMiddleware, (req, res) => {
   res.status(200).json({
