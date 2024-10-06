@@ -294,6 +294,7 @@
 
     <script src="assets/vendors/apexcharts/apexcharts.js"></script>
     <script src="assets/js/pages/dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="assets/js/main.js"></script>
     <script>
@@ -339,12 +340,16 @@
                 }
               })
               .then((data) => {
-                alert("Member added successfully!");
-                console.log(data); // Handle success response
+                Swal.fire({
+              icon: "success",
+              text: "Member added successfully!",
+            });// Handle success response
               })
               .catch((error) => {
-                alert("Error occurred while adding member.");
-                console.log(error); // Handle error response
+                Swal.fire({
+              icon: "error",
+              text: "Error occurred while adding member.",
+            });
               });
           });
       });

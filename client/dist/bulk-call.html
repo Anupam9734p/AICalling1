@@ -139,7 +139,6 @@
                   <span>Appointment</span>
                 </a>
               </li>
-             
             </ul>
           </div>
         </div>
@@ -172,9 +171,7 @@
                   <i class="fa-solid fa-user"></i> Profile
                 </a>
               </li>
-              <li>
-
-              </li>
+              <li></li>
               <li>
                 <a class="dropdown-item" href="#" id="logout-btn">
                   <i class="fa-solid fa-right-from-bracket"></i> Log Out
@@ -182,8 +179,6 @@
               </li>
             </ul>
           </div>
-
-
         </header>
 
         <div class="page-heading">
@@ -364,6 +359,7 @@
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="assets/js/main.js"></script>
 
@@ -414,7 +410,6 @@
           }
           const role = data.role;
 
-
           //console.log(role);
           if (role === "admin" || role === "subuser") {
             const dropdownMenu = document.getElementById("dropdownMenu");
@@ -456,8 +451,6 @@
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
           }
-     
-     
 
           if (role === "admin" || role === "user") {
             const dropdownMenu = document.getElementById("dropdownMenu");
@@ -486,10 +479,6 @@ margin-right: auto;
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
           }
-       
-       
-       
-       
         } catch (error) {
           console.error("Error validating token:", error);
           // Redirect to login if there's an error
@@ -570,6 +559,13 @@ margin-right: auto;
           const phoneNumber = user[phoneNumberKey];
           const formattedPhoneNumber = `+${phoneNumber.replace(/[^\d]/g, "")}`;
           const selectedLanguage = document.getElementById("language").value;
+          if (selectedLanguage == "") {
+            Swal.fire({
+              icon: "error",
+              text: "Please select a language First",
+            });
+            return;
+          }
           const callOptions = {
             method: "POST",
             headers: {

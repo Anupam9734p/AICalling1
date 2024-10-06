@@ -493,6 +493,20 @@ margin-right: auto;
           text: "Please select a language First"
     })
     return;
+  }
+    if(firstName == "")
+    {
+      Swal.fire({icon: "error",
+          text: "All field are required"
+    })
+    return;
+  }
+    if(phoneNumberInput == "")
+    {
+      Swal.fire({icon: "error",
+            text: "All field are required"
+    })
+    return;
     }
       // Validate and format the phone number
       const formattedPhoneNumber = formatPhoneNumber(phoneNumberInput);
@@ -558,6 +572,10 @@ margin-right: auto;
         })
         .catch((error) => {
           console.error("Error initiating call to", firstName, ":", error);
+          Swal.fire({icon: "error",
+            text: "An Error Occured..."
+    })
+    return;
           updateCallResults(
             firstName,
             formattedPhoneNumber,
@@ -596,6 +614,10 @@ margin-right: auto;
           })
           .catch((error) => {
             console.error("Error checking call status:", error);
+            Swal.fire({icon: "error",
+            text: error
+    })
+    return;
             if (retries < maxRetries) {
               setTimeout(() => checkStatus(retries + 1), pollInterval);
             }
@@ -628,6 +650,10 @@ margin-right: auto;
           console.log("SMS sent successfully:", data);
         })
         .catch((error) => {
+          Swal.fire({icon: "error",
+            text: error.message
+    })
+    return;
           console.error("Error sending SMS:", error.message);
         });
     }
@@ -688,6 +714,7 @@ async function getTranscript() {
             return null;
         }
     } catch (err) {
+      
         console.error(err);
         return null;
     }
