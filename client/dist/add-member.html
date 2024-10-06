@@ -55,6 +55,24 @@
         min-width: 150px;
         text-align: center;
       }
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+      }
+
+      .dropdown-item i {
+        margin-right: 8px; /* Adds space between the icon and text */
+      }
+
+      .dropdown-divider {
+        border: none;
+        height: 0.5px;
+        background-color: #e9ecef;
+        margin: 0.5rem 0;
+        width: calc(100% - 1rem);
+        margin-left: auto;
+        margin-right: auto;
+      }
     </style>
   </head>
   <body>
@@ -161,17 +179,7 @@
                 </a>
               </li>
               <li>
-                <hr
-                  style="
-                    border: none;
-                    height: 0.5px;
-                    background-color: #e9ecef;
-                    margin: 0.5rem 0;
-                    width: calc(100% - 1rem);
-                    margin-left: auto;
-                    margin-right: auto;
-                  "
-                />
+                
               </li>
               <li>
                 <a class="dropdown-item" href="#" id="logout-btn">
@@ -286,6 +294,7 @@
 
     <script src="assets/vendors/apexcharts/apexcharts.js"></script>
     <script src="assets/js/pages/dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="assets/js/main.js"></script>
     <script>
@@ -332,12 +341,16 @@
                 }
               })
               .then((data) => {
-                alert("Member added successfully!");
-                console.log(data); // Handle success response
+                Swal.fire({
+              icon: "success",
+              text: "Member added successfully!",
+            });// Handle success response
               })
               .catch((error) => {
-                alert("Error occurred while adding member.");
-                console.log(error); // Handle error response
+                Swal.fire({
+              icon: "error",
+              text: "Error occurred while adding member.",
+            });
               });
           });
       });
@@ -394,17 +407,7 @@
         </a>
       </li>
       <li>
-        <hr
-          style="
-            border: none;
-            height: 0.5px;
-            background-color: #e9ecef;
-            margin: 0.5rem 0;
-            width: calc(100% - 1rem);
-            margin-left: auto;
-            margin-right: auto;
-          "
-        />
+        
       </li>
     `;
 
@@ -421,17 +424,7 @@
           <i class="fa-solid fa-comments"></i> Add Member
         </a>
       <li>
-        <hr
-          style="
-            border: none;
-            height: 0.5px;
-            background-color: #e9ecef;
-            margin: 0.5rem 0;
-            width: calc(100% - 1rem);
-            margin-left: auto;
-            margin-right: auto;
-          "
-        />
+       
       </li>
     `;
 

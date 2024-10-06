@@ -59,6 +59,24 @@
         min-width: 150px; 
         text-align: center; 
       }
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+      }
+
+      .dropdown-item i {
+        margin-right: 8px; /* Adds space between the icon and text */
+      }
+
+      .dropdown-divider {
+        border: none;
+        height: 0.5px;
+        background-color: #e9ecef;
+        margin: 0.5rem 0;
+        width: calc(100% - 1rem);
+        margin-left: auto;
+        margin-right: auto;
+      }
   </style>
 </head>
 
@@ -157,17 +175,7 @@
                 </a>
               </li>
               <li>
-                <hr
-                  style="
-                    border: none;
-                    height: 0.5px;
-                    background-color: #e9ecef;
-                    margin: 0.5rem 0;
-                    width: calc(100% - 1rem);
-                    margin-left: auto;
-                    margin-right: auto;
-                  "
-                />
+          
               </li>
               <li>
                 <a class="dropdown-item" href="#" id="logout-btn">
@@ -405,17 +413,7 @@ if (role === "admin" || role === "subuser") {
         </a>
       </li>
       <li>
-        <hr
-          style="
-            border: none;
-            height: 0.5px;
-            background-color: #e9ecef;
-            margin: 0.5rem 0;
-            width: calc(100% - 1rem);
-            margin-left: auto;
-            margin-right: auto;
-          "
-        />
+       
       </li>
     `;
 
@@ -432,17 +430,7 @@ if (role === "admin" || role === "subuser") {
           <i class="fa-solid fa-comments"></i> Add Member
         </a>
       <li>
-        <hr
-          style="
-            border: none;
-            height: 0.5px;
-            background-color: #e9ecef;
-            margin: 0.5rem 0;
-            width: calc(100% - 1rem);
-            margin-left: auto;
-            margin-right: auto;
-          "
-        />
+
       </li>
     `;
 
@@ -503,6 +491,20 @@ margin-right: auto;
     {
       Swal.fire({icon: "error",
           text: "Please select a language First"
+    })
+    return;
+  }
+    if(firstName == "")
+    {
+      Swal.fire({icon: "error",
+          text: "All field are required"
+    })
+    return;
+  }
+    if(phoneNumberInput == "")
+    {
+      Swal.fire({icon: "error",
+            text: "All field are required"
     })
     return;
     }
@@ -570,6 +572,10 @@ margin-right: auto;
         })
         .catch((error) => {
           console.error("Error initiating call to", firstName, ":", error);
+          Swal.fire({icon: "error",
+            text: "An Error Occured..."
+    })
+    return;
           updateCallResults(
             firstName,
             formattedPhoneNumber,
@@ -608,6 +614,10 @@ margin-right: auto;
           })
           .catch((error) => {
             console.error("Error checking call status:", error);
+            Swal.fire({icon: "error",
+            text: error
+    })
+    return;
             if (retries < maxRetries) {
               setTimeout(() => checkStatus(retries + 1), pollInterval);
             }
@@ -640,6 +650,10 @@ margin-right: auto;
           console.log("SMS sent successfully:", data);
         })
         .catch((error) => {
+          Swal.fire({icon: "error",
+            text: error.message
+    })
+    return;
           console.error("Error sending SMS:", error.message);
         });
     }
@@ -700,6 +714,7 @@ async function getTranscript() {
             return null;
         }
     } catch (err) {
+      
         console.error(err);
         return null;
     }

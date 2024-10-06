@@ -26,7 +26,13 @@
       href="assets/images/favicon.svg"
       type="image/x-icon"
     />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+      integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <style>
       .dashboard-header {
         display: flex;
@@ -50,6 +56,24 @@
       .dropdown-menu {
         min-width: 150px;
         text-align: center;
+      }
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+      }
+
+      .dropdown-item i {
+        margin-right: 8px; /* Adds space between the icon and text */
+      }
+
+      .dropdown-divider {
+        border: none;
+        height: 0.5px;
+        background-color: #e9ecef;
+        margin: 0.5rem 0;
+        width: calc(100% - 1rem);
+        margin-left: auto;
+        margin-right: auto;
       }
     </style>
   </head>
@@ -114,7 +138,6 @@
                   <span>Appointment</span>
                 </a>
               </li>
-             
             </ul>
           </div>
         </div>
@@ -147,19 +170,7 @@
                   <i class="fa-solid fa-user"></i> Profile
                 </a>
               </li>
-              <li>
-                <hr
-                  style="
-                    border: none;
-                    height: 0.5px;
-                    background-color: #e9ecef;
-                    margin: 0.5rem 0;
-                    width: calc(100% - 1rem);
-                    margin-left: auto;
-                    margin-right: auto;
-                  "
-                />
-              </li>
+              <li></li>
               <li>
                 <a class="dropdown-item" href="#" id="logout-btn">
                   <i class="fa-solid fa-right-from-bracket"></i> Log Out
@@ -216,103 +227,6 @@
                                 accept=".xlsx"
                               />
                             </div>
-                            <!-- <div class="col-md-4">
-                              <label>Prompt</label>
-                            </div> -->
-
-                            <!-- <div class="col-md-8 form-group">
-                              <textarea
-                                class="form-control"
-                                id="prompt"
-                                rows="3"
-                              ></textarea>
-                            </div>
-                            <div class="col-md-4">
-                              <label>Select Language</label>
-                            </div>
-                            <div class="col-md-8 form-group">
-                              <select class="form-control" id="language">
-                                <option value="">Select Language</option>
-                                <option value="bg">Bulgarian</option>
-                                <option value="ca">Catalan</option>
-                                <option value="cs">Czech</option>
-                                <option value="da">Danish</option>
-                                <option value="da-DK">Danish (Denmark)</option>
-                                <option value="de">German</option>
-                                <option value="de-CH">
-                                  German (Switzerland)
-                                </option>
-                                <option value="el">Greek</option>
-                                <option value="en">English</option>
-                                <option value="en-AU">
-                                  English (Australia)
-                                </option>
-                                <option value="en-GB">English (UK)</option>
-                                <option value="en-IN">English (India)</option>
-                                <option value="en-NZ">
-                                  English (New Zealand)
-                                </option>
-                                <option value="en-US">English (US)</option>
-                                <option value="es">Spanish</option>
-                                <option value="es-419">
-                                  Spanish (Latin America)
-                                </option>
-                                <option value="es-LATAM">
-                                  Spanish (LATAM)
-                                </option>
-                                <option value="et">Estonian</option>
-                                <option value="fi">Finnish</option>
-                                <option value="fr">French</option>
-                                <option value="fr-CA">French (Canada)</option>
-                                <option value="hi">Hindi</option>
-                                <option value="hi-Latn">Hindi (Latin)</option>
-                                <option value="hu">Hungarian</option>
-                                <option value="id">Indonesian</option>
-                                <option value="it">Italian</option>
-                                <option value="ja">Japanese</option>
-                                <option value="ko">Korean</option>
-                                <option value="ko-KR">
-                                  Korean (South Korea)
-                                </option>
-                                <option value="lt">Lithuanian</option>
-                                <option value="lv">Latvian</option>
-                                <option value="ms">Malay</option>
-                                <option value="multi">
-                                  Multiple Languages
-                                </option>
-                                <option value="nl">Dutch</option>
-                                <option value="nl-BE">Dutch (Belgium)</option>
-                                <option value="no">Norwegian</option>
-                                <option value="pl">Polish</option>
-                                <option value="pt">Portuguese</option>
-                                <option value="pt-BR">
-                                  Portuguese (Brazil)
-                                </option>
-                                <option value="ro">Romanian</option>
-                                <option value="ru">Russian</option>
-                                <option value="sk">Slovak</option>
-                                <option value="sv">Swedish</option>
-                                <option value="sv-SE">Swedish (Sweden)</option>
-                                <option value="ta">Tamil</option>
-                                <option value="taq">Tamasheq</option>
-                                <option value="th">Thai</option>
-                                <option value="th-TH">Thai (Thailand)</option>
-                                <option value="tr">Turkish</option>
-                                <option value="uk">Ukrainian</option>
-                                <option value="vi">Vietnamese</option>
-                                <option value="zh">Chinese</option>
-                                <option value="zh-CN">
-                                  Chinese (Simplified)
-                                </option>
-                                <option value="zh-Hans">
-                                  Chinese (Simplified Han)
-                                </option>
-                                <option value="zh-Hant">
-                                  Chinese (Traditional Han)
-                                </option>
-                                <option value="zh-TW">Chinese (Taiwan)</option>
-                              </select>
-                            </div> -->
 
                             <div
                               class="col-sm-12 d-flex justify-content-end mt-3"
@@ -349,18 +263,19 @@
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script src="assets/js/main.js"></script>
 
     <script>
- const logoutBtn = document.getElementById("logout-btn");
+      const logoutBtn = document.getElementById("logout-btn");
 
-logoutBtn.addEventListener("click", () => {
-  localStorage.removeItem("token");
-  window.location.href = "login.html";
-});
+      logoutBtn.addEventListener("click", () => {
+        localStorage.removeItem("token");
+        window.location.href = "login.html";
+      });
 
-async function validateToken() {
+      async function validateToken() {
         const token = localStorage.getItem("token");
 
         if (!token) {
@@ -396,8 +311,8 @@ async function validateToken() {
           }
 
           const role = data.role;
-//console.log(role);
-if (role === "admin" || role === "subuser") {
+          //console.log(role);
+          if (role === "admin" || role === "subuser") {
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `
@@ -413,17 +328,7 @@ if (role === "admin" || role === "subuser") {
         </a>
       </li>
       <li>
-        <hr
-          style="
-            border: none;
-            height: 0.5px;
-            background-color: #e9ecef;
-            margin: 0.5rem 0;
-            width: calc(100% - 1rem);
-            margin-left: auto;
-            margin-right: auto;
-          "
-        />
+
       </li>
     `;
 
@@ -440,24 +345,14 @@ if (role === "admin" || role === "subuser") {
           <i class="fa-solid fa-comments"></i> Add Member
         </a>
       <li>
-        <hr
-          style="
-            border: none;
-            height: 0.5px;
-            background-color: #e9ecef;
-            margin: 0.5rem 0;
-            width: calc(100% - 1rem);
-            margin-left: auto;
-            margin-right: auto;
-          "
-        />
+ 
       </li>
     `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
           }
-     
+
           if (role === "admin" || role === "user") {
             const dropdownMenu = document.getElementById("dropdownMenu");
 
@@ -468,25 +363,12 @@ if (role === "admin" || role === "subuser") {
 </a>
 </li>
 <li>
-<hr
-style="
-border: none;
-height: 0.5px;
-background-color: #e9ecef;
-margin: 0.5rem 0;
-width: calc(100% - 1rem);
-margin-left: auto;
-margin-right: auto;
-"
-/>
 </li>
 `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
           }
-       
-       
         } catch (error) {
           console.error("Error validating token:", error);
           // Redirect to login if there's an error
@@ -497,9 +379,6 @@ margin-right: auto;
       // Call the validateToken function when the page loads
       window.onload = validateToken;
 
-
-
-      
       function processBulkCalls() {
         const fileInput = document.getElementById("file-upload");
 
@@ -514,8 +393,8 @@ margin-right: auto;
           const workbook = XLSX.read(data, { type: "array" });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-          const users = jsonData.slice(1); 
-          console.log(users)
+          const users = jsonData.slice(1);
+          console.log(users);
           sendToBackend(users);
         };
 
@@ -533,9 +412,17 @@ margin-right: auto;
         })
           .then((response) => response.json())
           .then((data) => {
+            Swal.fire({
+              icon: "success",
+              text: "Email Send Successfully",
+            });
             console.log("Success:", data);
           })
           .catch((error) => {
+            Swal.fire({
+              icon: "error",
+              text: "Invalid Data",
+            });
             console.error("Error:", error);
           });
       }
