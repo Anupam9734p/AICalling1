@@ -46,8 +46,8 @@ router.post("/payment", async (req, res) => {
           },
         ],
         mode: "payment",
-        success_url: `http://localhost:3000/api/auth/success/${userEmail}/${amount}`,
-        cancel_url: "http://localhost:3000/api/auth/failed",
+        success_url: `https://aicalling-demo.onrender.com/api/auth/success/${userEmail}/${amount}`,
+        cancel_url: "https://aicalling-demo.onrender.com/api/auth/failed",
         customer_email: userEmail,
       });
     }
