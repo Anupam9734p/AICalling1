@@ -324,9 +324,10 @@
               phone: document.getElementById("phone").value,
             };
 
-            method: "POST",
+            
             // fetch("http://localhost:3000/api/auth/add-subUser", {
             fetch("https://aicalling-demo.onrender.com/api/auth/add-subUser", {
+              method: "POST",
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -341,12 +342,14 @@
                 }
               })
               .then((data) => {
+                
                 Swal.fire({
               icon: "success",
               text: "Member added successfully!",
             });// Handle success response
               })
               .catch((error) => {
+                console.log(error)
                 Swal.fire({
               icon: "error",
               text: "Error occurred while adding member.",
