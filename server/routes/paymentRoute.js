@@ -86,7 +86,7 @@ router.get("/success/:email/:payment", async (req, res) => {
     // Save the updated user
     await user.save();
     // Redirect to the payment success page
-    res.redirect("http://127.0.0.1:5501/client/dist/paymentSuccess.html");
+    res.redirect("https://ai-calling-demo.vercel.app/paymentSuccess.html");
   } catch (err) {
     console.log("Success Error: " + err);
     return res.status(500).send({
@@ -98,7 +98,7 @@ router.get("/success/:email/:payment", async (req, res) => {
 
 router.get("/failed", async (req, res) => {
   try {
-    res.redirect("http://localhost:5500/AICalling/client/dist/paymentFailed.html");
+    res.redirect("https://ai-calling-demo.vercel.app/paymentFailed.html");
   } catch (err) {
     console.log("failed Error" + err);
   }
