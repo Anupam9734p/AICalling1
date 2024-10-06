@@ -7,11 +7,13 @@ const apiRoutes = require('./routes/api');
 const sendMessageRoutes = require('./routes/send-message');
 const googleCalendar = require('./routes/calendar');
 
+
 const callLogsRoutes = require('./routes/callLogs'); 
 const connectDb=require("./utils/db");
 const router=require("./routes/userRoute.js");
 const authMiddleware = require('./middlewares/authMiddleware');
 const paymentRoute=require("./routes/paymentRoute.js");
+const flashMiddleWare=require("./middlewares/flashMiddleware.js");
 
 
 const app = express();
@@ -24,6 +26,11 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(cors());
 
+
+//flash message 
+app.use(flashMiddleWare);
+
+
 // Routes
 app.use('/api/auth',router);
 app.use('/api', apiRoutes);
@@ -31,6 +38,10 @@ app.use('/api/messages', sendMessageRoutes);
 app.use('/calendar', googleCalendar);
 app.use('/imf', callLogsRoutes); // Add this line
 app.use('/api/auth',paymentRoute);
+
+
+
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

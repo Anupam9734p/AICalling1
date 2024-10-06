@@ -86,7 +86,7 @@ router.get("/success/:email/:payment", async (req, res) => {
     // Save the updated user
     await user.save();
     // Redirect to the payment success page
-    res.redirect("http://localhost:5500/AICalling/client/dist/paymentSuccess.html");
+    res.redirect("http://127.0.0.1:5501/client/dist/paymentSuccess.html");
   } catch (err) {
     console.log("Success Error: " + err);
     return res.status(500).send({

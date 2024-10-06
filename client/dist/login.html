@@ -14,15 +14,92 @@
       src="https://kit.fontawesome.com/64d58efce2.js"
       crossorigin="anonymous"
     ></script>
+
+    <style>
+     .message {
+    display: none;
+    padding: 10px;
+    margin-bottom: 15px;
+    text-align: center;
+    border-radius: 5px;
+    position: absolute; 
+    right: 20px; 
+    top: 5px; 
+    width: 600px;  
+    max-width: 450px; 
+    z-index: 1000; 
+    animation: fadeIn 0.5s, fadeOut 0.5s 2.5s; 
+}
+
+.message .close-btn {
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+    top: 3px; 
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 36px; 
+}
+
+.message.success {
+    background-color: #d4edda;
+    color: #035e19;
+    border: 1px solid #c3e6cb;
+}
+
+.message.error {
+    background-color: #f8d7da;
+    color: #cb182a;
+    border: 1px solid #f5c6cb; 
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+    </style>
   </head>
-  
+
   <body>
     <div class="container">
       <div class="forms-container">
         <div class="signin-signup">
+
+           <!-- Flash message for Signup Form -->
+           <!-- <div id="signupResultMessage" class="message"></div> -->
+          
+        
+
           <!-- Sign In Form -->
           <form id="loginForm" class="sign-in-form">
+
+            <div id="loginMessage" class="message"></div>
+
             <h2 class="title">Sign In</h2>
+
+         
+         
+
             <div class="input-field">
               <i class="fas fa-user"></i>
               <input
@@ -74,8 +151,13 @@
           </form>
 
           <!-- Sign Up Form -->
+         
           <form id="signupForm" class="sign-up-form">
+            <div id="signupMessage" class="message"></div>
             <h2 class="title">Sign Up</h2>
+
+            
+
             <div class="input-field">
               <i class="fas fa-user"></i>
               <input type="text" id="name" placeholder="Full Name" required />
@@ -160,58 +242,121 @@
         container.classList.remove("sign-up-mode");
       });
 
-      // Handle Sign Up form submission
-      document
-        .getElementById("signupForm")
-        .addEventListener("submit", async function (event) {
-          event.preventDefault();
-          const name = document.getElementById("name").value;
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
-          const phone = document.getElementById("phone").value;
+     
+  const loginMessage = document.getElementById("loginMessage");
+const signupMessage = document.getElementById("signupMessage");
 
-        console.log("Come")
-        //const res = await fetch("https://aicalling-osdb.onrender.com/api/auth/signup", {
+function displayMessage(messageElement, message, type) {
+    console.log("Displaying message:", message); 
+    messageElement.innerHTML = `
+        <button class="close-btn" aria-label="Close">&times;</button>
+        ${message}
+    `; 
+    messageElement.className = `message ${type}`; 
+    messageElement.style.display = "block"; 
+    const closeButton = messageElement.querySelector('.close-btn');
+    closeButton.onclick = () => {
+        messageElement.style.display = 'none'; 
+    };
+
+    setTimeout(() => {
+        messageElement.style.display = "none"; 
+    }, 3000);
+}
+
+
+
+
+
+document.getElementById("signupForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const phone = document.getElementById("phone").value;
+
+    try {
         const res = await fetch("http://localhost:3000/api/auth/signup", {
-        
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password, phone }),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password, phone }),
         });
 
-          const data = await res.json();
-          if (data.message === "User registered successfully") {
-            alert("Registration successful! Please log in.");
-            container.classList.remove("sign-up-mode"); // Switch to login form
-          } else {
-            alert("Registration failed: " + data.message);
-          }
+        const data = await res.json();
+        if (data.message === "User registered successfully") {
+            displayMessage(signupMessage, "Registration successful! Please log in.", "success");
+            container.classList.remove("sign-up-mode");
+        } else {
+            displayMessage(signupMessage, data.message, "error");
+        }
+    } catch (error) {
+        console.error("Error during signup:", error);
+        displayMessage(signupMessage, "An error occurred during signup.", "error");
+    }
+});
+
+// Handle Login form submission
+// document.getElementById("loginForm").addEventListener("submit", async function (event) {
+//     event.preventDefault();
+//     const email = document.getElementById("loginEmail").value;
+//     const password = document.getElementById("loginPassword").value;
+
+//     try {
+//         const res = await fetch("http://localhost:3000/api/auth/login", {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({ email, password }),
+//         });
+
+//         const data = await res.json();
+//         if (data.success) {
+//             localStorage.setItem("token", data.token);
+
+//             localStorage.setItem("loginMessage", "Login successful!");
+
+//                 window.location.href = "index.html"; // Redirect after a delay
+           
+            
+//         } else {
+//            displayMessage(loginMessage, "Login failed: " + data.message, "error");
+//         }
+//     } catch (error) {
+//         console.error("Error during login:", error);
+//         displayMessage(loginMessage, "An error occurred during login.", "error");
+//     }
+// });
+
+
+
+// Handle Login form submission
+document.getElementById("loginForm").addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+        const res = await fetch("http://localhost:3000/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
         });
 
-      // Handle Login form submission
-      document
-        .getElementById("loginForm")
-        .addEventListener("submit", async function (event) {
-          event.preventDefault();
-          const email = document.getElementById("loginEmail").value;
-          const password = document.getElementById("loginPassword").value;
-     // const res = await fetch("https://aicalling-osdb.onrender.com/api/auth/login", {
-
-         const res = await fetch("http://localhost:3000/api/auth/login", {
-        
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-
-          const data = await res.json();
-          if (data.success) {
+        const data = await res.json();
+        if (data.success) {
             localStorage.setItem("token", data.token);
-            window.location.href = "index.html";
-          } else {
-            alert("Login failed: " + data.message);
-          }
-        });
+            displayMessage(loginMessage, "Login successful!", "success");
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1000); 
+        } else {
+            displayMessage(loginMessage, "Login failed: " + data.message, "error");
+        }
+    } catch (error) {
+        console.error("Error during login:", error);
+        displayMessage(loginMessage, "An error occurred during login.", "error");
+    }
+});
+
 
       //---------->>>>>>Toggling password with eye button ----------->
 
@@ -246,6 +391,7 @@
         this.classList.toggle("fa-eye");
         this.classList.toggle("fa-eye-slash");
       });
+
     </script>
   </body>
 </html>

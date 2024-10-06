@@ -16,11 +16,16 @@ router.post("/signup", async (req, res) => {
   try {
     const userExists = await User.findOne({ email });
     if (userExists) {
+      res.flash('error', 'User already exists');
       return res.status(400).json({ message: "User already exists" });
     }
 
     const newUser = new User({ name, email, password, phone });
     await newUser.save();
+
+    
+
+    res.flash('success', 'User registered successfully');
 
     return res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
@@ -46,6 +51,7 @@ router.post("/login", async (req, res) => {
       role = "subuser";
 
       if (!user) {
+        res.flash('error', 'Invalid username or password');
         return res
           .status(401)
           .json({ message: "Invalid username or password" });
@@ -55,17 +61,19 @@ router.post("/login", async (req, res) => {
     // Check if the password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      console.log("come");
+     // console.log("come");
+     res.flash('error', 'Invalid username or password');
       return res.status(401).json({ message: "Invalid username or password" });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id, role: user.role || role }, // Check if user has role, otherwise default to 'subuser'
+      { userId: user._id, role: user.role || role }, 
       JWT_SECRET,
       { expiresIn: "1d" }
     );
 
+    res.flash('success', 'Login successful');
     return res.status(200).json({
       message: "Login successful",
       success: true,
@@ -73,6 +81,7 @@ router.post("/login", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    res.flash('error', 'Server Error');
     return res.status(500).json({ message: "Server Error" + err });
   }
 });
@@ -81,11 +90,13 @@ router.get("/validate", (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
+    res.flash("No token provided");
     return res.status(401).json({ valid: false, message: "No token provided" });
   }
 
   jwt.verify(token, JWT_SECRET, async (err, data) => {
     if (err) {
+      rsres.flash("Invalid token");
       return res.status(401).json({ valid: false, message: "Invalid token" });
     }
 
@@ -95,6 +106,7 @@ router.get("/validate", (req, res) => {
     }
 
     if (!user) {
+      res.flash("User not found");
       return res.status(404).json({ valid: false, message: "User not found" });
     }
 
@@ -106,11 +118,13 @@ router.get("/validate-profile", async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
+    res.flash('No token provided');
     return res.status(401).json({ valid: false, message: "No token provided" });
   }
 
   jwt.verify(token, JWT_SECRET, async (err, data) => {
     if (err) {
+      res.flash("error","Invalid token");
       return res.status(401).json({ valid: false, message: "Invalid token" });
     }
 
@@ -120,6 +134,7 @@ router.get("/validate-profile", async (req, res) => {
     }
 
     if (!userData) {
+      res.flash("User not found");
       return res.status(404).json({ valid: false, message: "User not found" });
     }
 
@@ -130,6 +145,7 @@ router.get("/validate-profile", async (req, res) => {
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization.split(" ")[1];
   if (!token) {
+    res.flash("Access denied");
     return res.status(401).json({ message: "Access denied" });
   }
 
@@ -147,12 +163,14 @@ router.get("/users", verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.userId);
     if (!user || user.role !== "admin") {
+      res.flash("Access denied");
       return res.status(403).json({ message: "Access denied" });
     }
     const users = await User.findOne({email:user.email}).populate("subUsers");
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
+    res.flash("error","Server Error");
     res.status(500).json({ message: "Server Error" });
   }
 });
@@ -167,17 +185,19 @@ router.post("/update-profile", verifyToken, async (req, res) => {
     }
 
     if (!user) {
+      res.flash("User not found");
       return res.status(404).json({ message: "User not found" });
     }
 
     user[field] = value;
     await user.save();
-
+    res.flash("success","Profile updated successfully")
     res
       .status(200)
       .json({ message: "Profile updated successfully", data: user });
   } catch (error) {
     console.error(error);
+    res.flash("error","Error updating profile");
     res.status(500).json({ message: "Error updating profile" });
   }
 });
@@ -190,6 +210,7 @@ router.post("/add-subUser", async (req, res) => {
     // Check if sub-user with the same email already exists
     const checkUser = await SubUser.findOne({ email });
     if (checkUser) {
+      res.flash("Sub-user with this email already exists");
       return res
         .status(401)
         .json({ message: "Sub-user with this email already exists" });
@@ -199,6 +220,7 @@ router.post("/add-subUser", async (req, res) => {
     const token = req.headers.authorization?.split(" ")[1];
     console.log(token);
     if (!token) {
+      res.flash("Authorization token missing");
       return res.status(403).json({ message: "Authorization token missing" });
     }
 
@@ -206,6 +228,7 @@ router.post("/add-subUser", async (req, res) => {
     try {
       decoded = jwt.verify(token, JWT_SECRET);
     } catch (err) {
+      res.flash("Invalid or expired token");
       return res.status(401).json({ message: "Invalid or expired token" });
     }
 
@@ -213,6 +236,7 @@ router.post("/add-subUser", async (req, res) => {
     // Find admin user from decoded token
     const adminData = await User.findById(decoded.userId);
     if (!adminData || adminData.role !== "admin") {
+      res.flash("No permission to add sub-user");
       return res.status(401).json({ message: "No permission to add sub-user" });
     }
 
@@ -234,14 +258,17 @@ router.post("/add-subUser", async (req, res) => {
     await adminData.save();
 
     console.log(adminData);
+    res.flash("success","Sub-user added successfully");
     res.status(201).json({ message: "Sub-user added successfully" });
   } catch (error) {
     console.error("Error occurred while adding sub-user: ", error);
+    res.flash("error","Internal Server Error")
     res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
 router.get("/home", authMiddleware, (req, res) => {
+  res.flash("Welcome to home page");
   res.status(200).json({
     message: "Welcome to the home page!",
     user: req.user,
