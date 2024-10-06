@@ -59,6 +59,24 @@
         min-width: 150px;
         text-align: center;
       }
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+      }
+
+      .dropdown-item i {
+        margin-right: 8px; /* Adds space between the icon and text */
+      }
+
+      .dropdown-divider {
+        border: none;
+        height: 0.5px;
+        background-color: #e9ecef;
+        margin: 0.5rem 0;
+        width: calc(100% - 1rem);
+        margin-left: auto;
+        margin-right: auto;
+      }
     </style>
   </head>
 
@@ -182,7 +200,7 @@
                 </a>
               </li>
               <li>
-                <hr
+                <!-- <hr
                   style="
                     border: none;
                     height: 0.5px;
@@ -192,7 +210,7 @@
                     margin-left: auto;
                     margin-right: auto;
                   "
-                />
+                /> -->
               </li>
               <li>
                 <a class="dropdown-item" href="#" id="logout-btn">
@@ -457,17 +475,7 @@
         </a>
       </li>
       <li>
-        <hr
-          style="
-            border: none;
-            height: 0.5px;
-            background-color: #e9ecef;
-            margin: 0.5rem 0;
-            width: calc(100% - 1rem);
-            margin-left: auto;
-            margin-right: auto;
-          "
-        />
+       
       </li>
     `;
 
@@ -484,17 +492,7 @@
           <i class="fa-solid fa-comments"></i> Add Member
         </a>
       <li>
-        <hr
-          style="
-            border: none;
-            height: 0.5px;
-            background-color: #e9ecef;
-            margin: 0.5rem 0;
-            width: calc(100% - 1rem);
-            margin-left: auto;
-            margin-right: auto;
-          "
-        />
+       
       </li>
     `;
 
@@ -529,10 +527,6 @@ margin-right: auto;
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
           }
-       
-       
-       
-       
         } catch (error) {
           console.error("Error validating token:", error);
           // Redirect to login if there's an error

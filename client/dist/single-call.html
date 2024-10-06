@@ -59,6 +59,24 @@
         min-width: 150px; 
         text-align: center; 
       }
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+      }
+
+      .dropdown-item i {
+        margin-right: 8px; /* Adds space between the icon and text */
+      }
+
+      .dropdown-divider {
+        border: none;
+        height: 0.5px;
+        background-color: #e9ecef;
+        margin: 0.5rem 0;
+        width: calc(100% - 1rem);
+        margin-left: auto;
+        margin-right: auto;
+      }
   </style>
 </head>
 
@@ -157,17 +175,7 @@
                 </a>
               </li>
               <li>
-                <hr
-                  style="
-                    border: none;
-                    height: 0.5px;
-                    background-color: #e9ecef;
-                    margin: 0.5rem 0;
-                    width: calc(100% - 1rem);
-                    margin-left: auto;
-                    margin-right: auto;
-                  "
-                />
+          
               </li>
               <li>
                 <a class="dropdown-item" href="#" id="logout-btn">
@@ -405,17 +413,7 @@ if (role === "admin" || role === "subuser") {
         </a>
       </li>
       <li>
-        <hr
-          style="
-            border: none;
-            height: 0.5px;
-            background-color: #e9ecef;
-            margin: 0.5rem 0;
-            width: calc(100% - 1rem);
-            margin-left: auto;
-            margin-right: auto;
-          "
-        />
+       
       </li>
     `;
 
@@ -432,17 +430,7 @@ if (role === "admin" || role === "subuser") {
           <i class="fa-solid fa-comments"></i> Add Member
         </a>
       <li>
-        <hr
-          style="
-            border: none;
-            height: 0.5px;
-            background-color: #e9ecef;
-            margin: 0.5rem 0;
-            width: calc(100% - 1rem);
-            margin-left: auto;
-            margin-right: auto;
-          "
-        />
+
       </li>
     `;
 
