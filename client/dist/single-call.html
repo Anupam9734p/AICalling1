@@ -108,32 +108,34 @@
                 <span>Dashboard</span>
               </a>
             </li>
-            <li class="sidebar-item active">
-              <a href="single-call.html" class="sidebar-link">
-                <i class="bi bi-file-earmark-medical-fill"></i>
-                <span>Single Call</span>
-              </a>
-            </li>
-            <li class="sidebar-item">
-              <a href="bulk-call.html" class="sidebar-link">
-                <i class="bi bi-stack"></i>
-                <span>Bulk Call</span>
-              </a>
-            </li>
+            <div id="admin-subuser-features" style="display: none;">
+              <li class="sidebar-item active">
+                <a href="single-call.html" class="sidebar-link ">
+                  <i class="bi bi-telephone-fill"></i>
+                  <span>Single Call</span>
+                </a>
+              </li>
+        
+              <li class="sidebar-item">
+                <a href="bulk-call.html" class="sidebar-link">
+                  <i class="bi bi-stack"></i>
+                  <span>Bulk Call</span>
+                </a>
+              </li>
+              <li class="sidebar-item">
+                <a href="call-logs.html" class="sidebar-link">
+                  <i class="bi bi-journal-text"></i>
+                  <span>Call Logs</span>
+                </a>
+              </li>
 
-            <li class="sidebar-item">
-              <a href="call-logs.html" class="sidebar-link">
-                <i class="bi bi-journal-text"></i>
-                <span>Call Logs</span>
-              </a>
-            </li>
-
-            <li class="sidebar-item">
-              <a href="sms-email.html" class="sidebar-link">
-                <i class="bi bi-envelope-fill"></i>
-                <span>SMS & Email</span>
-              </a>
-            </li>
+              <li class="sidebar-item">
+                <a href="sms-email.html" class="sidebar-link">
+                  <i class="bi bi-envelope-fill"></i>
+                  <span>SMS & Email</span>
+                </a>
+              </li>
+            </div>
 
             <li class="sidebar-item">
               <a href="appointment.html" class="sidebar-link">
@@ -375,7 +377,7 @@ async function validateToken() {
         try {
           const response = await fetch(
             // "https://aicalling-osdb.onrender.com/api/auth/validate",
-             "https://aicalling-demo.onrender.com/api/auth/validate",
+            "https://aicalling-demo.onrender.com/api/auth/validate",
            // "http://localhost:3000/api/auth/validate",
 
             {
@@ -399,7 +401,10 @@ async function validateToken() {
           const role = data.role;
 //console.log(role);
 
-if (role === "admin" || role === "subuser") {
+if (role === "admin" || role === "subuser" ||  role === "super_admin") {
+    document.getElementById("admin-subuser-features").style.display = "block";
+  }
+if (role === "admin" || role === "subuser" ||   role === "super_admin") {
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `
@@ -481,34 +486,29 @@ margin-right: auto;
       // Call the validateToken function when the page loads
       window.onload = validateToken;
 
-    document.getElementById("call-form").addEventListener("submit", (e) => {
+      document.getElementById("call-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const firstName = document.getElementById("first-name").value;
       const phoneNumberInput = document.getElementById("phone-number").value;
       const selectedLanguage = document.getElementById("language").value;
-      console.log(selectedLanguage)
       const prompt = document.getElementById("prompt").value;
-      if(selectedLanguage == "")
-    {
-      Swal.fire({icon: "error",
-          text: "Please select a language First"
-    })
-    return;
-  }
-    if(firstName == "")
-    {
-      Swal.fire({icon: "error",
-          text: "All field are required"
-    })
-    return;
-  }
-    if(phoneNumberInput == "")
-    {
-      Swal.fire({icon: "error",
-            text: "All field are required"
-    })
-    return;
-    }
+
+      if (selectedLanguage === "") {
+        Swal.fire({
+          icon: "error",
+          text: "Please select a language first.",
+        });
+        return;
+      }
+
+      if (firstName === "" || phoneNumberInput === "") {
+        Swal.fire({
+          icon: "error",
+          text: "All fields are required.",
+        });
+        return;
+      }
+
       // Validate and format the phone number
       const formattedPhoneNumber = formatPhoneNumber(phoneNumberInput);
 
@@ -521,69 +521,154 @@ margin-right: auto;
         return;
       }
 
-      const options = {
-        method: "POST",
-        headers: {
-          Authorization: "Bearer 22576079-730d-4707-b8ab-f780113249f3",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: `Call with ${firstName}`,
-          phoneNumberId: "bd57afc5-2af2-492e-88d1-856dea3320ef",
-          customer: {
-            number: formattedPhoneNumber,
+      try {
+     //   const response = await fetch("http://localhost:3000/api/auth/check-credit", {
+        const response = await fetch("https://aicalling-demo.onrender.com/api/auth/check-credit", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
           },
-          assistant: {
-            transcriber: {
-              provider: "deepgram",
-              model: "nova-2",
-              language: selectedLanguage,
-              smartFormat: false,
-            },
-            model: {
-              provider: "openai",
-              model: "gpt-4",
-              messages: [
-                {
-                  role: "system",
-                  content: prompt,
-                },
-              ],
-              knowledgeBase: {
-                provider: "canonical",
-                fileIds: ["your-file-id"],
-              },
-            },
-          },
-        }),
-      };
-
-      fetch("https://api.vapi.ai/call", options)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log(`Call to ${firstName} initiated:, data`);
-          const callSid = data.id; // Assuming 'id' is the unique identifier for the call
-          updateCallResults(
-            firstName,
-            formattedPhoneNumber,
-            "Call initiated successfully"
-          );
-          // Start polling for call status
-          pollCallStatus(callSid, firstName, formattedPhoneNumber);
-        })
-        .catch((error) => {
-          console.error("Error initiating call to", firstName, ":", error);
-          Swal.fire({icon: "error",
-            text: "An Error Occured..."
-    })
-    return;
-          updateCallResults(
-            firstName,
-            formattedPhoneNumber,
-            "Failed to initiate call"
-          );
         });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.message === "Sufficient credits available") {
+            Swal.fire({
+              icon: "success",
+              title: "Credits Available",
+              text: "You have sufficient credits to proceed with the call.",
+            });
+
+            // Call options
+            const options = {
+              method: "POST",
+              headers: {
+                Authorization: "Bearer 22576079-730d-4707-b8ab-f780113249f3",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                name: `Call with ${firstName}`,
+                phoneNumberId: "bd57afc5-2af2-492e-88d1-856dea3320ef",
+                customer: {
+                  number: formattedPhoneNumber,
+                },
+                assistant: {
+                  transcriber: {
+                    provider: "deepgram",
+                    model: "nova-2",
+                    language: selectedLanguage,
+                    smartFormat: false,
+                  },
+                  model: {
+                    provider: "openai",
+                    model: "gpt-4",
+                    messages: [
+                      {
+                        role: "system",
+                        content: prompt,
+                      },
+                    ],
+                    knowledgeBase: {
+                      provider: "canonical",
+                      fileIds: ["your-file-id"],
+                    },
+                  },
+                },
+              }),
+            };
+
+            // Make the call
+            const callResponse = await fetch("https://api.vapi.ai/call", options);
+            if (callResponse.ok) {
+              const callData = await callResponse.json();
+              const callSid = callData.id;
+              const token = localStorage.getItem("token")
+              updateCredit(token)
+              console.log(`Call to ${firstName} initiated:`, callData);
+              updateCallResults(firstName, formattedPhoneNumber, "Call initiated successfully");
+              pollCallStatus(callSid, firstName, formattedPhoneNumber);
+            } else {
+              throw new Error("Failed to initiate call");
+            }
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Insufficient Credits",
+              text: "You do not have enough credits to make a call.",
+            });
+          }
+        } else if (response.status === 403) {
+          Swal.fire({
+            icon: "error",
+            title: "Insufficient Credits",
+            text: "You do not have enough credits to make a call.",
+          });
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "An error occurred while checking credits. Please try again later.",
+          });
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "An error occurred while checking credits. Please try again later.",
+        });
+      }
     });
+
+    const updateCredit = async (token) => {
+  try {
+    // Fetch the update-credit API endpoint
+  //  const response = await fetch("http://localhost:3000/api/auth/update-credit", {
+    const response = await fetch("https://aicalling-demo.onrender.com/api/auth/update-credit", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Check if the response is successful
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Credit update response:", data);
+      Swal.fire({
+        icon: "success",
+        title: "Credit Updated",
+        text: `Credit updated successfully. Remaining credits: ${data.credits}`,
+      });
+    } else if (response.status === 403) {
+      Swal.fire({
+        icon: "error",
+        title: "Insufficient Credits",
+        text: "You do not have enough credits to proceed.",
+      });
+    } else {
+      const errorData = await response.json();
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: errorData.message || "An error occurred while updating credits.",
+      });
+    }
+  } catch (error) {
+    console.error("Error updating credits:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "An error occurred while updating credits. Please try again later.",
+    });
+  }
+};
+
+         
+
+    
 
     function pollCallStatus(callSid, name, phoneNumber) {
       const pollInterval = 30000; // 30 seconds

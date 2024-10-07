@@ -16,16 +16,14 @@ router.post("/signup", async (req, res) => {
   try {
     const userExists = await User.findOne({ email });
     if (userExists) {
-      res.flash('error', 'User already exists');
+      res.flash("error", "User already exists");
       return res.status(400).json({ message: "User already exists" });
     }
 
     const newUser = new User({ name, email, password, phone });
     await newUser.save();
 
-    
-
-    res.flash('success', 'User registered successfully');
+    res.flash("success", "User registered successfully");
 
     return res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
@@ -51,7 +49,7 @@ router.post("/login", async (req, res) => {
       role = "subuser";
 
       if (!user) {
-        res.flash('error', 'Invalid username or password');
+        res.flash("error", "Invalid username or password");
         return res
           .status(401)
           .json({ message: "Invalid username or password" });
@@ -61,19 +59,19 @@ router.post("/login", async (req, res) => {
     // Check if the password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-     // console.log("come");
-     res.flash('error', 'Invalid username or password');
+      // console.log("come");
+      res.flash("error", "Invalid username or password");
       return res.status(401).json({ message: "Invalid username or password" });
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: user._id, role: user.role || role }, 
+      { userId: user._id, role: user.role || role },
       JWT_SECRET,
       { expiresIn: "1d" }
     );
 
-    res.flash('success', 'Login successful');
+    res.flash("success", "Login successful");
     return res.status(200).json({
       message: "Login successful",
       success: true,
@@ -81,7 +79,7 @@ router.post("/login", async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.flash('error', 'Server Error');
+    res.flash("error", "Server Error");
     return res.status(500).json({ message: "Server Error" + err });
   }
 });
@@ -96,7 +94,7 @@ router.get("/validate", (req, res) => {
 
   jwt.verify(token, JWT_SECRET, async (err, data) => {
     if (err) {
-      rsres.flash("Invalid token");
+      res.flash("Invalid token");
       return res.status(401).json({ valid: false, message: "Invalid token" });
     }
 
@@ -118,13 +116,13 @@ router.get("/validate-profile", async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
-    res.flash('No token provided');
+    res.flash("No token provided");
     return res.status(401).json({ valid: false, message: "No token provided" });
   }
 
   jwt.verify(token, JWT_SECRET, async (err, data) => {
     if (err) {
-      res.flash("error","Invalid token");
+      res.flash("error", "Invalid token");
       return res.status(401).json({ valid: false, message: "Invalid token" });
     }
 
@@ -166,11 +164,13 @@ router.get("/users", verifyToken, async (req, res) => {
       res.flash("Access denied");
       return res.status(403).json({ message: "Access denied" });
     }
-    const users = await User.findOne({email:user.email}).populate("subUsers");
+    const users = await User.findOne({ email: user.email }).populate(
+      "subUsers"
+    );
     res.status(200).json(users);
   } catch (error) {
     console.error("Error fetching users:", error);
-    res.flash("error","Server Error");
+    res.flash("error", "Server Error");
     res.status(500).json({ message: "Server Error" });
   }
 });
@@ -191,13 +191,13 @@ router.post("/update-profile", verifyToken, async (req, res) => {
 
     user[field] = value;
     await user.save();
-    res.flash("success","Profile updated successfully")
+    res.flash("success", "Profile updated successfully");
     res
       .status(200)
       .json({ message: "Profile updated successfully", data: user });
   } catch (error) {
     console.error(error);
-    res.flash("error","Error updating profile");
+    res.flash("error", "Error updating profile");
     res.status(500).json({ message: "Error updating profile" });
   }
 });
@@ -258,12 +258,136 @@ router.post("/add-subUser", async (req, res) => {
     await adminData.save();
 
     console.log(adminData);
-    res.flash("success","Sub-user added successfully");
+    res.flash("success", "Sub-user added successfully");
     res.status(201).json({ message: "Sub-user added successfully" });
   } catch (error) {
     console.error("Error occurred while adding sub-user: ", error);
-    res.flash("error","Internal Server Error")
+    res.flash("error", "Internal Server Error");
     res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/check-credit", verifyToken, async (req, res) => {
+  try {
+    const { userId, role } = req;
+    let user;
+
+    if (role === "admin") {
+      user = await User.findById(userId);
+    } else if (role === "subuser") {
+      user = await SubUser.findById(userId);
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the user has at least one credit
+    if (user.credits < 1 || user.credit < 1) {
+      return res.status(403).json({ message: "Insufficient credits" });
+    }
+
+    res.status(200).json({ message: "Sufficient credits available" });
+  } catch (error) {
+    console.error("Error checking credits: ", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.get("/update-credit", verifyToken, async (req, res) => {
+  try {
+    const { userId, role } = req;
+    let user;
+    if (role === "admin") {
+      user = await User.findById(userId);
+    } else if (role === "subuser") {
+      user = await SubUser.findById(userId);
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the user has sufficient credits
+    if (
+      (user.credits && user.credits > 0) ||
+      (user.credit && user.credit > 0)
+    ) {
+      // Deduct 1 credit based on which property exists
+      if (user.credits) {
+        user.credits -= 1;
+      } else if (user.credit) {
+        user.credit -= 1;
+      }
+
+      console.log(user);
+
+      // Save the updated user
+      await user.save();
+
+      // Return the updated credits in the response (choosing the correct field)
+      const remainingCredits = user.credits || user.credit;
+      return res.json({
+        message: "Credit updated successfully",
+        credits: remainingCredits,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "An error occurred while updating credits" });
+  }
+});
+
+router.post("/check-bulk-credit", verifyToken, async (req, res) => {
+  try {
+    const { userId, role } = req;
+    const { callCount } = req.body; // Number of calls to be made in bulk
+
+    let user;
+
+    if (role === "admin") {
+      user = await User.findById(userId);
+    } else if (role === "subuser") {
+      user = await SubUser.findById(userId);
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the user has enough credits for the bulk call
+    const availableCredits = user.credits || user.credit;
+
+    if (availableCredits >= callCount) {
+      // Return success message without deducting credits
+      return res.json({
+        message: "Sufficient credits available",
+        remainingCredits: availableCredits,
+      });
+    } else {
+      return res
+        .status(403)
+        .json({ message: "Insufficient credits for bulk call" });
+    }
+  } catch (error) {
+    console.error("Error checking credits for bulk call:", error);
+    res
+      .status(500)
+      .json({
+        message: "An error occurred while checking credits for bulk call",
+      });
+  }
+});
+
+router.get("/admins", async (req, res) => {
+  try {
+    const admins = await User.find({ role: "admin" });
+    res.status(200).json({ admins: admins });
+  } catch (error) {
+    console.error("Error fetching admin data:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

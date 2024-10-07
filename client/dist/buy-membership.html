@@ -113,33 +113,34 @@
                 </a>
               </li>
 
-              <li class="sidebar-item">
-                <a href="single-call.html" class="sidebar-link">
-                  <i class="bi bi-telephone-fill"></i>
-                  <span>Single Call</span>
-                </a>
-              </li>
-
-              <li class="sidebar-item">
-                <a href="bulk-call.html" class="sidebar-link">
-                  <i class="bi bi-stack"></i>
-                  <span>Bulk Call</span>
-                </a>
-              </li>
-
-              <li class="sidebar-item">
-                <a href="call-logs.html" class="sidebar-link">
-                  <i class="bi bi-journal-text"></i>
-                  <span>Call Logs</span>
-                </a>
-              </li>
-
-              <li class="sidebar-item">
-                <a href="sms-email.html" class="sidebar-link">
-                  <i class="bi bi-envelope-fill"></i>
-                  <span>SMS & Email</span>
-                </a>
-              </li>
+              <div id="admin-subuser-features" style="display: none;">
+                <li class="sidebar-item">
+                  <a href="single-call.html" class="sidebar-link">
+                    <i class="bi bi-telephone-fill"></i>
+                    <span>Single Call</span>
+                  </a>
+                </li>
+          
+                <li class="sidebar-item">
+                  <a href="bulk-call.html" class="sidebar-link">
+                    <i class="bi bi-stack"></i>
+                    <span>Bulk Call</span>
+                  </a>
+                </li>
+                <li class="sidebar-item">
+                  <a href="call-logs.html" class="sidebar-link">
+                    <i class="bi bi-journal-text"></i>
+                    <span>Call Logs</span>
+                  </a>
+                </li>
+  
+                <li class="sidebar-item">
+                  <a href="sms-email.html" class="sidebar-link">
+                    <i class="bi bi-envelope-fill"></i>
+                    <span>SMS & Email</span>
+                  </a>
+                </li>
+              </div>
 
               <li class="sidebar-item">
                 <a href="appointment.html" class="sidebar-link">
@@ -300,8 +301,11 @@
           }
           const role = data.data.role;
 console.log(role);
+if (role === "admin" || role === "subuser" ||  role === "super_admin") {
+    document.getElementById("admin-subuser-features").style.display = "block";
+  }
 
-if (role === "admin" || role === "subuser") {
+if (role === "admin" || role === "subuser" ||  role === "super_admin") {
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `

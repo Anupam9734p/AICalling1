@@ -61,7 +61,6 @@
                     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
                   "
                 />
-               
               </div>
             </div>
           </div>
@@ -121,6 +120,15 @@
                     ></i>
                   </div>
                 </div>
+
+                <div class="row mb-3">
+                  <div class="col-sm-3">
+                    <p class="mb-0 text-muted">Credit Usage</p>
+                  </div>
+                  <div class="col-sm-9 d-flex align-items-center">
+                    <p class="text-dark mb-0" id="credit">0</p>
+                  </div>
+                </div>
                 <hr />
 
                 <div
@@ -133,7 +141,7 @@
                   </div>
                   <div class="col-sm-9">
                     <ul id="userList" class="list-group">
-                        <p class="text-dark mb-0" id="phone">No Data Found</p>
+                      <p class="text-dark mb-0" id="phone">No Data Found</p>
                     </ul>
                   </div>
                 </div>
@@ -206,8 +214,6 @@
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
 
     <script>
-
-        
       let editField = "";
 
       // Function to open the modal for editing
@@ -234,8 +240,8 @@
         // Save data to the backend
         try {
           const response = await fetch(
-           // "http://localhost:3000/api/auth/update-profile",
-            "https://aicalling-demo.onrender.com/api/auth/update-profile",
+          //  "http://localhost:3000/api/auth/update-profile",
+             "https://aicalling-demo.onrender.com/api/auth/update-profile",
             {
               method: "POST",
               headers: {
@@ -250,6 +256,7 @@
             throw new Error("Failed to update");
           }
 
+          console.log(response);
           // Optionally, show a success message
           alert("Profile updated successfully.");
         } catch (error) {
@@ -269,7 +276,7 @@
         try {
           const response = await fetch(
           //  "http://localhost:3000/api/auth/validate-profile",
-            "https://aicalling-demo.onrender.com/api/auth/validate-profile",
+             "https://aicalling-demo.onrender.com/api/auth/validate-profile",
             {
               method: "GET",
               headers: {
@@ -294,6 +301,11 @@
                 "block";
               fetchAllUsers(token);
             } // Populate form with user data
+            if (data.data.role === "super_admin") {
+              document.getElementById("userListSection").style.display =
+                "block";
+              fetchAllAdmins(token);
+            }
           }
         } catch (error) {
           console.error("Error validating token:", error);
@@ -303,15 +315,23 @@
 
       // Function to populate the profile form with user data
       function populateProfileForm(data) {
+        console.log(data);
         document.getElementById("name").innerText = data.name;
         document.getElementById("email").innerText = data.email;
         document.getElementById("phone").innerText = data.phone;
+        if (data.credit >=0) {
+          document.getElementById("credit").innerText = data.credit;
+        } else if (data.credits >=0) {
+          document.getElementById("credit").innerText = data.credits;
+        } else {
+          document.getElementById("credit").innerText = "Admin";
+        }
       }
 
       async function fetchAllUsers(token) {
         try {
          // const response = await fetch("http://localhost:3000/api/auth/users", {
-          const response = await fetch("https://aicalling-demo.onrender.com/api/auth/users", {
+             const response = await fetch("https://aicalling-demo.onrender.com/api/auth/users", {
             method: "GET",
             headers: {
               "Content-Type": "application/json",
@@ -339,13 +359,15 @@
               const name = subUser.name || "No name found";
               const email = subUser.email || "No email found";
               const phone = subUser.phone || "No phone found";
+              const credit = subUser.credit;
 
               // Add the user details to the list item
               listItem.innerHTML = `
-                    <strong>Name:</strong> ${name} <br/>
-                    <strong>Email:</strong> ${email} <br/>
-                    <strong>Phone:</strong> ${phone}
-                `;
+                          <strong>Name:</strong> ${name} <br/>
+                          <strong>Email:</strong> ${email} <br/>
+                          <strong>Phone:</strong> ${phone}<br/>
+                          <strong>Credit Usage:</strong> ${credit}<br/>
+                      `;
 
               userList.appendChild(listItem);
             });
@@ -358,6 +380,81 @@
           }
         } catch (error) {
           console.error("Error fetching users:", error);
+        }
+      }
+
+      async function fetchAllAdmins(token) {
+        try {
+          const response = await fetch(
+            //"http://localhost:3000/api/auth/admins",
+            "https://aicalling-demo.onrender.com/api/auth/admins",
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            if (response.status === 401) {
+              alert("Session expired. Please log in again.");
+              window.location.href = "/login";
+              return;
+            }
+            throw new Error("Failed to fetch admins");
+          }
+
+          const data = await response.json();
+          console.log("All admin users with sub-users:", data);
+
+          const userList = document.getElementById("userList");
+          if (!userList) {
+            console.error("User list element not found");
+            return;
+          }
+
+          userList.innerHTML = "";
+
+          if (data.admins && data.admins.length > 0) {
+            console.log("Come");
+            data.admins.forEach((admin) => {
+              console.log("Comedffd");
+              if (admin.role === "admin") {
+                const listItem = document.createElement("li");
+                listItem.classList.add("list-group-item");
+
+                const name = admin.name || "No name found";
+                const email = admin.email || "No email found";
+                const phone = admin.phone || "No phone found";
+                const credit = admin.credits || "No credit available";
+                const subUserCount = admin.subUsers ? admin.subUsers.length : 0;
+
+                console.log(name);
+                console.log(email);
+                listItem.innerHTML = `
+                  <strong>Name:</strong> ${name} <br/>
+                  <strong>Email:</strong> ${email} <br/>
+                  <strong>Phone:</strong> ${phone}<br/>
+                  <strong>Credit:</strong> ${credit}<br/>
+                  <strong>Sub-Users:</strong> ${subUserCount}
+                `;
+
+                userList.appendChild(listItem);
+              }
+            });
+          } else {
+            const listItem = document.createElement("li");
+            listItem.classList.add("list-group-item");
+            listItem.textContent = "No admin users found";
+            userList.appendChild(listItem);
+          }
+        } catch (error) {
+          console.error("Error fetching admins:", error);
+          alert(
+            "An error occurred while fetching admin data. Please try again later."
+          );
         }
       }
     </script>

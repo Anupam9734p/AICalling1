@@ -24,6 +24,10 @@ const subUserSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  credit:{
+    type:Number,
+    default:0
+  },
   role: {
     type: String,
     default: 'subuser',
