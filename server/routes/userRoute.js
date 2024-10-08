@@ -5,27 +5,67 @@ const mongoose = require("mongoose");
 const User = require("../models/userModal.js");
 const router = express.Router();
 require("dotenv").config();
-
+const nodemailer = require("nodemailer");
+const otpStore = {};
 const JWT_SECRET = process.env.JWT_SECRET;
 const authMiddleware = require("../middlewares/authMiddleware");
 const SubUser = require("../models/subUserSchema.js");
-
+const subUserSchema = require("../models/subUserSchema.js");
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "arijitghosh1203@gmail.com",
+    pass: "hryc yasr hlft mjsi",
+  },
+});
 router.post("/signup", async (req, res) => {
   const { name, email, password, phone } = req.body;
-  console.log(req.body);
+
   try {
+    // Check if the user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
-      res.flash("error", "User already exists");
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // Generate a random 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore[email] = otp; // Store the OTP for later verification
+
+    // Send OTP to the user's email
+    await transporter.sendMail({
+      from: "arijitghosh1203@gmail.com",
+      to: email,
+      subject: "Your OTP for Signup",
+      text: `Your OTP for signup is: ${otp}`,
+    });
+    console.log("COme");
+
+    res.status(200).json({ message: "OTP sent to email. Please verify." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Server Error" });
+  }
+});
+
+// Route to verify OTP and complete the registration
+router.post("/verify-otp", async (req, res) => {
+  const { name, email, password, phone, otp } = req.body;
+
+  try {
+    // Verify OTP
+    if (otpStore[email] !== otp) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
+
+    // OTP is valid, remove it from store
+    delete otpStore[email];
+
+    // Register the new user
     const newUser = new User({ name, email, password, phone });
     await newUser.save();
 
-    res.flash("success", "User registered successfully");
-
-    return res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server Error" });
@@ -56,10 +96,14 @@ router.post("/login", async (req, res) => {
       }
     }
 
+    console.log(user)
+
+    console.log(password  + "Login")
+
     // Check if the password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      // console.log("come");
+       console.log("come");
       res.flash("error", "Invalid username or password");
       return res.status(401).json({ message: "Invalid username or password" });
     }
@@ -108,7 +152,7 @@ router.get("/validate", (req, res) => {
       return res.status(404).json({ valid: false, message: "User not found" });
     }
 
-    return res.status(200).json({ valid: true, role: user.role });
+    return res.status(200).json({ valid: true, role: user.role, data: user });
   });
 });
 
@@ -178,26 +222,34 @@ router.get("/users", verifyToken, async (req, res) => {
 router.post("/update-profile", verifyToken, async (req, res) => {
   const { field, value } = req.body;
 
+  console.log(field);
+  console.log(value);
   try {
     let user = await User.findById(req.userId);
     if (!user) {
-      user = await SubUser.findById(req.userId);
+      user = await subUserSchema.findById(req.userId);
     }
 
     if (!user) {
-      res.flash("User not found");
       return res.status(404).json({ message: "User not found" });
     }
 
+    // If the field to update is 'password', hash it first
+    // if (field === "password") {
+    //   console.log("Come");
+    //   const salt = await bcrypt.genSalt(10);
+    //   user.password = await bcrypt.hash(value, salt);
+    // } else {
+    //   user[field] = value;
+    // }
+
     user[field] = value;
     await user.save();
-    res.flash("success", "Profile updated successfully");
     res
       .status(200)
       .json({ message: "Profile updated successfully", data: user });
   } catch (error) {
     console.error(error);
-    res.flash("error", "Error updating profile");
     res.status(500).json({ message: "Error updating profile" });
   }
 });
@@ -298,45 +350,85 @@ router.get("/update-credit", verifyToken, async (req, res) => {
   try {
     const { userId, role } = req;
     let user;
+
+    // Check if the role is 'admin' or 'subuser'
     if (role === "admin") {
       user = await User.findById(userId);
     } else if (role === "subuser") {
-      user = await SubUser.findById(userId);
+      user = await SubUser.findById(userId).populate("adminId"); // Populate the admin details
     }
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the user has sufficient credits
-    if (
-      (user.credits && user.credits > 0) ||
-      (user.credit && user.credit > 0)
-    ) {
-      // Deduct 1 credit based on which property exists
-      if (user.credits) {
-        user.credits -= 1;
-      } else if (user.credit) {
-        user.credit -= 1;
+    // Initialize admin variable for clarity
+    let admin;
+
+    // If the role is 'subuser', also fetch the admin and deduct their credits
+    if (role === "subuser") {
+      admin = user.adminId; // This comes from the populated adminId field
+      if (!admin) {
+        return res
+          .status(404)
+          .json({ message: "Admin not found for this sub-user" });
       }
-
-      console.log(user);
-
-      // Save the updated user
-      await user.save();
-
-      // Return the updated credits in the response (choosing the correct field)
-      const remainingCredits = user.credits || user.credit;
-      return res.json({
-        message: "Credit updated successfully",
-        credits: remainingCredits,
-      });
     }
+
+    // Deduct credit for both sub-user and admin if necessary
+    const deductCredit = (account) => {
+      if (account.credits && account.credits > 0) {
+        account.credits -= 1;
+      } else if (account.credit && account.credit > 0) {
+        account.credit -= 1;
+      }
+    };
+
+    // Deduct credit for the current user (admin or subuser)
+    deductCredit(user);
+
+    // If it's a subuser, deduct credit from the admin as well
+    if (role === "subuser") {
+      deductCredit(admin);
+      await admin.save(); // Save the updated admin information
+    }
+
+    // Save the updated user information
+    await user.save();
+
+    // Return the updated credits in the response (choosing the correct field)
+    const remainingCredits = user.credits || user.credit;
+    return res.json({
+      message: "Credit updated successfully",
+      credits: remainingCredits,
+    });
+  } catch (error) {
+    console.error("Error updating credits:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+router.delete("/subuser/:id", async (req, res) => {
+  try {
+    const subUserId = req.params.id;
+
+    // Find and delete the sub-user
+    const deletedSubUser = await subUserSchema.findByIdAndDelete(subUserId);
+
+    if (!deletedSubUser) {
+      return res.status(404).json({ message: "Sub-user not found" });
+    }
+
+    // Remove the reference from the parent user
+    await User.findOneAndUpdate(
+      { subUsers: subUserId },
+      { $pull: { subUsers: subUserId } }
+    );
+
+    res.status(200).json({ message: "Sub-user deleted successfully" });
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while updating credits" });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -373,11 +465,9 @@ router.post("/check-bulk-credit", verifyToken, async (req, res) => {
     }
   } catch (error) {
     console.error("Error checking credits for bulk call:", error);
-    res
-      .status(500)
-      .json({
-        message: "An error occurred while checking credits for bulk call",
-      });
+    res.status(500).json({
+      message: "An error occurred while checking credits for bulk call",
+    });
   }
 });
 

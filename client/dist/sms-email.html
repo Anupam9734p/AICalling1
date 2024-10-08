@@ -170,6 +170,14 @@
                   </a>
                 </li>
               </div>
+              <div id="admin-super_admin" style="display: none">
+                <li class="sidebar-item">
+                  <a href="users.html" class="sidebar-link">
+                    <i class="bi bi-envelope-fill"></i>
+                    <span>Users</span>
+                  </a>
+                </li>
+              </div>
               <li class="sidebar-item">
                 <a href="appointment.html" class="sidebar-link"
                   ><i class="bi bi-calendar-check-fill"></i
@@ -354,7 +362,10 @@
 
           const role = data.role;
           //console.log(role);
-
+          if (role === "admin" || role === "super_admin") {
+            document.getElementById("admin-super_admin").style.display =
+              "block";
+          }
           if (role === "admin" || role === "subuser" ||  role === "super_admin") {
             document.getElementById("admin-subuser-features").style.display =
               "block";

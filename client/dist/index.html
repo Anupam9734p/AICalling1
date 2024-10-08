@@ -138,6 +138,15 @@
                 </li>
               </div>
 
+              <div id="admin-super_admin" style="display: none">
+                <li class="sidebar-item">
+                  <a href="users.html" class="sidebar-link">
+                    <i class="bi bi-envelope-fill"></i>
+                    <span>Users</span>
+                  </a>
+                </li>
+              </div>
+
               <li class="sidebar-item">
                 <a href="appointment.html" class="sidebar-link">
                   <i class="bi bi-calendar-check-fill"></i>
@@ -292,8 +301,10 @@
                           </div>
                         </div>
                         <div class="col-md-8">
-                          <h6 class="text-muted font-semibold">Saved Post</h6>
-                          <h6 class="font-extrabold mb-0">112</h6>
+                          <h6 class="text-muted font-semibold">Credit</h6>
+                          <h6 id="creditValue" class="font-extrabold mb-0">
+                            Loading....
+                          </h6>
                         </div>
                       </div>
                     </div>
@@ -347,8 +358,8 @@
                       <img src="assets/images/faces/1.jpg" alt="Face 1" />
                     </div>
                     <div class="ms-3 name">
-                      <h5 class="font-bold">John Duck</h5>
-                      <h6 class="text-muted mb-0">@johnducky</h6>
+                      <h5 class="font-bold" id="name">John Duck</h5>
+                      <h6 class="text-muted mb-0" id="role">@johnducky</h6>
                     </div>
                   </div>
                 </div>
@@ -436,8 +447,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-              "https://aicalling-demo.onrender.com/api/auth/validate",
-         //   "http://localhost:3000/api/auth/validate",
+             "https://aicalling-demo.onrender.com/api/auth/validate",
+          //  "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -452,15 +463,30 @@
           }
 
           const data = await response.json();
+          console.log(data);
           if (!data.valid) {
             // If token is not valid, redirect to login page
             window.location.href = "login.html";
           }
-
-          console.log(data);
-
           const role = data.role;
-          //console.log(role);
+          const creditElement = document.getElementById("creditValue");
+          const userName = document.getElementById("name");
+          const userRole = document.getElementById("role");
+          console.log(data.data.name)
+          userName.textContent = data.data.name  
+          userRole.textContent = data.role
+          if (role === "super_admin") {
+            creditElement.textContent = "9999";
+          } else if (role === "admin") {
+            creditElement.textContent = data.data.credits || "No credit";
+          } else {
+            creditElement.textContent = data.data.credit || "No credit";
+          }
+
+          if (role === "admin" || role === "super_admin") {
+            document.getElementById("admin-super_admin").style.display =
+              "block";
+          }
 
           if (
             role === "admin" ||

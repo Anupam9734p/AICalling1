@@ -136,7 +136,14 @@
                 </a>
               </li>
             </div>
-
+            <div id="admin-super_admin" style="display: none">
+              <li class="sidebar-item">
+                <a href="users.html" class="sidebar-link">
+                  <i class="bi bi-envelope-fill"></i>
+                  <span>Users</span>
+                </a>
+              </li>
+            </div>
             <li class="sidebar-item">
               <a href="appointment.html" class="sidebar-link">
                 <i class="bi bi-calendar-check-fill"></i>
@@ -443,7 +450,10 @@ if (role === "admin" || role === "subuser" ||   role === "super_admin") {
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
           }
-     
+          if (role === "admin" || role === "super_admin") {
+            document.getElementById("admin-super_admin").style.display =
+              "block";
+          }
           if (role === "admin" || role === "user") {
             const dropdownMenu = document.getElementById("dropdownMenu");
 
@@ -522,8 +532,8 @@ margin-right: auto;
       }
 
       try {
-     //   const response = await fetch("http://localhost:3000/api/auth/check-credit", {
-        const response = await fetch("https://aicalling-demo.onrender.com/api/auth/check-credit", {
+   //    const response = await fetch("http://localhost:3000/api/auth/check-credit", {
+         const response = await fetch("https://aicalling-demo.onrender.com/api/auth/check-credit", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -624,7 +634,7 @@ margin-right: auto;
     const updateCredit = async (token) => {
   try {
     // Fetch the update-credit API endpoint
-  //  const response = await fetch("http://localhost:3000/api/auth/update-credit", {
+ //   const response = await fetch("http://localhost:3000/api/auth/update-credit", {
     const response = await fetch("https://aicalling-demo.onrender.com/api/auth/update-credit", {
       method: "GET",
       headers: {

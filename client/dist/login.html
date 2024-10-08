@@ -16,67 +16,147 @@
     ></script>
 
     <style>
-     .message {
-    display: none;
-    padding: 10px;
-    margin-bottom: 15px;
-    text-align: center;
-    border-radius: 5px;
-    position: absolute; 
-    right: 20px; 
-    top: 5px; 
-    width: 600px;  
-    max-width: 450px; 
-    z-index: 1000; 
-    animation: fadeIn 0.5s, fadeOut 0.5s 2.5s; 
-}
+      .message {
+        display: none;
+        padding: 10px;
+        margin-bottom: 15px;
+        text-align: center;
+        border-radius: 5px;
+        position: absolute;
+        right: 20px;
+        top: 5px;
+        width: 600px;
+        max-width: 450px;
+        z-index: 1000;
+        animation: fadeIn 0.5s, fadeOut 0.5s 2.5s;
+      }
 
-.message .close-btn {
-    cursor: pointer;
-    position: absolute;
-    right: 10px;
-    top: 3px; 
-    background: transparent;
-    border: none;
-    color: inherit;
-    font-size: 36px; 
-}
+      .message .close-btn {
+        cursor: pointer;
+        position: absolute;
+        right: 10px;
+        top: 3px;
+        background: transparent;
+        border: none;
+        color: inherit;
+        font-size: 36px;
+      }
 
-.message.success {
-    background-color: #d4edda;
-    color: #035e19;
-    border: 1px solid #c3e6cb;
-}
+      .message.success {
+        background-color: #d4edda;
+        color: #035e19;
+        border: 1px solid #c3e6cb;
+      }
 
-.message.error {
-    background-color: #f8d7da;
-    color: #cb182a;
-    border: 1px solid #f5c6cb; 
-}
+      .message.error {
+        background-color: #f8d7da;
+        color: #cb182a;
+        border: 1px solid #f5c6cb;
+      }
 
-/* Animation keyframes */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+      /* Animation keyframes */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-}
+      @keyframes fadeOut {
+        from {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+      }
 
+      .otp-section {
+        margin-top: 20px;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+      }
+
+      .otp-section .input-field {
+        position: relative;
+        margin-bottom: 15px;
+      }
+
+      .otp-section .input-field i {
+        position: absolute;
+        top: 50%;
+        left: 10px;
+        transform: translateY(-50%);
+        color: #888;
+      }
+
+      .otp-section input {
+        width: calc(100% - 40px);
+        padding: 10px;
+        padding-left: 40px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+
+      .otp-section .btn {
+        width: 100%;
+        padding: 10px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .flex-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btn {
+        cursor: pointer;
+      }
+      .otp-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .otp-modal-content {
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 400px;
+        width: 100%;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      .close-btn {
+        background: none;
+        border: none;
+        float: right;
+        cursor: pointer;
+      }
+
+      @media (max-width: 768px) {
+        .otp-modal-content {
+          width: 90%;
+        }
+      }
     </style>
   </head>
 
@@ -84,21 +164,14 @@
     <div class="container">
       <div class="forms-container">
         <div class="signin-signup">
-
-           <!-- Flash message for Signup Form -->
-           <!-- <div id="signupResultMessage" class="message"></div> -->
-          
-        
+          <!-- Flash message for Signup Form -->
+          <!-- <div id="signupResultMessage" class="message"></div> -->
 
           <!-- Sign In Form -->
           <form id="loginForm" class="sign-in-form">
-
             <div id="loginMessage" class="message"></div>
 
             <h2 class="title">Sign In</h2>
-
-         
-         
 
             <div class="input-field">
               <i class="fas fa-user"></i>
@@ -151,12 +224,25 @@
           </form>
 
           <!-- Sign Up Form -->
-         
+          <div id="otpModal" class="otp-modal" style="display: none">
+            <div class="otp-modal-content">
+              <h2 class="title">Verify OTP</h2>
+              <div class="input-field">
+                <i class="fas fa-key"></i>
+                <input
+                  type="number"
+                  id="otp"
+                  placeholder="Enter OTP"
+                  required
+                />
+              </div>
+              <button id="verifyOtpButton" class="btn solid">Verify OTP</button>
+              <div id="otpMessage" class="message"></div>
+            </div>
+          </div>
           <form id="signupForm" class="sign-up-form">
             <div id="signupMessage" class="message"></div>
             <h2 class="title">Sign Up</h2>
-
-            
 
             <div class="input-field">
               <i class="fas fa-user"></i>
@@ -206,6 +292,18 @@
               </a>
             </div>
           </form>
+
+          <!-- OTP Section (Initially Hidden)
+          <div id="otpSection" class="otp-section" style="display: none">
+            <h2 class="title">Verify OTP</h2>
+            <div class="input-field">
+              <i class="fas fa-key"></i>
+              <input type="number" id="otp" placeholder="Enter OTP" required />
+            </div>
+            <button id="verifyOtpButton" class="btn solid">Verify OTP</button>
+          </div> -->
+
+          <div id="message" class="message"></div>
         </div>
       </div>
       <div class="panels-container">
@@ -242,124 +340,194 @@
         container.classList.remove("sign-up-mode");
       });
 
-     
-  const loginMessage = document.getElementById("loginMessage");
-const signupMessage = document.getElementById("signupMessage");
-
-function displayMessage(messageElement, message, type) {
-    console.log("Displaying message:", message); 
-    messageElement.innerHTML = `
+      const loginMessage = document.getElementById("loginMessage");
+      const signupMessage = document.getElementById("signupMessage");
+      const otpModal = document.getElementById("otpModal");
+      const otpMessage = document.getElementById("otpMessage");
+      function displayMessage(messageElement, message, type) {
+        console.log("Displaying message:", message);
+        messageElement.innerHTML = `
         <button class="close-btn" aria-label="Close">&times;</button>
         ${message}
-    `; 
-    messageElement.className = `message ${type}`; 
-    messageElement.style.display = "block"; 
-    const closeButton = messageElement.querySelector('.close-btn');
-    closeButton.onclick = () => {
-        messageElement.style.display = 'none'; 
-    };
+    `;
+        messageElement.className = `message ${type}`;
+        messageElement.style.display = "block";
+        const closeButton = messageElement.querySelector(".close-btn");
+        closeButton.onclick = () => {
+          messageElement.style.display = "none";
+        };
 
-    setTimeout(() => {
-        messageElement.style.display = "none"; 
-    }, 3000);
-}
+        setTimeout(() => {
+          messageElement.style.display = "none";
+        }, 3000);
+      }
+  
 
+      document
+        .getElementById("signupForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
 
+          const name = document.getElementById("name").value;
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const phone = document.getElementById("phone").value;
 
+          try {
+            const res = await fetch(
+               "https://aicalling-demo.onrender.com/api/auth/signup",
+             // "http://localhost:3000/api/auth/signup",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password, phone }),
+              }
+            );
 
-
-document.getElementById("signupForm").addEventListener("submit", async function (event) {
-    event.preventDefault();
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-    const phone = document.getElementById("phone").value;
-
-    try {
-      //  const res = await fetch("http://localhost:3000/api/auth/signup", {
-        const res = await fetch("https://aicalling-demo.onrender.com/api/auth/signup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email, password, phone }),
+            const data = await res.json();
+            console.log(data);
+            if (res.ok) {
+              displayMessage(
+                signupMessage,
+                "OTP sent to your email. Please verify.",
+                "success"
+              );
+              otpModal.style.display = "flex";
+            } else {
+              displayMessage(signupMessage, data.message, "error");
+            }
+          } catch (error) {
+            console.error("Error during signup:", error);
+            displayMessage("An error occurred during signup.", "error");
+          }
         });
 
-        const data = await res.json();
-        if (data.message === "User registered successfully") {
-            displayMessage(signupMessage, "Registration successful! Please log in.", "success");
-            container.classList.remove("sign-up-mode");
-        } else {
-            displayMessage(signupMessage, data.message, "error");
-        }
-    } catch (error) {
-        console.error("Error during signup:", error);
-        displayMessage(signupMessage, "An error occurred during signup.", "error");
-    }
-});
+      document
+        .getElementById("verifyOtpButton")
+        .addEventListener("click", async function () {
+          const name = document.getElementById("name").value;
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const phone = document.getElementById("phone").value;
+          const otp = document.getElementById("otp").value;
 
-// Handle Login form submission
-// document.getElementById("loginForm").addEventListener("submit", async function (event) {
-//     event.preventDefault();
-//     const email = document.getElementById("loginEmail").value;
-//     const password = document.getElementById("loginPassword").value;
+          try {
+            const res = await fetch(
+               "https://aicalling-demo.onrender.com/api/auth/verify-otp",
+              //"http://localhost:3000/api/auth/verify-otp",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, password, phone, otp }),
+              }
+            );
 
-//     try {
-//         const res = await fetch("http://localhost:3000/api/auth/login", {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({ email, password }),
-//         });
+            const data = await res.json();
+            if (res.ok) {
+              displayMessage(signupMessage,
+                "Registration successful! Please log in.",
+                "success"
+              );
 
-//         const data = await res.json();
-//         if (data.success) {
-//             localStorage.setItem("token", data.token);
+              container.classList.remove("sign-up-mode");
 
-//             localStorage.setItem("loginMessage", "Login successful!");
-
-//                 window.location.href = "index.html"; // Redirect after a delay
-           
-            
-//         } else {
-//            displayMessage(loginMessage, "Login failed: " + data.message, "error");
-//         }
-//     } catch (error) {
-//         console.error("Error during login:", error);
-//         displayMessage(loginMessage, "An error occurred during login.", "error");
-//     }
-// });
-
-
-
-// Handle Login form submission
-document.getElementById("loginForm").addEventListener("submit", async function (event) {
-    event.preventDefault();
-    const email = document.getElementById("loginEmail").value;
-    const password = document.getElementById("loginPassword").value;
-
-    try {
-    //  const res = await fetch("http://localhost:3000/api/auth/login", {
-        const res = await fetch("https://aicalling-demo.onrender.com/api/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
+              otpModal.style.display = "none";
+            } else {
+              displayMessage(signupMessage,data.message, "error");
+            }
+          } catch (error) {
+            console.error("Error during OTP verification:", error);
+            displayMessage(
+              signupMessage,
+              "An error occurred during OTP verification.",
+              "error"
+            );
+          }
         });
 
-        const data = await res.json();
-        if (data.success) {
-            localStorage.setItem("token", data.token);
-            displayMessage(loginMessage, "Login successful!", "success");
-            setTimeout(() => {
+      // function displayMessage(message, type) {
+      //   const messageElement = document.getElementById("message");
+      //   messageElement.textContent = message;
+      //   messageElement.className = `message ${type}`;
+      // }
+
+      // function displayMessage(message, type) {
+      //   const messageElement = document.getElementById("message");
+      //   messageElement.textContent = message;
+      //   messageElement.className = type; // Apply CSS styles based on 'success' or 'error'
+      // }
+
+      // Handle Login form submission
+      // document.getElementById("loginForm").addEventListener("submit", async function (event) {
+      //     event.preventDefault();
+      //     const email = document.getElementById("loginEmail").value;
+      //     const password = document.getElementById("loginPassword").value;
+
+      //     try {
+      //         const res = await fetch("http://localhost:3000/api/auth/login", {
+      //             method: "POST",
+      //             headers: { "Content-Type": "application/json" },
+      //             body: JSON.stringify({ email, password }),
+      //         });
+
+      //         const data = await res.json();
+      //         if (data.success) {
+      //             localStorage.setItem("token", data.token);
+
+      //             localStorage.setItem("loginMessage", "Login successful!");
+
+      //                 window.location.href = "index.html"; // Redirect after a delay
+
+      //         } else {
+      //            displayMessage(loginMessage, "Login failed: " + data.message, "error");
+      //         }
+      //     } catch (error) {
+      //         console.error("Error during login:", error);
+      //         displayMessage(loginMessage, "An error occurred during login.", "error");
+      //     }
+      // });
+
+      // Handle Login form submission
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const email = document.getElementById("loginEmail").value;
+          const password = document.getElementById("loginPassword").value;
+
+          try {
+            // const res = await fetch("http://localhost:3000/api/auth/login", {
+               const res = await fetch("https://aicalling-demo.onrender.com/api/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            });
+
+            const data = await res.json();
+            if (data.success) {
+              localStorage.setItem("token", data.token);
+              displayMessage(loginMessage, "Login successful!", "success");
+              setTimeout(() => {
                 window.location.href = "index.html";
-            }, 1000); 
-        } else {
-            displayMessage(loginMessage, "Login failed: " + data.message, "error");
-        }
-    } catch (error) {
-        console.error("Error during login:", error);
-        displayMessage(loginMessage, "An error occurred during login.", "error");
-    }
-});
+              }, 1000);
+            } else {
+              displayMessage(
+                loginMessage,
+                "Login failed: " + data.message,
+                "error"
+              );
+            }
+          } catch (error) {
+            console.error("Error during login:", error);
+            displayMessage(
+              loginMessage,
+              "An error occurred during login.",
+              "error"
+            );
+          }
+        });
 
-        //------
+      //------
       //---------->>>>>>Toggling password with eye button ----------->
 
       const toggleLoginPassword = document.getElementById(
@@ -393,7 +561,6 @@ document.getElementById("loginForm").addEventListener("submit", async function (
         this.classList.toggle("fa-eye");
         this.classList.toggle("fa-eye-slash");
       });
-
     </script>
   </body>
 </html>
