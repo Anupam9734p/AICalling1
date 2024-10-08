@@ -317,8 +317,9 @@ router.post("/add-subUser", async (req, res) => {
     const newSubUser = new SubUser({
       name,
       email,
-      password, // Consider hashing the password before saving it
+      password, // Password will be hashed in pre-save hook
       phone,
+      adminId: adminData._id, // Set adminId to the ID of the admin creating the sub-user
     });
 
     await newSubUser.save();
@@ -330,6 +331,7 @@ router.post("/add-subUser", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 router.get("/check-credit", verifyToken, async (req, res) => {
   try {
