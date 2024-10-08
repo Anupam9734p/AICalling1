@@ -156,21 +156,19 @@
               </div>
 
               <div id="admin-super_admin" style="display: none">
-                <li class="sidebar-item active">
+                <li class="sidebar-item">
                   <a href="users.html" class="sidebar-link">
                     <i class="bi bi-envelope-fill"></i>
                     <span>Users</span>
                   </a>
                 </li>
+                <li class="sidebar-item">
+                  <a href="appointment.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Appointment</span>
+                  </a>
+                </li>
               </div>
-
-              <li class="sidebar-item">
-                <a href="appointment.html" class="sidebar-link">
-                  <i class="bi bi-calendar-check-fill"></i>
-                  <span>Appointment</span>
-                </a>
-              </li>
-
               <!-- <li class="sidebar-item">
                     <a href="#" class="sidebar-link" id="logout-btn">
                       <i class="bi bi-calendar-check-fill"></i>
@@ -290,7 +288,7 @@
       try {
         const response = await fetch(
           //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-            "https://aicalling-demo.onrender.com/api/auth/validate",
+          "https://aicalling-demo.onrender.com/api/auth/validate",
           //"http://localhost:3000/api/auth/validate",
           {
             method: "GET",
@@ -413,14 +411,17 @@ margin-right: auto;
 
     async function fetchAllUsers(token) {
       try {
-      //  const response = await fetch("http://localhost:3000/api/auth/users", {
-        const response = await fetch("https://aicalling-demo.onrender.com/api/auth/users", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        //  const response = await fetch("http://localhost:3000/api/auth/users", {
+        const response = await fetch(
+          "https://aicalling-demo.onrender.com/api/auth/users",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch users");
@@ -473,7 +474,7 @@ margin-right: auto;
     async function deleteSubUser(subUserId, token) {
       try {
         const response = await fetch(
-         // `http://localhost:3000/api/auth/subuser/${subUserId}`,
+          // `http://localhost:3000/api/auth/subuser/${subUserId}`,
           `https://aicalling-demo.onrender.com/api/auth/subuser/${subUserId}`,
           {
             method: "DELETE",
@@ -501,8 +502,8 @@ margin-right: auto;
         document.getElementById("action-tag-super_admin").style.display =
           "none";
         const response = await fetch(
-            "https://aicalling-demo.onrender.com/api/auth/admins",
-        //  "http://localhost:3000/api/auth/admins",
+          "https://aicalling-demo.onrender.com/api/auth/admins",
+          //  "http://localhost:3000/api/auth/admins",
           {
             method: "GET",
             headers: {
