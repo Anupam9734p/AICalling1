@@ -98,7 +98,7 @@ router.post("/login", async (req, res) => {
 
     if (!user) {
       // If not found, check in SubUser collection
-      user = await SubUser.findOne({ email });
+      user = await subUserSchema.findOne({ email });
       console.log(user);
       role = "subuser";
 
