@@ -317,9 +317,9 @@ router.post("/add-subUser", async (req, res) => {
     const newSubUser = new SubUser({
       name,
       email,
-      password, // Password will be hashed in pre-save hook
+      password, 
       phone,
-      adminId: adminData._id, // Set adminId to the ID of the admin creating the sub-user
+      adminId: adminData._id,
     });
 
     await newSubUser.save();
@@ -369,7 +369,7 @@ router.get("/update-credit", verifyToken, async (req, res) => {
     if (role === "admin") {
       user = await User.findById(userId);
     } else if (role === "subuser") {
-      user = await SubUser.findById(userId).populate("adminId"); // Populate the admin details
+      user = await SubUser.findById(userId).populate("adminId");
     }
 
     if (!user) {

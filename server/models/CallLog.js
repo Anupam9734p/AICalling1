@@ -6,7 +6,7 @@ const callLogSchema = new mongoose.Schema({
     status: { type: String, required: true },
     customerNumber: { type: String },
     transcript: { type: String, required: true },
-    extractedInfo: { type: mongoose.Schema.Types.Mixed, required: true } // Using Mixed to store dynamic data
+    extractedInfo: { type: mongoose.Schema.Types.Mixed, required: true } 
 });
 
 const CallLog = mongoose.model('CallLog', callLogSchema);
