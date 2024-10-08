@@ -9,7 +9,7 @@ const nodemailer = require("nodemailer");
 const otpStore = {};
 const JWT_SECRET = process.env.JWT_SECRET;
 const authMiddleware = require("../middlewares/authMiddleware");
-const SubUser = require("../models/SubUser.js");
+const SubUser = require("../models/subUserSchema.js");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
