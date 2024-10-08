@@ -327,6 +327,7 @@
     </div>
 
     <!-- JavaScript for handling API calls -->
+    <script src="loader.js"></script>
     <script>
       const signInBtn = document.getElementById("sign-in-btn");
       const signUpBtn = document.getElementById("sign-up-btn");
@@ -496,8 +497,8 @@
           const password = document.getElementById("loginPassword").value;
 
           try {
-            // const res = await fetch("http://localhost:3000/api/auth/login", {
-               const res = await fetch("https://aicalling-demo.onrender.com/api/auth/login", {
+           //  const res = await fetch("http://localhost:3000/api/auth/login", {
+              const res = await fetch("https://aicalling-demo.onrender.com/api/auth/login", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ email, password }),
@@ -505,12 +506,14 @@
 
             const data = await res.json();
             if (data.success) {
+              showLoader();
               localStorage.setItem("token", data.token);
               displayMessage(loginMessage, "Login successful!", "success");
               setTimeout(() => {
                 window.location.href = "index.html";
               }, 1000);
             } else {
+              hideLoader();
               displayMessage(
                 loginMessage,
                 "Login failed: " + data.message,
@@ -518,6 +521,7 @@
               );
             }
           } catch (error) {
+            hideLoader();
             console.error("Error during login:", error);
             displayMessage(
               loginMessage,
