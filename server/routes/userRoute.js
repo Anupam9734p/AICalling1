@@ -52,7 +52,6 @@ router.post("/signup", async (req, res) => {
         </div>
       `,
     });
-    
 
     res.status(200).json({ message: "OTP sent to email. Please verify." });
   } catch (err) {
@@ -109,14 +108,14 @@ router.post("/login", async (req, res) => {
       }
     }
 
-    console.log(user)
+    console.log(user);
 
-    console.log(password  + "Login")
+    console.log(password + "Login");
 
     // Check if the password matches
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-       console.log("come");
+      console.log("come");
       res.flash("error", "Invalid username or password");
       return res.status(401).json({ message: "Invalid username or password" });
     }
@@ -272,13 +271,22 @@ router.post("/add-subUser", async (req, res) => {
     console.log(req.body);
     const { name, email, password, phone } = req.body;
 
-    // Check if sub-user with the same email already exists
-    const checkUser = await SubUser.findOne({ email });
-    if (checkUser) {
+    // Check if sub-user with the same email already exists in SubUser
+    const checkSubUser = await SubUser.findOne({ email });
+    if (checkSubUser) {
       res.flash("Sub-user with this email already exists");
       return res
         .status(401)
         .json({ message: "Sub-user with this email already exists" });
+    }
+
+    // Check if the email exists in the User model
+    const checkUser = await User.findOne({ email });
+    if (checkUser) {
+      res.flash("User with this email already exists");
+      return res
+        .status(401)
+        .json({ message: "User with this email already exists" });
     }
 
     // Get token and verify it
@@ -306,29 +314,20 @@ router.post("/add-subUser", async (req, res) => {
     }
 
     // Create new sub-user
-    const user = new SubUser({
-      adminId: adminData._id, // Adding reference to admin
+    const newSubUser = new SubUser({
       name,
       email,
-      password, // Password will be hashed by SubUser pre-save hook
+      password, // Consider hashing the password before saving it
       phone,
     });
 
-    // Save the new sub-user
-    await user.save();
-    const subUserId = user._id;
-
-    // Add sub-user to the admin's subUsers list
-    adminData.subUsers.push(subUserId);
-    await adminData.save();
-
-    console.log(adminData);
-    res.flash("success", "Sub-user added successfully");
-    res.status(201).json({ message: "Sub-user added successfully" });
+    await newSubUser.save();
+    res
+      .status(201)
+      .json({ message: "Sub-user added successfully", user: newSubUser });
   } catch (error) {
-    console.error("Error occurred while adding sub-user: ", error);
-    res.flash("error", "Internal Server Error");
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error adding sub-user:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
