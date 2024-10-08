@@ -473,7 +473,8 @@ margin-right: auto;
     async function deleteSubUser(subUserId, token) {
       try {
         const response = await fetch(
-          `http://localhost:3000/api/auth/subuser/${subUserId}`,
+         // `http://localhost:3000/api/auth/subuser/${subUserId}`,
+          `https://aicalling-demo.onrender.com/api/auth/subuser/${subUserId}`,
           {
             method: "DELETE",
             headers: {
