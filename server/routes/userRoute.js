@@ -36,10 +36,24 @@ router.post("/signup", async (req, res) => {
     await transporter.sendMail({
       from: "arijitghosh1203@gmail.com",
       to: email,
-      subject: "Your OTP for Signup",
-      text: `Your OTP for signup is: ${otp}`,
+      subject: "Your OTP for Signup - OTP Mazer",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
+          <h2 style="text-align: center; color: #007BFF;">OTP Mazer</h2>
+          <p style="font-size: 16px; color: #333;">Hi there,</p>
+          <p style="font-size: 16px; color: #333;">Thank you for signing up with <strong>OTP Mazer</strong>! To complete your registration, please use the OTP below:</p>
+          <div style="text-align: center; margin: 20px 0;">
+            <p style="font-size: 24px; font-weight: bold; background-color: #007BFF; color: white; padding: 10px; border-radius: 4px; display: inline-block;">${otp}</p>
+          </div>
+          <p style="font-size: 16px; color: #333;">Please enter this OTP within the next 10 minutes to complete your signup process. If you did not request this, please ignore this email.</p>
+          <p style="font-size: 16px; color: #333;">Best regards,<br>OTP Mazer Team</p>
+          <footer style="text-align: center; margin-top: 20px; font-size: 12px; color: #888;">
+            © 2024 OTP Mazer. All rights reserved.
+          </footer>
+        </div>
+      `,
     });
-    console.log("COme");
+    
 
     res.status(200).json({ message: "OTP sent to email. Please verify." });
   } catch (err) {
