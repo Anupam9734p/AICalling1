@@ -9,8 +9,7 @@ const nodemailer = require("nodemailer");
 const otpStore = {};
 const JWT_SECRET = process.env.JWT_SECRET;
 const authMiddleware = require("../middlewares/authMiddleware");
-const SubUser = require("../models/subUserSchema.js");
-const subUserSchema = require("../models/subUserSchema.js");
+const SubUser = require("../models/SubUser.js");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -98,7 +97,7 @@ router.post("/login", async (req, res) => {
 
     if (!user) {
       // If not found, check in SubUser collection
-      user = await subUserSchema.findOne({ email });
+      user = await SubUser.findOne({ email });
       console.log(user);
       role = "subuser";
 
@@ -241,7 +240,7 @@ router.post("/update-profile", verifyToken, async (req, res) => {
   try {
     let user = await User.findById(req.userId);
     if (!user) {
-      user = await subUserSchema.findById(req.userId);
+      user = await SubUser.findById(req.userId);
     }
 
     if (!user) {
@@ -311,7 +310,7 @@ router.post("/add-subUser", async (req, res) => {
       adminId: adminData._id, // Adding reference to admin
       name,
       email,
-      password, // Password will be hashed by subUserSchema pre-save hook
+      password, // Password will be hashed by SubUser pre-save hook
       phone,
     });
 
@@ -427,7 +426,7 @@ router.delete("/subuser/:id", async (req, res) => {
     const subUserId = req.params.id;
 
     // Find and delete the sub-user
-    const deletedSubUser = await subUserSchema.findByIdAndDelete(subUserId);
+    const deletedSubUser = await SubUser.findByIdAndDelete(subUserId);
 
     if (!deletedSubUser) {
       return res.status(404).json({ message: "Sub-user not found" });
