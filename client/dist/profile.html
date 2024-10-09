@@ -210,7 +210,7 @@
 
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
-
+    <script id="loader.js"></script>
     <script>
       let editField = "";
 
@@ -252,6 +252,7 @@
           console.error(`Element with ID '${editField}' not found.`);
         }
 
+        showLoader();
         // Save data to the backend
         try {
           const response = await fetch(
@@ -266,7 +267,7 @@
               body: JSON.stringify({ field: editField, value: newValue }),
             }
           );
-
+          hideLoader();
           if (!response.ok) {
             throw new Error("Failed to update");
           }
@@ -290,6 +291,7 @@
           window.location.href = "login.html";
           return;
         }
+        showLoader();
 
         try {
           const response = await fetch(
@@ -303,7 +305,7 @@
               },
             }
           );
-
+          hideLoader();
           if (!response.ok) {
             throw new Error("Token validation failed");
           }

@@ -229,6 +229,7 @@
   <script src="assets/js/main.js"></script>
   <!-- Include SweetAlert2 JS -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script id="loader.js"></script>
   <script>
          async function validateToken() {
         const token = localStorage.getItem("token");
@@ -238,6 +239,7 @@
           window.location.href = "login.html";
           return;
         }
+        showLoader();
 
         try {
           const response = await fetch(
@@ -254,7 +256,7 @@
               },
             }
           );
-
+          hideLoader();
           if (!response.ok) {
             throw new Error("Token validation failed");
           }
