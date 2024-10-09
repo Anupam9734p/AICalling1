@@ -323,6 +323,9 @@ router.post("/add-subUser", async (req, res) => {
     });
 
     await newSubUser.save();
+
+    adminData.subUsers.push(newSubUser._id);
+    await adminData.save();
     res
       .status(201)
       .json({ message: "Sub-user added successfully", user: newSubUser });

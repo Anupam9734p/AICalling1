@@ -149,10 +149,6 @@
                 </li>
               </div>
 
- 
-          
-           
-
               <!-- <li class="sidebar-item">
                     <a href="#" class="sidebar-link" id="logout-btn">
                       <i class="bi bi-calendar-check-fill"></i>
@@ -337,8 +333,8 @@
               phone: document.getElementById("phone").value,
             };
 
-            //  fetch("http://localhost:3000/api/auth/add-subUser", {
-            fetch("https://aicalling-demo.onrender.com/api/auth/add-subUser", {
+          //  fetch("http://localhost:3000/api/auth/add-subUser", {
+             fetch("https://aicalling-demo.onrender.com/api/auth/add-subUser", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -346,13 +342,13 @@
               },
               body: JSON.stringify(formData),
             })
-              .then((response) => {
+              .then(async (response) => {
                 if (response.ok) {
-                   hideLoader();
                   return response.json();
                 } else {
-                  hideLoader();
-                  throw new Error("Failed to add member");
+                  // Parse the response as JSON to access the error message
+                  const errorData = await response.json();
+                  throw new Error(errorData.message || "An error occurred");
                 }
               })
               .then((data) => {
@@ -367,7 +363,7 @@
                 console.log(error);
                 Swal.fire({
                   icon: "error",
-                  text: "Error occurred while adding member.",
+                  text: error.message,
                 });
               });
           });
@@ -382,7 +378,7 @@
           return;
         }
 
-        showLoader()
+        showLoader();
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
@@ -399,7 +395,7 @@
             }
           );
 
-          hideLoader()
+          hideLoader();
 
           if (!response.ok) {
             throw new Error("Token validation failed");
