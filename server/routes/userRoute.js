@@ -476,12 +476,6 @@ router.get("/update-credit", verifyToken, async (req, res) => {
     // Deduct credit for the current user (admin or subuser)
     deductCredit(user);
 
-    // If it's a subuser, deduct credit from the admin as well
-    if (role === "subuser") {
-      deductCredit(admin);
-      await admin.save(); // Save the updated admin information
-    }
-
     // Save the updated user information
     await user.save();
 
