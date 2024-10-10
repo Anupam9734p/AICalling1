@@ -10,6 +10,12 @@ const otpStore = {};
 const JWT_SECRET = process.env.JWT_SECRET;
 const authMiddleware = require("../middlewares/authMiddleware");
 const SubUser = require("../models/subUserSchema.js");
+const crypto = require("crypto");
+const CallLog = require("../models/CallLog.js");
+const multer = require("multer");
+const subUserSchema = require("../models/subUserSchema.js");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -269,7 +275,7 @@ router.post("/update-profile", verifyToken, async (req, res) => {
 router.post("/add-subUser", async (req, res) => {
   try {
     console.log(req.body);
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, credit } = req.body;
 
     // Check if sub-user with the same email already exists in SubUser
     const checkSubUser = await SubUser.findOne({ email });
@@ -313,19 +319,37 @@ router.post("/add-subUser", async (req, res) => {
       return res.status(401).json({ message: "No permission to add sub-user" });
     }
 
+    if (adminData.credits < credit) {
+      return res
+        .status(403)
+        .json({ message: "Insufficient credits to add a sub-user" });
+    }
+
+    adminData.credits -= credit;
     // Create new sub-user
     const newSubUser = new SubUser({
       name,
       email,
-      password, 
+      password,
       phone,
       adminId: adminData._id,
+      credit,
     });
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpiry = Date.now() + 3600000;
+    newSubUser.resetToken = resetToken;
+    newSubUser.resetTokenExpiry = resetTokenExpiry;
 
     await newSubUser.save();
 
     adminData.subUsers.push(newSubUser._id);
     await adminData.save();
+
+    const resetUrl = `https://ai-calling-demo.vercel.app/passwordreset.html?token=${resetToken}&email=${newSubUser.email}`;
+    console.log(resetUrl);
+    await sendPasswordResetEmail(newSubUser.email, resetUrl);
+
     res
       .status(201)
       .json({ message: "Sub-user added successfully", user: newSubUser });
@@ -334,7 +358,55 @@ router.post("/add-subUser", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+async function sendPasswordResetEmail(email, resetUrl) {
+  console.log("COme");
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "arijitghosh1203@gmail.com",
+      pass: "hryc yasr hlft mjsi",
+    },
+  });
+  const mailOptions = {
+    from: "arijitghosh1203@gmail.com",
+    to: email,
+    subject: "Password Reset Request",
+    html: `<p>Please click the following link to reset your password:</p><a href="${resetUrl}">Reset Password</a>`,
+  };
 
+  await transporter.sendMail(mailOptions);
+}
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, email, newPassword } = req.body;
+
+    const subUser = await SubUser.findOne({
+      email,
+      resetToken: token,
+      resetTokenExpiry: { $gt: Date.now() },
+    });
+
+    if (!subUser) {
+      return res
+        .status(400)
+        .json({ message: "Invalid or expired token. Please try again." });
+    }
+
+    // Update the password
+    subUser.password = newPassword;
+    subUser.resetToken = undefined;
+    subUser.resetTokenExpiry = undefined;
+    await subUser.save();
+
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Error resetting password:", error);
+    res.status(500).json({
+      message: "An unexpected server error occurred. Please try again later.",
+    });
+  }
+});
 
 router.get("/check-credit", verifyToken, async (req, res) => {
   try {
@@ -495,6 +567,73 @@ router.get("/admins", async (req, res) => {
   } catch (error) {
     console.error("Error fetching admin data:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/get-graphData", async (req, res) => {
+  try {
+    const currentDate = new Date();
+    const threeMonthsAgo = new Date(
+      currentDate.setMonth(currentDate.getMonth() - 3)
+    );
+    const callData = await CallLog.find({
+      createdAt: { $gte: threeMonthsAgo },
+    });
+    return res.status(201).send({
+      message: "Data send Successfully",
+      success: true,
+      callData: callData,
+    });
+  } catch (error) {
+    return res.status(401).send({
+      message: "An Error Occured....",
+      success: false,
+    });
+    console.log("Error" + error);
+  }
+});
+
+router.post("/updateProfilePic", upload.single("image"), async (req, res) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+    const userRole = decoded.role;
+
+    let updatedUser;
+    if (
+      userRole === "admin" ||
+      userRole === "user" ||
+      userRole === "super_admin"
+    ) {
+      updatedUser = await User.findById(userId);
+    } else if (userRole === "subuser") {
+      updatedUser = await SubUser.findById(userId);
+    }
+
+    if (!updatedUser) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "User or Subuser not found" });
+    }
+
+    if (!req.file) {
+      return res
+        .status(400)
+        .json({ status: "error", message: "No file uploaded" });
+    }
+
+    updatedUser.profileImage = {
+      buffer: req.file.buffer,
+      contentType: req.file.mimetype,
+      originalName: req.file.originalname,
+    };
+
+    await updatedUser.save();
+    res.json({ status: "ok", user: updatedUser });
+  } catch (error) {
+    console.error("Profile Image error: " + error);
+    res.status(500).json({ status: "error", message: error.message });
   }
 });
 

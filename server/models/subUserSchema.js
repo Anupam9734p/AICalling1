@@ -1,38 +1,52 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-const subUserSchema = new mongoose.Schema({
-  adminId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
+const subUserSchema = new mongoose.Schema(
+  {
+    adminId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
+      required: true,
+    },
+    credit: {
+      type: Number,
+      default: 0,
+    },
+    role: {
+      type: String,
+      default: "subuser",
+    },
+    resetToken: {
+      type: String,
+    },
+    resetTokenExpiry: {
+      type: String,
+    },
+    profileImage: {
+      buffer: Buffer,
+      contentType: String,
+      originalName: String,
+    },
   },
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  phone: {
-    type: String,
-    required: true,
-  },
-  credit:{
-    type:Number,
-    default:0
-  },
-  role: {
-    type: String,
-    default: 'subuser',
-  },
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 subUserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
@@ -41,4 +55,4 @@ subUserSchema.pre("save", async function (next) {
   next();
 });
 
-module.exports = mongoose.model('SubUser', subUserSchema);
+module.exports = mongoose.model("SubUser", subUserSchema);

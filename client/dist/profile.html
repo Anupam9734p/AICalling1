@@ -25,6 +25,61 @@
       href="assets/images/favicon.svg"
       type="image/x-icon"
     />
+    <style>
+      .profile-image-container {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+
+      .profile-image {
+        border-radius: 50%;
+        width: 150px;
+        height: 150px;
+        border: 5px solid #fff;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        object-fit: cover;
+      }
+
+      .edit-icon {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background-color: #f8f9fa;
+        border-radius: 50%;
+        padding: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .edit-icon:hover {
+        background-color: #e0e0e0;
+      }
+
+      #uploadForm {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #uploadForm button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 8px 16px;
+        cursor: pointer;
+        margin-top: 15px;
+        transition: background-color 0.3s;
+        padding: 10px;
+        margin: 10px;
+      }
+
+      #uploadForm button:hover {
+        background-color: #0056b3;
+      }
+    </style>
   </head>
   <body style="background-color: #eee" onload="validateToken()">
     <section style="background-color: #f7f7f7">
@@ -50,18 +105,33 @@
         <div class="row justify-content-center">
           <div class="col-lg-8">
             <div class="card mb-4 shadow-sm border-0">
-              <div class="card-body text-center">
+              <div class="profile-image-container">
                 <img
+                  id="profileImage"
                   src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp"
                   alt="avatar"
-                  class="rounded-circle img-fluid mb-3"
-                  style="
-                    width: 150px;
-                    border: 5px solid #fff;
-                    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-                  "
+                  class="profile-image"
+                />
+                <img
+                  src="https://img.icons8.com/material-rounded/24/000000/edit--v1.png"
+                  class="edit-icon"
+                  id="editIcon"
+                  alt="Edit"
                 />
               </div>
+
+              <form id="uploadForm" enctype="multipart/form-data">
+                <input
+                  type="file"
+                  id="imageInput"
+                  name="image"
+                  style="display: none"
+                  accept="image/*"
+                />
+                <p id="fileName" style="margin-top: 10px"></p>
+
+                <button type="submit">Update Profile Image</button>
+              </form>
             </div>
           </div>
 
@@ -256,8 +326,8 @@
         // Save data to the backend
         try {
           const response = await fetch(
-          //  "http://localhost:3000/api/auth/update-profile",
-             "https://aicalling-demo.onrender.com/api/auth/update-profile",
+           // "http://localhost:3000/api/auth/update-profile",
+            "https://aicalling-demo.onrender.com/api/auth/update-profile",
             {
               method: "POST",
               headers: {
@@ -311,24 +381,36 @@
           }
 
           const data = await response.json();
-          console.log(data);
           if (!data.valid) {
             window.location.href = "login.html";
           } else {
             populateProfileForm(data.data);
-          } // Populate form with user data
+          }
         } catch (error) {
           console.error("Error validating token:", error);
           window.location.href = "login.html";
         }
       }
-
-      // Function to populate the profile form with user data
+      function arrayBufferToBase64(buffer) {
+        let binary = "";
+        const bytes = new Uint8Array(buffer);
+        bytes.forEach((b) => (binary += String.fromCharCode(b)));
+        return window.btoa(binary);
+      }
       function populateProfileForm(data) {
-        console.log(data);
         document.getElementById("name").innerText = data.name;
         document.getElementById("email").innerText = data.email;
         document.getElementById("phone").innerText = data.phone;
+
+        if (data.profileImage && data.profileImage.buffer) {
+          const base64String = arrayBufferToBase64(
+            data.profileImage.buffer.data
+          );
+          const mimeType = data.profileImage.contentType;
+
+          const newImageUrl = `data:${mimeType};base64,${base64String}`;
+          document.getElementById("profileImage").src = newImageUrl;
+        }
         if (data.credit >= 0) {
           document.getElementById("credit").innerText = data.credit;
         } else if (data.credits >= 0) {
@@ -337,6 +419,69 @@
           document.getElementById("credit").innerText = "Admin";
         }
       }
+
+      document.getElementById("editIcon").addEventListener("click", () => {
+        document.getElementById("imageInput").click();
+      });
+
+      document.getElementById("imageInput").addEventListener("change", (e) => {
+        const fileInput = e.target;
+        const fileNameDisplay = document.getElementById("fileName");
+        if (fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          fileNameDisplay.textContent = `Selected file: ${file.name}`;
+
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            document.getElementById("profileImage").src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          fileNameDisplay.textContent = "";
+        }
+      });
+
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const fileInput = document.getElementById("imageInput");
+          if (fileInput.files.length === 0) {
+            alert("Please select an image to upload.");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("image", fileInput.files[0]);
+          showLoader()
+          try {
+            const response = await fetch(
+          //    "http://localhost:3000/api/auth/updateProfilePic",
+              "https://aicalling-demo.onrender.com/api/auth/updateProfilePic",
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: formData,
+              }
+            );
+
+            hideLoader()
+            const result = await response.json();
+            if (result.status === "ok") {
+              alert("Profile image updated successfully");
+              const newImageUrl = URL.createObjectURL(fileInput.files[0]);
+              document.getElementById("profileImage").src = newImageUrl;
+            } else {
+              alert(`Error: ${result.message}`);
+            }
+          } catch (error) {
+            console.error("Error uploading profile image:", error);
+            alert("An error occurred while updating the profile image.");
+          }
+        });
     </script>
   </body>
 </html>
