@@ -309,6 +309,7 @@
                   </div>
                 </div>
               </div>
+
               <div class="row">
                 <div class="col-12">
                   <div class="card">
@@ -321,6 +322,7 @@
                   </div>
                 </div>
               </div>
+
               <div class="row">
                 <div class="col-12">
                   <div class="card">
@@ -422,9 +424,12 @@
     <script src="assets/js/bootstrap.bundle.min.js"></script>
 
     <script src="assets/vendors/apexcharts/apexcharts.js"></script>
-    <script src="assets/js/pages/dashboard.js"></script>
+    <!-- <script src="assets/js/pages/dashboard.js"></script> -->
 
     <script src="assets/js/main.js"></script>
+    <script src="loader.js"></script>
+    <script src="assets/vendors/apexcharts/apexcharts.js"></script>
+
     <script>
       const logoutBtn = document.getElementById("logout-btn");
 
@@ -442,10 +447,11 @@
           return;
         }
 
+        showLoader();
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-             "https://aicalling-demo.onrender.com/api/auth/validate",
+              "https://aicalling-demo.onrender.com/api/auth/validate",
           //  "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
@@ -461,18 +467,21 @@
           }
 
           const data = await response.json();
+          hideLoader();
           console.log(data);
           if (!data.valid) {
             // If token is not valid, redirect to login page
             window.location.href = "login.html";
           }
+
+          getGraphData();
           const role = data.role;
           const creditElement = document.getElementById("creditValue");
           const userName = document.getElementById("name");
           const userRole = document.getElementById("role");
-          console.log(data.data.name)
-          userName.textContent = data.data.name  
-          userRole.textContent = data.role
+          console.log(data.data.name);
+          userName.textContent = data.data.name;
+          userRole.textContent = data.role;
           if (role === "super_admin") {
             creditElement.textContent = "9999";
           } else if (role === "admin") {
@@ -635,6 +644,63 @@ margin-right: auto;
         updateCallLogs(); // Initial call
         setInterval(updateCallLogs, 60000); // Refresh call logs every 60 seconds
       });
+
+      const getGraphData = async () => {
+        try {
+          showLoader();
+
+          const res = await fetch(
+        //    "http://localhost:3000/api/auth/get-graphData"
+            "https://aicalling-demo.onrender.com/api/auth/get-graphData"
+          );
+          const data = await res.json();
+          console.log(data);
+          hideLoader();
+
+          const chartData = {
+            categories: ["", "", ""],
+            series: [
+              { name: "Calls", data: data.callData },
+              { name: "SMS", data: [25, 30, 45] },
+              { name: "Emails", data: [20, 35, 30] },
+            ],
+          };
+          const options1 = {
+            chart: {
+              type: "bar",
+              height: 350,
+            },
+            colors: ["#FF4560", "#008FFB", "#775DD0"],
+            plotOptions: {
+              bar: {
+                horizontal: false,
+                columnWidth: "55%",
+                endingShape: "rounded",
+              },
+            },
+            dataLabels: {
+              enabled: true,
+            },
+            series: chartData.series,
+            xaxis: {
+              categories: chartData.categories,
+            },
+            title: {
+              text: "Profile Visits for the Last 3 Months",
+              align: "center",
+            },
+          };
+
+          const chart = new ApexCharts(
+            document.querySelector("#chart-profile-visit"),
+            options1
+          );
+          chart.render();
+        } catch (error) {
+          hideLoader();
+          console.log("Error" + error);
+        }
+      };
     </script>
   </body>
 </html>

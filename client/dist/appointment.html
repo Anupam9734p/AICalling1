@@ -151,7 +151,7 @@
                     <span>Users</span>
                   </a>
                 </li>
-                <li class="sidebar-item">
+                <li class="sidebar-item active">
                   <a href="appointment.html" class="sidebar-link">
                     <i class="bi bi-calendar-check-fill"></i>
                     <span>Appointment</span>
@@ -229,6 +229,7 @@
   <script src="assets/js/main.js"></script>
   <!-- Include SweetAlert2 JS -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="loader.js"></script>
   <script>
          async function validateToken() {
         const token = localStorage.getItem("token");
@@ -238,6 +239,7 @@
           window.location.href = "login.html";
           return;
         }
+        showLoader();
 
         try {
           const response = await fetch(
@@ -254,7 +256,7 @@
               },
             }
           );
-
+          hideLoader();
           if (!response.ok) {
             throw new Error("Token validation failed");
           }

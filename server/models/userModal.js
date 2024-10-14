@@ -27,9 +27,15 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin"],
+      enum: ["user", "admin","super_admin"],
       default: "user",
     },
+    profileImage: {
+      buffer: Buffer,
+      contentType: String,
+      originalName: String,
+    },
+
     subUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,
