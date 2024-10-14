@@ -275,7 +275,7 @@ router.post("/update-profile", verifyToken, async (req, res) => {
 router.post("/add-subUser", async (req, res) => {
   try {
     console.log(req.body);
-    const { name, email, password, phone, credit } = req.body;
+    const { name, email, password, phone, credit} = req.body;
 
     // Check if sub-user with the same email already exists in SubUser
     const checkSubUser = await SubUser.findOne({ email });
@@ -334,6 +334,7 @@ router.post("/add-subUser", async (req, res) => {
       phone,
       adminId: adminData._id,
       credit,
+      totalCredit:credit,
     });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
@@ -359,7 +360,7 @@ router.post("/add-subUser", async (req, res) => {
   }
 });
 async function sendPasswordResetEmail(email, resetUrl) {
-  console.log("COme");
+  console.log("Come");
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {

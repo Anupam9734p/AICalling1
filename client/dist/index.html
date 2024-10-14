@@ -451,8 +451,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-              "https://aicalling-demo.onrender.com/api/auth/validate",
-          //  "http://localhost:3000/api/auth/validate",
+             // "https://aicalling-demo.onrender.com/api/auth/validate",
+            "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -650,8 +650,8 @@ margin-right: auto;
           showLoader();
 
           const res = await fetch(
-        //    "http://localhost:3000/api/auth/get-graphData"
-            "https://aicalling-demo.onrender.com/api/auth/get-graphData"
+          // "http://localhost:3000/api/auth/get-graphData"
+           "https://aicalling-demo.onrender.com/api/auth/get-graphData"
           );
           const data = await res.json();
           console.log(data);
