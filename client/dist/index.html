@@ -265,8 +265,8 @@
                           </div>
                         </div>
                         <div class="col-md-8">
-                          <h6 class="text-muted font-semibold">Followers</h6>
-                          <h6 class="font-extrabold mb-0">183.000</h6>
+                          <h6 class="text-muted font-semibold">Contact</h6>
+                          <h6 class="font-extrabold mb-0" id="phone">Loading....</h6>
                         </div>
                       </div>
                     </div>
@@ -282,8 +282,8 @@
                           </div>
                         </div>
                         <div class="col-md-8">
-                          <h6 class="text-muted font-semibold">Following</h6>
-                          <h6 class="font-extrabold mb-0">80.000</h6>
+                          <h6 class="text-muted font-semibold">SubUser</h6>
+                          <h6 class="font-extrabold mb-0" id="subuser">Loading....</h6>
                         </div>
                       </div>
                     </div>
@@ -451,8 +451,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-              "https://aicalling-demo.onrender.com/api/auth/validate",
-          //  "http://localhost:3000/api/auth/validate",
+             "https://aicalling-demo.onrender.com/api/auth/validate",
+         //   "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -478,16 +478,22 @@
           const role = data.role;
           const creditElement = document.getElementById("creditValue");
           const userName = document.getElementById("name");
+          const userPhone = document.getElementById("phone");
           const userRole = document.getElementById("role");
+          const userSubUser = document.getElementById("subuser");
           console.log(data.data.name);
           userName.textContent = data.data.name;
           userRole.textContent = data.role;
+          userPhone.textContent = data.data.phone
           if (role === "super_admin") {
             creditElement.textContent = "9999";
+            userSubUser.textContent = "Super_Admin"
           } else if (role === "admin") {
             creditElement.textContent = data.data.credits || "No credit";
+            userSubUser.textContent = data.data.subUsers.length || "No Data"
           } else {
             creditElement.textContent = data.data.credit || "No credit";
+             userSubUser.textContent = "No Data"
           }
 
           if (role === "admin" || role === "super_admin") {

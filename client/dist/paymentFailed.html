@@ -1,22 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Payment Failed</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
-  <div class="container mt-5">
-    <div class="jumbotron text-center">
-      <h1 class="display-4">Payment Failed!</h1>
-      <p class="lead">We're sorry, but there was an issue processing your payment.</p>
-      <hr class="my-4">
-      <p>
-        Please try again or contact support if you continue to experience issues.
-      </p>
-      <a class="btn btn-danger btn-lg" href="index.html" role="button">Go to Dashboard</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Failed</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <div class="jumbotron text-center">
+        <h1 class="display-4">Payment Failed!</h1>
+        <p class="lead">
+          We're sorry, but there was an issue processing your payment.
+        </p>
+        <hr class="my-4" />
+        <p>
+          Please try again or contact support if you continue to experience
+          issues.
+        </p>
+        <a class="btn btn-danger btn-lg" role="button" id="logout-btn"
+          >Login Again</a
+        >
+      </div>
     </div>
-  </div>
-</body>
+  </body>
+
+  <script>
+    const logoutBtn = document.getElementById("logout-btn");
+
+    logoutBtn.addEventListener("click", () => {
+      localStorage.removeItem("token");
+      window.location.href = "login.html";
+    });
+  </script>
 </html>

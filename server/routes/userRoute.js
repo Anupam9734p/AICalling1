@@ -370,8 +370,8 @@ async function sendPasswordResetEmail(email, resetUrl) {
   const mailOptions = {
     from: "arijitghosh1203@gmail.com",
     to: email,
-    subject: "Password Reset Request",
-    html: `<p>Please click the following link to reset your password:</p><a href="${resetUrl}">Reset Password</a>`,
+    subject: "Change Your Password",
+    html: `<p>Please click the following link to change your password:</p><a href="${resetUrl}">Change Your Password</a>`,
   };
 
   await transporter.sendMail(mailOptions);
