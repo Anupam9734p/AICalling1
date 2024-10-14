@@ -39,6 +39,9 @@ const subUserSchema = new mongoose.Schema(
     resetTokenExpiry: {
       type: String,
     },
+    totalCredit:{
+       type:Number,
+    },
     profileImage: {
       buffer: Buffer,
       contentType: String,
