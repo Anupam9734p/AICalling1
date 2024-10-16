@@ -667,11 +667,7 @@ margin-right: auto;
         const container = document.getElementById("messages-container");
         container.innerHTML = ""; // Clear existing content
 
-        // Get the last three messages from the messages array
-        const lastThreeMessages = messages.messages.slice(-3);
-
-        console.log(lastThreeMessages);
-        lastThreeMessages.forEach((message, index) => {
+        messages.forEach((message, index) => {
           // Create a message div element
           const messageDiv = document.createElement("div");
           messageDiv.className = "recent-message d-flex px-4 py-3";
@@ -721,10 +717,23 @@ margin-right: auto;
           console.log(`Fetching graph data for the last ${days} days...`);
           showLoader();
 
-          const res = await fetch(
-            //   `http://localhost:3000/api/auth/get-graphData?days=${days}`
-            `https://aicalling-demo.onrender.com/api/auth/get-graphData?days=${days}`
-          );
+          const currentDate = new Date();
+          const startDate = new Date();
+          startDate.setDate(currentDate.getDate() - days);
+
+          const formattedStartDate = startDate.toISOString().split("T")[0];
+          const formattedEndDate = currentDate.toISOString().split("T")[0];
+
+          // Construct the URL with query parameters
+          const apiUrl = `https://api.vapi.ai/call?createdAtGt=${formattedStartDate}&createdAtLt=${formattedEndDate}`;
+
+          const res = await fetch(apiUrl, {
+            method: "GET",
+            headers: {
+              Authorization: "Bearer 22576079-730d-4707-b8ab-f780113249f3",
+              "Content-Type": "application/json",
+            },
+          });
 
           if (!res.ok) {
             throw new Error(
@@ -736,8 +745,8 @@ margin-right: auto;
           console.log("Graph Data:", data);
 
           const twilioMessagesResponse = await fetch(
-            // `http://localhost:3000/api/auth/twilio/messages?days=${days}`,
-            `https://aicalling-demo.onrender.com/api/auth/twilio/messages?days=${days}`,
+          //  `http://localhost:3000/api/auth/twilio/messages?days=${days}`,
+             `https://aicalling-demo.onrender.com/api/auth/twilio/messages?days=${days}`,
             {
               method: "GET",
               headers: {
@@ -756,20 +765,20 @@ margin-right: auto;
 
           const twilioMessagesData = await twilioMessagesResponse.json();
           console.log("Twilio Messages Data:", twilioMessagesData);
-          renderMessages(twilioMessagesData);
+          renderMessages(twilioMessagesData.latestThreeMessages);
           // Constructing chart data
           const chartData = {
             categories: ["Calls", "SMS", "Emails"],
             series: [
               {
                 name: "Calls",
-                data: [Array.isArray(data.callData) ? data.callData : 0],
+                data: [Array.isArray(data) ? data.length : 0],
               },
               {
                 name: "SMS",
                 data: [
-                  Array.isArray(twilioMessagesData.messages)
-                    ? twilioMessagesData.messages.length
+                  Array.isArray(twilioMessagesData.latestThreeMessages)
+                    ? twilioMessagesData.totalLength
                     : 0,
                 ],
               },

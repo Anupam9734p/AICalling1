@@ -297,12 +297,20 @@ router.get("/twilio/messages", async (req, res) => {
       dateSentBefore: new Date(formattedEndDate),
       limit: 100,
     });
-    res.json({ messages });
+
+    // Get the total length of messages
+    const totalLength = messages.length;
+
+    // Get the latest three messages
+    const latestThreeMessages = messages.slice(0, 3);
+
+    res.json({ latestThreeMessages, totalLength });
   } catch (error) {
     console.error("Error fetching messages:", error);
     res.status(500).json({ error: "Error fetching message details" });
   }
 });
+
 
 router.post("/add-subUser", async (req, res) => {
   try {
@@ -597,48 +605,48 @@ router.get("/admins", async (req, res) => {
   }
 });
 
-router.get("/get-graphData", async (req, res) => {
-  try {
-    const days = parseInt(req.query.days, 10) || 15;
+// router.get("/get-graphData", async (req, res) => {
+//   try {
+//     const days = parseInt(req.query.days, 10) || 15;
 
-    const currentDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(currentDate.getDate() - days);
-    const formattedStartDate = startDate.toISOString().split("T")[0];
-    const formattedEndDate = currentDate.toISOString().split("T")[0];
+//     const currentDate = new Date();
+//     const startDate = new Date();
+//     startDate.setDate(currentDate.getDate() - days);
+//     const formattedStartDate = startDate.toISOString().split("T")[0];
+//     const formattedEndDate = currentDate.toISOString().split("T")[0];
 
-    const response = await axios.get(API_URL, {
-      headers: {
-        Authorization: `Bearer ${VAPI_API_KEY}`,
-      },
-      params: {
-        createdAtGt: formattedStartDate,
-        createdAtLt: formattedEndDate,
-      },
-    });
+//     const response = await axios.get(API_URL, {
+//       headers: {
+//         Authorization: `Bearer ${VAPI_API_KEY}`,
+//       },
+//       params: {
+//         createdAtGt: formattedStartDate,
+//         createdAtLt: formattedEndDate,
+//       },
+//     });
 
-    if (response.status === 200) {
-      const callData = response.data;
+//     if (response.status === 200) {
+//       const callData = response.data;
 
-      return res.status(200).json({
-        message: "Data sent successfully",
-        success: true,
-        callData: callData.length,
-      });
-    } else {
-      return res.status(response.status).json({
-        message: "Failed to fetch data from VAPI API",
-        success: false,
-      });
-    }
-  } catch (error) {
-    console.error("Error fetching graph data:", error);
-    return res.status(500).json({
-      message: "An error occurred while fetching graph data",
-      success: false,
-    });
-  }
-});
+//       return res.status(200).json({
+//         message: "Data sent successfully",
+//         success: true,
+//         callData: callData.length,
+//       });
+//     } else {
+//       return res.status(response.status).json({
+//         message: "Failed to fetch data from VAPI API",
+//         success: false,
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error fetching graph data:", error);
+//     return res.status(500).json({
+//       message: "An error occurred while fetching graph data",
+//       success: false,
+//     });
+//   }
+// });
 
 router.post("/updateProfilePic", upload.single("image"), async (req, res) => {
   try {
