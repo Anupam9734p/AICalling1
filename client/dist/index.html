@@ -463,8 +463,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-            "https://aicalling-demo.onrender.com/api/auth/validate",
-            //  "http://localhost:3000/api/auth/validate",
+              "https://aicalling-demo.onrender.com/api/auth/validate",
+           // "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -666,8 +666,8 @@ margin-right: auto;
       const renderMessages = (messages) => {
         const container = document.getElementById("messages-container");
         container.innerHTML = ""; // Clear existing content
-
-        messages.forEach((message, index) => {
+        const latestThreeMessages = messages.slice(0, 3);
+        latestThreeMessages.forEach((message, index) => {
           // Create a message div element
           const messageDiv = document.createElement("div");
           messageDiv.className = "recent-message d-flex px-4 py-3";
@@ -744,16 +744,28 @@ margin-right: auto;
           // const data = await res.json();
           // console.log("Graph Data:", data);
 
-          const twilioMessagesResponse = await fetch(
-          //  `http://localhost:3000/api/auth/twilio/messages?days=${days}`,
-             `https://aicalling-demo.onrender.com/api/auth/twilio/messages?days=${days}`,
-            {
-              method: "GET",
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          const accountSid = "AC3384b9969d736016bc322ab80d84e2e2";
+          const authToken = "f399adebf7c41a8a1009c1ed37ef24d9";
+
+          // Basic Authorization header for Twilio
+          const authHeader = "Basic " + btoa(accountSid + ":" + authToken);
+
+          const today = new Date();
+          const startDate = new Date();
+          startDate.setDate(today.getDate() - days);
+
+          const formattedStartDate = startDate.toISOString().split("T")[0];
+          const formattedEndDate = today.toISOString().split("T")[0];
+
+          const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json?DateSent>=${formattedStartDate}&DateSent<=${formattedEndDate}`;
+
+          const twilioMessagesResponse = await fetch(url, {
+            method: "GET",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          });
 
           if (!twilioMessagesResponse.ok) {
             const errorData = await twilioMessagesResponse.json();
@@ -765,7 +777,7 @@ margin-right: auto;
 
           const twilioMessagesData = await twilioMessagesResponse.json();
           console.log("Twilio Messages Data:", twilioMessagesData);
-          renderMessages(twilioMessagesData.latestThreeMessages);
+          renderMessages(twilioMessagesData.messages);
           // Constructing chart data
           const chartData = {
             categories: ["Calls", "SMS", "Emails"],
@@ -777,8 +789,8 @@ margin-right: auto;
               {
                 name: "SMS",
                 data: [
-                  Array.isArray(twilioMessagesData.latestThreeMessages)
-                    ? twilioMessagesData.totalLength
+                  Array.isArray(twilioMessagesData.messages)
+                    ? twilioMessagesData.messages.length
                     : 0,
                 ],
               },
