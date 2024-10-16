@@ -273,7 +273,7 @@
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="assets/js/main.js"></script>
     <script src="loader.js"></script>
 
@@ -307,7 +307,7 @@
       }
 
       function sendToBackend(users) {
-         //  fetch("http://localhost:3000/api/send-sms", {
+       //    fetch("http://localhost:3000/api/send-sms", {
         fetch("https://aicalling-demo.onrender.com/api/send-sms", {
           method: "POST",
           headers: {
@@ -318,9 +318,21 @@
           .then((response) => response.json())
           .then((data) => {
             console.log("Success:", data);
+    Swal.fire({
+      icon: "success",
+      title: "Success",
+      text: "Message sent successfully!",
+      confirmButtonText: "OK",
+    });
           })
           .catch((error) => {
             console.error("Error:", error);
+    Swal.fire({
+      icon: "error",
+      title: "Error",
+      text: "There was an error sending the message.",
+      confirmButtonText: "OK",
+    });
           });
       }
 

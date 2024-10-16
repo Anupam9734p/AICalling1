@@ -717,32 +717,32 @@ margin-right: auto;
           console.log(`Fetching graph data for the last ${days} days...`);
           showLoader();
 
-          const currentDate = new Date();
-          const startDate = new Date();
-          startDate.setDate(currentDate.getDate() - days);
+          // const currentDate = new Date();
+          // const startDate = new Date();
+          // startDate.setDate(currentDate.getDate() - days);
 
-          const formattedStartDate = startDate.toISOString().split("T")[0];
-          const formattedEndDate = currentDate.toISOString().split("T")[0];
+          // const formattedStartDate = startDate.toISOString().split("T")[0];
+          // const formattedEndDate = currentDate.toISOString().split("T")[0];
 
-          // Construct the URL with query parameters
-          const apiUrl = `https://api.vapi.ai/call?createdAtGt=${formattedStartDate}&createdAtLt=${formattedEndDate}`;
+          // // Construct the URL with query parameters
+          // const apiUrl = `https://api.vapi.ai/call?createdAtGt=${formattedStartDate}&createdAtLt=${formattedEndDate}`;
 
-          const res = await fetch(apiUrl, {
-            method: "GET",
-            headers: {
-              Authorization: "Bearer 22576079-730d-4707-b8ab-f780113249f3",
-              "Content-Type": "application/json",
-            },
-          });
+          // const res = await fetch(apiUrl, {
+          //   method: "GET",
+          //   headers: {
+          //     Authorization: "Bearer 22576079-730d-4707-b8ab-f780113249f3",
+          //     "Content-Type": "application/json",
+          //   },
+          // });
 
-          if (!res.ok) {
-            throw new Error(
-              `Error fetching graph data: ${res.status} ${res.statusText}`
-            );
-          }
+          // if (!res.ok) {
+          //   throw new Error(
+          //     `Error fetching graph data: ${res.status} ${res.statusText}`
+          //   );
+          // }
 
-          const data = await res.json();
-          console.log("Graph Data:", data);
+          // const data = await res.json();
+          // console.log("Graph Data:", data);
 
           const twilioMessagesResponse = await fetch(
           //  `http://localhost:3000/api/auth/twilio/messages?days=${days}`,
@@ -772,7 +772,7 @@ margin-right: auto;
             series: [
               {
                 name: "Calls",
-                data: [Array.isArray(data) ? data.length : 0],
+                data: [100],
               },
               {
                 name: "SMS",

@@ -18,8 +18,8 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 const twilio = require("twilio");
-const accountSid = process.env.TWILIO_ACCOUNT_SID.trim();
-const authToken = process.env.TWILIO_AUTH_TOKEN.trim();
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
 
 const axios = require("axios");
@@ -283,7 +283,8 @@ router.post("/update-profile", verifyToken, async (req, res) => {
 
 router.get("/twilio/messages", async (req, res) => {
   try {
-    const days = parseInt(req.query.days) || 90;
+    console.log("Come")
+    const days = parseInt(req.query.days) || 15;
     const today = new Date();
     const startDate = new Date();
 
@@ -304,6 +305,8 @@ router.get("/twilio/messages", async (req, res) => {
     // Get the latest three messages
     const latestThreeMessages = messages.slice(0, 3);
 
+    console.log(latestThreeMessages)
+    console.log(totalLength)
     res.json({ latestThreeMessages, totalLength });
   } catch (error) {
     console.error("Error fetching messages:", error);
