@@ -623,7 +623,7 @@ router.get("/get-graphData", async (req, res) => {
       return res.status(200).json({
         message: "Data sent successfully",
         success: true,
-        callData: callData,
+        callData: callData.length,
       });
     } else {
       return res.status(response.status).json({

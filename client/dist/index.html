@@ -325,7 +325,7 @@
                         id="time-period"
                         onchange="handleDropdownChange()"
                       >
-                      <option value="0">Select Value</option>
+                        <option value="0">Select Value</option>
                         <option value="15">15 Days</option>
                         <option value="30">1 Month</option>
                         <option value="60">2 Months</option>
@@ -463,8 +463,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-              "https://aicalling-demo.onrender.com/api/auth/validate",
-          //  "http://localhost:3000/api/auth/validate",
+            "https://aicalling-demo.onrender.com/api/auth/validate",
+            //  "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -664,52 +664,51 @@ margin-right: auto;
       });
 
       const renderMessages = (messages) => {
-    const container = document.getElementById("messages-container");
-    container.innerHTML = ""; // Clear existing content
+        const container = document.getElementById("messages-container");
+        container.innerHTML = ""; // Clear existing content
 
-    // Get the last three messages from the messages array
-    const lastThreeMessages = messages.messages.slice(-3);
+        // Get the last three messages from the messages array
+        const lastThreeMessages = messages.messages.slice(-3);
 
-    console.log(lastThreeMessages);
-    lastThreeMessages.forEach((message, index) => {
-        // Create a message div element
-        const messageDiv = document.createElement("div");
-        messageDiv.className = "recent-message d-flex px-4 py-3";
+        console.log(lastThreeMessages);
+        lastThreeMessages.forEach((message, index) => {
+          // Create a message div element
+          const messageDiv = document.createElement("div");
+          messageDiv.className = "recent-message d-flex px-4 py-3";
 
-        // Create avatar element
-        const avatarDiv = document.createElement("div");
-        avatarDiv.className = "avatar avatar-lg";
-        const avatarImg = document.createElement("img");
-        avatarImg.src = `assets/images/faces/${(index % 5) + 1}.jpg`; // Cycle through 5 images
-        avatarDiv.appendChild(avatarImg);
+          // Create avatar element
+          const avatarDiv = document.createElement("div");
+          avatarDiv.className = "avatar avatar-lg";
+          const avatarImg = document.createElement("img");
+          avatarImg.src = `assets/images/faces/${(index % 5) + 1}.jpg`; // Cycle through 5 images
+          avatarDiv.appendChild(avatarImg);
 
-        // Create message content
-        const nameDiv = document.createElement("div");
-        nameDiv.className = "name ms-4";
-        const nameHeading = document.createElement("h5");
-        nameHeading.className = "mb-1";
-        nameHeading.textContent = `From: ${message.from}`;
-        const usernameHeading = document.createElement("h6");
-        usernameHeading.className = "text-muted mb-0";
-        usernameHeading.textContent = `To: ${message.to}`;
-        const bodyParagraph = document.createElement("p");
-        bodyParagraph.className = "text-muted mb-0";
-        bodyParagraph.textContent = message.body;
+          // Create message content
+          const nameDiv = document.createElement("div");
+          nameDiv.className = "name ms-4";
+          const nameHeading = document.createElement("h5");
+          nameHeading.className = "mb-1";
+          nameHeading.textContent = `From: ${message.from}`;
+          const usernameHeading = document.createElement("h6");
+          usernameHeading.className = "text-muted mb-0";
+          usernameHeading.textContent = `To: ${message.to}`;
+          const bodyParagraph = document.createElement("p");
+          bodyParagraph.className = "text-muted mb-0";
+          bodyParagraph.textContent = message.body;
 
-        nameDiv.appendChild(nameHeading);
-        nameDiv.appendChild(usernameHeading);
-        nameDiv.appendChild(bodyParagraph);
+          nameDiv.appendChild(nameHeading);
+          nameDiv.appendChild(usernameHeading);
+          nameDiv.appendChild(bodyParagraph);
 
-        // Append avatar and message content to the message div
-        messageDiv.appendChild(avatarDiv);
-        messageDiv.appendChild(nameDiv);
+          // Append avatar and message content to the message div
+          messageDiv.appendChild(avatarDiv);
+          messageDiv.appendChild(nameDiv);
 
-        // Append the message div to the container
-        container.appendChild(messageDiv);
-    });
-};
-      
-      
+          // Append the message div to the container
+          container.appendChild(messageDiv);
+        });
+      };
+
       const handleDropdownChange = () => {
         const selectedDays = document.getElementById("time-period").value;
         console.log(`Selected Time Period: ${selectedDays} days`);
@@ -723,7 +722,7 @@ margin-right: auto;
           showLoader();
 
           const res = await fetch(
-         //   `http://localhost:3000/api/auth/get-graphData?days=${days}`
+            //   `http://localhost:3000/api/auth/get-graphData?days=${days}`
             `https://aicalling-demo.onrender.com/api/auth/get-graphData?days=${days}`
           );
 
@@ -734,10 +733,10 @@ margin-right: auto;
           }
 
           const data = await res.json();
-          console.log("Graph Data:", data); 
+          console.log("Graph Data:", data);
 
           const twilioMessagesResponse = await fetch(
-           // `http://localhost:3000/api/auth/twilio/messages?days=${days}`,
+            // `http://localhost:3000/api/auth/twilio/messages?days=${days}`,
             `https://aicalling-demo.onrender.com/api/auth/twilio/messages?days=${days}`,
             {
               method: "GET",
@@ -756,7 +755,7 @@ margin-right: auto;
           }
 
           const twilioMessagesData = await twilioMessagesResponse.json();
-          console.log("Twilio Messages Data:", twilioMessagesData); 
+          console.log("Twilio Messages Data:", twilioMessagesData);
           renderMessages(twilioMessagesData);
           // Constructing chart data
           const chartData = {
@@ -764,8 +763,8 @@ margin-right: auto;
             series: [
               {
                 name: "Calls",
-                data: [Array.isArray(data.callData) ? data.callData.length : 0],
-              }, 
+                data: [Array.isArray(data.callData) ? data.callData : 0],
+              },
               {
                 name: "SMS",
                 data: [
@@ -774,7 +773,7 @@ margin-right: auto;
                     : 0,
                 ],
               },
-              { name: "Emails", data: [20] }, 
+              { name: "Emails", data: [20] },
             ],
           };
 
@@ -791,10 +790,10 @@ margin-right: auto;
               existingChart.destroy();
             }
           }
-          
+
           const options1 = {
             chart: {
-              id: "chart-profile-visit", 
+              id: "chart-profile-visit",
               type: "bar",
               height: 350,
             },
