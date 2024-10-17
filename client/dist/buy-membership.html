@@ -82,6 +82,125 @@
         margin-right: auto;
       }
 
+
+      /* Style for the input field */
+.form-control {
+  width: 100%; /* Full width inside the card */
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #bfc5d2;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  outline: none;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover and focus effects for the input field */
+.form-control:hover,
+.form-control:focus {
+  border-color: #2196F3; /* Change border color on hover/focus */
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2); /* Slightly increase shadow */
+}
+
+/* Adjust card padding for better spacing */
+.card1 .card2 .card3 .mb-3 {
+  margin-bottom: 15px; /* Add some margin below the input */
+}
+
+
+/* Container for the cards */
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px; /* Add space between the cards */
+  justify-content: center; /* Center the cards */
+  padding: 20px; /* Add some padding to the container */
+}
+
+/* Individual card styles */
+.card1, .card2, .card3 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  width: 300px;
+  padding: 20px 1px;
+  margin: 10px; /* Add margin to create some space around the cards */
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgba(33,150,243,.4), 0 4px 6px -4px rgba(33,150,243,.4);
+  border-radius: 10px;
+}
+
+/* Platinum Card */
+.card1 {
+  background: linear-gradient(45deg, #1c1e53 0%, #bfc5d2 100%);
+}
+
+/* Gold Card */
+.card2 {
+  background: linear-gradient(45deg, #b8860b 0%, #f0e68c 100%);
+}
+
+/* Silver Card */
+.card3 {
+  background: linear-gradient(45deg, #a9a9a9 0%, #dcdcdc 100%);
+}
+
+
+.content {
+  padding: 20px;
+}
+
+.content .price {
+  color: white;
+  font-weight: 800;
+  font-size: 50px;
+  text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.42);
+}
+
+.content .description {
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.content .title {
+  font-weight: 800;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.64);
+  margin-top: 10px;
+  font-size: 25px;
+  letter-spacing: 1px;
+}
+
+button {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: .75rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #2196F3, #21CBF3); /* Blue gradient */
+  border-radius: 0.5rem;
+  width: 90%;
+  text-shadow: 0px 4px 18px rgba(0, 0, 0, 0.2);
+  transition: background 0.3s ease, transform 0.3s ease;
+}
+
+/* Add a hover effect */
+button:hover {
+  background: linear-gradient(135deg, #1e88e5, #039be5); /* Darker blue gradient on hover */
+  transform: scale(1.05); /* Slightly enlarge button */
+}
+
+
+
     </style>
   </head>
   <body>
@@ -201,9 +320,11 @@
         </header>
 
         <div class="container mt-5">
-          <div class="row justify-content-center">
+          <div class="row justify-content-center" >
             <!-- Platinum Plan -->
-            <div class="col-md-4 text-center">
+            <div class="card-container">
+
+            <!-- <div class="col-md-4 text-center">
               <div class="card p-3 shadow-sm">
                 <div class="mb-3">
                   <input
@@ -224,9 +345,37 @@
                   Buy Platinum
                 </button>
               </div>
-            </div>
+            </div> -->
+
+            
+<div class="card1">
+      <div class="content">
+        <div class="mb-3">
+          <input
+            type="email"
+            id="userEmailPlatinum"
+            class="form-control"
+            placeholder="Enter your email"
+            required
+          />
+        </div>
+        <div class="title">Platinum Plans</div>
+        <div class="price">$500</div>
+       <div class="description">
+         If you buy this plan, you will receive 500 credits, which you can use for various exclusive features and services. Upgrade now to unlock premium benefits and enjoy an enhanced experience!
+</div>
+      </div>
+        <button  onclick="buyMembership('Platinum', 500, 'userEmailPlatinum')">
+          Buy now
+        </button>
+  </div>
+
+
+
+
+
             <!-- Gold Plan -->
-            <div class="col-md-4 text-center">
+            <!-- <div class="col-md-4 text-center">
               <div class="card p-3 shadow-sm">
                 <div class="mb-3">
                   <input
@@ -247,9 +396,32 @@
                   Buy Gold
                 </button>
               </div>
-            </div>
+            </div> -->
+
+
+<div class="card2">
+      <div class="content">
+        <div class="mb-3">
+          <input
+            type="email"
+            id="userEmailGold"
+            class="form-control"
+            placeholder="Enter your email"
+            required
+          />
+        </div>
+        <div class="title">Gold Plan</div>
+        <div class="price">$200</div>
+        <div class="description"> If you buy this plan, you will receive 200 credits, which you can use for various exclusive features and services. Upgrade now to unlock premium benefits and enjoy an enhanced experience!</div>
+      </div>
+        <button  onclick="buyMembership('Gold', 200,'userEmailGold')">
+          Buy now
+        </button>
+  </div>
+
+
             <!-- Silver Plan -->
-            <div class="col-md-4 text-center">
+            <!-- <div class="col-md-4 text-center">
               <div class="card p-3 shadow-sm">
                 <div class="mb-3">
                   <input
@@ -270,7 +442,29 @@
                   Buy Silver
                 </button>
               </div>
-            </div>
+            </div> -->
+
+<div class="card3">
+      <div class="content">
+        <div class="mb-3">
+          <input
+            type="email"
+            id="userEmailSilver"
+            class="form-control"
+            placeholder="Enter your email"
+            required
+          />
+        </div>
+        <div class="title">Silver Plan</div>
+        <div class="price">$100</div>
+        <div class="description">If you buy this plan, you will receive 100 credits, which you can use for various exclusive features and services. Upgrade now to unlock premium benefits and enjoy an enhanced experience!</div>
+      </div>
+        <button onclick="buyMembership('Silver', 100,'userEmailSilver')">
+          Buy now
+        </button>
+  </div>
+
+</div>
           </div>
         </div>
         
@@ -303,7 +497,7 @@
         try {
           const response = await fetch(
             // "https://aicalling-osdb.onrender.com/api/auth/validate",
-         //   "http://localhost:3000/api/auth/validate-profile",
+        //    "http://localhost:3000/api/auth/validate-profile",
             "https://aicalling-demo.onrender.com/api/auth/validate-profile",
             {
               method: "GET",
@@ -460,11 +654,11 @@ margin-right: auto;
 
   if (!userEmail) {
     alert("Please enter your email.");
-    return;
+    return; 
   }
 
-  //fetch("http://localhost:3000/api/auth/payment", {
-  fetch("https://aicalling-demo.onrender.com/api/auth/payment", {
+  fetch("http://localhost:3000/api/auth/payment", {
+ // fetch("https://aicalling-demo.onrender.com/api/auth/payment", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
