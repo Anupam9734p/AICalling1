@@ -5,10 +5,31 @@ const openaiService = require("../services/openaiService");
 const CallLog = require("../models/CallLog");
 const nodemailer = require("nodemailer");
 const twilio = require("twilio");
+const User = require("../models/userModal");
+const subUserSchema = require("../models/subUserSchema");
 const accountSid = process.env.TWILIO_ACCOUNT_SID.trim();
 const authToken = process.env.TWILIO_AUTH_TOKEN.trim();
 const client = twilio(accountSid, authToken);
+const jwt = require("jsonwebtoken");
 
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  console.log(token);
+  if (!token) {
+    return res.status(401).json({ message: "Access denied" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decoded);
+    req.userId = decoded.userId;
+    req.role = decoded.role; // Attach the role (admin/subuser) if needed
+    next();
+  } catch (error) {
+    console.log("Error" + error);
+    return res.status(400).json({ message: "Invalid or expired token" });
+  }
+};
 // New demo transcript route
 router.post("/demo-transcript", async (req, res) => {
   try {
@@ -45,54 +66,135 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-router.post("/send-emails", async (req, res) => {
-  const users = req.body;
+router.post("/send-emails", verifyToken, async (req, res) => {
+  const { users, additionalInput } = req.body;
+  const { userId, role } = req;
 
-  console.log(users);
-  users.forEach((user) => {
-    const emailAddress = user[1];
-    const name = user[0];
+  let user;
+  try {
+    // Fetch user details based on their role
+    if (role === "admin") {
+      user = await User.findById(userId);
+    } else if (role === "subuser") {
+      user = await subUserSchema.findById(userId);
+    }
 
-    const mailOptions = {
-      from: "arijitghosh1203@gmail.com",
-      to: emailAddress,
-      subject: "Your Subject Here",
-      text: `Hello ${name}, this is a test email!`,
-    };
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log(`Error sending email to ${emailAddress}:`, error);
-      } else {
-        console.log(`Email sent to ${emailAddress}: ${info.response}`);
+    // Calculate total emails to be sent
+    const totalEmails = users.length;
+    const totalCost = totalEmails; // Assuming each email costs 1 credit
+
+    // Check if the user has enough credits to send the emails
+    if (user.credits < totalCost) {
+      return res
+        .status(403)
+        .json({ message: "Insufficient credits to send emails" });
+    }
+
+    // Validate email addresses and prepare mail options
+    const emailPromises = users.map((user) => {
+      const emailAddress = user[1];
+      const name = user[0];
+
+      // Simple regex to validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailAddress)) {
+        return Promise.reject(
+          new Error(`Invalid email address: ${emailAddress}`)
+        );
       }
-    });
-  });
 
-  res.send({ message: "Emails sent successfully!" });
+      const mailOptions = {
+        from: "arijitghosh1203@gmail.com",
+        to: emailAddress,
+        subject: additionalInput,
+        text: `Hello ${name}, this is a email from MAZER`,
+      };
+
+      // Return a promise for sending the email
+      return new Promise((resolve, reject) => {
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.log(`Error sending email to ${emailAddress}:`, error);
+            reject(new Error(`Failed to send email to ${emailAddress}`));
+          } else {
+            console.log(`Email sent to ${emailAddress}: ${info.response}`);
+            resolve(info.response);
+          }
+        });
+      });
+    });
+
+    // Wait for all emails to be sent
+    await Promise.all(emailPromises);
+
+    // Deduct credits from the user after successfully sending all emails
+    user.credits -= totalCost;
+    await user.save(); // Save the updated credits
+
+    res.status(200).json({ message: "Emails sent successfully!" });
+  } catch (error) {
+    console.error(`Failed to send emails: ${error.message}`);
+    res.status(500).json({ message: error.message });
+  }
 });
 
-router.post("/send-sms", async (req, res) => {
-  const users = req.body;
-  const message =
-    "Thank you for your time. We will schedule a meeting with you and provide you with an update soon. ";
-  console.log(users);
+router.post("/send-sms", verifyToken, async (req, res) => {
+  const { users, additionalInfo } = req.body;
+  const message = additionalInfo;
+  const smsCostPerMessage = 2; // Each SMS costs 2 credits
+  const totalSMS = users.length;
+  const totalCost = totalSMS * smsCostPerMessage;
+
   try {
+    const { userId, role } = req;
+    let user;
+
+    if (role === "admin") {
+      user = await User.findById(userId);
+    } else if (role === "subuser") {
+      user = await subUserSchema.findById(userId);
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if the user has enough credits to send all the SMS
+    if (user.credits < totalCost) {
+      return res
+        .status(403)
+        .json({ message: "Insufficient credits to send messages" });
+    }
+
+    // Send the SMS messages
     const sendSmsPromises = users.map(async (user) => {
       const [name, phone] = user;
       const toNumber = phone.startsWith("+") ? phone : `+${phone}`;
-      console.log(toNumber);
-      return client.messages.create({
+
+      console.log(`Sending to: ${toNumber}`);
+
+      // Send the SMS
+      const messageResult = await client.messages.create({
         body: `Hello ${name}, ${message}`,
         from: "+18552974391",
         to: toNumber,
       });
+
+      return messageResult.sid;
     });
-    const results = await Promise.all(sendSmsPromises);
-    const messageSids = results.map((msg) => msg.sid);
+
+    const messageSids = await Promise.all(sendSmsPromises);
+
+    // Deduct credits from the user after successfully sending all SMS
+    user.credits -= totalCost;
+    await user.save(); // Save the updated credits
+
     res.status(200).send({ success: true, messageSids });
   } catch (error) {
-    console.log("Error" + error);
     console.error(`Failed to send messages: ${error.message}`);
     res.status(500).send({ success: false, error: error.message });
   }

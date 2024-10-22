@@ -283,7 +283,6 @@ router.post("/update-profile", verifyToken, async (req, res) => {
 
 router.get("/twilio/messages", async (req, res) => {
   try {
-    console.log("Come")
     const days = parseInt(req.query.days) || 15;
     const today = new Date();
     const startDate = new Date();
@@ -305,15 +304,14 @@ router.get("/twilio/messages", async (req, res) => {
     // Get the latest three messages
     const latestThreeMessages = messages.slice(0, 3);
 
-    console.log(latestThreeMessages)
-    console.log(totalLength)
+    console.log(latestThreeMessages);
+    console.log(totalLength);
     res.json({ latestThreeMessages, totalLength });
   } catch (error) {
     console.error("Error fetching messages:", error);
     res.status(500).json({ error: "Error fetching message details" });
   }
 });
-
 
 router.post("/add-subUser", async (req, res) => {
   try {
@@ -546,13 +544,34 @@ router.delete("/subuser/:id", async (req, res) => {
       return res.status(404).json({ message: "Sub-user not found" });
     }
 
-    // Remove the reference from the parent user
-    await User.findOneAndUpdate(
-      { subUsers: subUserId },
-      { $pull: { subUsers: subUserId } }
+    // Extract sub-user's remaining credits
+    const subUserCredits = deletedSubUser.credit || 0; // Default to 0 if no credits
+
+    // Find the admin associated with the sub-user
+    const admin = await User.findById(deletedSubUser.adminId); // Get the admin from the deleted sub-user
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    // Update the admin's credits
+    const updatedAdmin = await User.findByIdAndUpdate(
+      admin._id,
+      { $inc: { credits: subUserCredits } }, // Increment the admin's credits
+      { new: true } // Return the updated admin
     );
 
-    res.status(200).json({ message: "Sub-user deleted successfully" });
+    // Remove the sub-user reference from the admin's subUsers array
+    await User.findByIdAndUpdate(
+      admin._id,
+      { $pull: { subUsers: subUserId } }, // Remove sub-user from admin's subUsers array
+      { new: true } // Optional: return the updated admin document if needed
+    );
+
+    res.status(200).json({
+      message: "Sub-user deleted successfully",
+      adminCredits: updatedAdmin.credits, // Return updated admin credits if needed
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });

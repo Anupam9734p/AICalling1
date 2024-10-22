@@ -258,12 +258,6 @@
               "
             >
               <input type="submit" value="Login" class="btn solid" />
-              <p class="social-text">Or</p>
-              <div class="social-media">
-                <a href="#" class="social-icon">
-                  <i class="fab fa-google"></i>
-                </a>
-              </div>
             </div>
           </form>
 
@@ -320,12 +314,6 @@
               "
             >
               <input type="submit" value="Sign Up" class="btn solid" />
-              <p class="social-text">Or</p>
-              <div class="social-media">
-                <a href="#" class="social-icon">
-                  <i class="fab fa-google"></i>
-                </a>
-              </div>
             </div>
           </form>
         </div>
@@ -364,8 +352,6 @@
             </div>
           </div>
         </div>
-
-        
       </div>
     </div>
 
@@ -417,8 +403,8 @@
 
           try {
             const res = await fetch(
-               "https://aicalling-demo.onrender.com/api/auth/signup",
-             // "http://localhost:3000/api/auth/signup",
+              "https://aicalling-demo.onrender.com/api/auth/signup",
+              // "http://localhost:3000/api/auth/signup",
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -455,8 +441,8 @@
 
           try {
             const res = await fetch(
-               "https://aicalling-demo.onrender.com/api/auth/verify-otp",
-             // "http://localhost:3000/api/auth/verify-otp",
+              "https://aicalling-demo.onrender.com/api/auth/verify-otp",
+              // "http://localhost:3000/api/auth/verify-otp",
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -539,15 +525,15 @@
           const password = document.getElementById("loginPassword").value;
 
           try {
-          //  const res = await fetch("http://localhost:3000/api/auth/login", {
-              const res = await fetch("https://aicalling-demo.onrender.com/api/auth/login", {
+        //    const res = await fetch("http://localhost:3000/api/auth/login", {
+                const res = await fetch("https://aicalling-demo.onrender.com/api/auth/login", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ email, password }),
             });
 
             const data = await res.json();
-            console.log(data)
+            console.log(data);
             if (data.success) {
               showLoader();
               localStorage.setItem("token", data.token);

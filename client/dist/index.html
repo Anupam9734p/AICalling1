@@ -274,7 +274,11 @@
                     </div>
                   </div>
                 </div>
-                <div class="col-6 col-lg-3 col-md-6">
+                <div
+                  class="col-6 col-lg-3 col-md-6"
+                  style="display: none"
+                  id="sub-user-card"
+                >
                   <div class="card">
                     <div class="card-body px-3 py-4-5">
                       <div class="row">
@@ -314,7 +318,7 @@
                 </div>
               </div>
 
-              <div class="row">
+              <div class="row" id="profile-visit" style="display: none">
                 <div class="col-12">
                   <div class="card">
                     <div class="card-header">
@@ -338,7 +342,9 @@
                 </div>
               </div>
 
-              <div class="row">
+              <!-- latest call log -->
+
+              <div class="row" style="display: none" id="call-log">
                 <div class="col-12">
                   <div class="card">
                     <div class="card-header">
@@ -422,7 +428,8 @@
                   </div>
                 </div>
               </div> -->
-              <div class="card">
+
+              <div class="card" style="display: none" id="message">
                 <div class="card-header">
                   <h4>Recent Messages</h4>
                 </div>
@@ -450,6 +457,13 @@
         window.location.href = "login.html";
       });
 
+      function arrayBufferToBase64(buffer) {
+        let binary = "";
+        const bytes = new Uint8Array(buffer);
+        bytes.forEach((b) => (binary += String.fromCharCode(b)));
+        return window.btoa(binary);
+      }
+
       async function validateToken() {
         const token = localStorage.getItem("token");
 
@@ -463,8 +477,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-              "https://aicalling-demo.onrender.com/api/auth/validate",
-           // "http://localhost:3000/api/auth/validate",
+            "https://aicalling-demo.onrender.com/api/auth/validate",
+            // "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -479,10 +493,19 @@
           }
 
           const data = await response.json();
+          const profileImg = document.getElementById("profileDropdown");
+          if (data.data.profileImage && data.data.profileImage.buffer) {
+            console.log("Come");
+            const base64String = arrayBufferToBase64(
+              data.data.profileImage.buffer.data
+            );
+            const mimeType = data.data.profileImage.contentType;
+            profileImg.src = `data:${mimeType};base64,${base64String}`;
+          } else {
+            console.log("Using default profile image");
+          }
 
-          console.log(data);
           if (!data.valid) {
-            // If token is not valid, redirect to login page
             window.location.href = "login.html";
           }
 
@@ -493,6 +516,12 @@
           const userPhone = document.getElementById("phone");
           const userRole = document.getElementById("role");
           const userSubUser = document.getElementById("subuser");
+
+          const recentMessage = document.getElementById("message");
+          const callLog = document.getElementById("call-log");
+          const profileVisit = document.getElementById("profile-visit");
+          const subUserCard = document.getElementById("sub-user-card");
+
           console.log(data.data.name);
           userName.textContent = data.data.name;
           userRole.textContent = data.role;
@@ -511,6 +540,7 @@
           if (role === "admin" || role === "super_admin") {
             document.getElementById("admin-super_admin").style.display =
               "block";
+            subUserCard.style = "block";
           }
 
           if (
@@ -519,22 +549,24 @@
             role === "super_admin"
           ) {
             const dropdownMenu = document.getElementById("dropdownMenu");
-
+            recentMessage.style.display = "block";
+            callLog.style.display = "block";
+            profileVisit.style.display = "block";
             const adminItems = `
-      <li>
-        <a class="dropdown-item" href="bulk-call-email.html">
-          <i class="fa-solid fa-envelope"></i> Send Bulk Email
-        </a>
-      </li>
-      <li>
-        <a class="dropdown-item" href="bulk-sms.html">
-          <i class="fa-solid fa-comments"></i> Send Bulk SMS
-        </a>
-      </li>
-      <li>
-       
-      </li>
-    `;
+            <li>
+              <a class="dropdown-item" href="bulk-call-email.html">
+                <i class="fa-solid fa-envelope"></i> Send Bulk Email
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="bulk-sms.html">
+                <i class="fa-solid fa-comments"></i> Send Bulk SMS
+              </a>
+            </li>
+            <li>
+
+            </li>
+          `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
@@ -553,14 +585,14 @@
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `
-          <li>
-        <a class="dropdown-item" href="add-member.html">
-          <i class="fa-solid fa-comments"></i> Add Member
-        </a>
-      <li>
-       
-      </li>
-    `;
+                <li>
+              <a class="dropdown-item" href="add-member.html">
+                <i class="fa-solid fa-comments"></i> Add Member
+              </a>
+            <li>
+
+            </li>
+          `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
@@ -570,25 +602,25 @@
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `
-<li>
-<a class="dropdown-item" href="buy-membership.html">
-<i class="fa-solid fa-credit-card"></i> Buy Membership
-</a>
-</li>
-<li>
-<hr
-style="
-border: none;
-height: 0.5px;
-background-color: #e9ecef;
-margin: 0.5rem 0;
-width: calc(100% - 1rem);
-margin-left: auto;
-margin-right: auto;
-"
-/>
-</li>
-`;
+      <li>
+      <a class="dropdown-item" href="buy-membership.html">
+      <i class="fa-solid fa-credit-card"></i> Buy Membership
+      </a>
+      </li>
+      <li>
+      <hr
+      style="
+      border: none;
+      height: 0.5px;
+      background-color: #e9ecef;
+      margin: 0.5rem 0;
+      width: calc(100% - 1rem);
+      margin-left: auto;
+      margin-right: auto;
+      "
+      />
+      </li>
+      `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
@@ -631,27 +663,27 @@ margin-right: auto;
             latestCalls.forEach((call) => {
               const row = document.createElement("tr");
               row.innerHTML = `
-                            <td class="col-3">
-                                <div class="d-flex align-items-center">
-                                    <p class="font-bold ms-3 mb-0">${new Date(
-                                      call.createdAt
-                                    ).toLocaleString()}</p>
-                                </div>
-                            </td>
-                            <td class="col-auto">
-                                <p class="mb-0">${new Date(
-                                  call.endedAt
-                                ).toLocaleString()}</p>
-                            </td>
-                            <td class="col-auto">
-                                <p class="mb-0">${call.status}</p>
-                            </td>
-                            <td class="col-auto">
-                                <p class="mb-0">${
-                                  call.customer?.number || "N/A"
-                                }</p>
-                            </td>
-                        `;
+                                  <td class="col-3">
+                                      <div class="d-flex align-items-center">
+                                          <p class="font-bold ms-3 mb-0">${new Date(
+                                            call.createdAt
+                                          ).toLocaleString()}</p>
+                                      </div>
+                                  </td>
+                                  <td class="col-auto">
+                                      <p class="mb-0">${new Date(
+                                        call.endedAt
+                                      ).toLocaleString()}</p>
+                                  </td>
+                                  <td class="col-auto">
+                                      <p class="mb-0">${call.status}</p>
+                                  </td>
+                                  <td class="col-auto">
+                                      <p class="mb-0">${
+                                        call.customer?.number || "N/A"
+                                      }</p>
+                                  </td>
+                              `;
               tableBody.appendChild(row);
             });
           })
