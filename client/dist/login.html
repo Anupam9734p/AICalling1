@@ -137,6 +137,7 @@
         bottom: 0;
         background: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
         display: flex;
+        width: 100%;
         justify-content: center;
         align-items: center;
         z-index: 1000; /* Ensure modal is on top */
@@ -160,8 +161,8 @@
         padding: 20px;
         border-radius: 8px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        width: 300px; /* Adjust width as needed */
-        max-width: 90%; /* Make it responsive */
+        width: 500px; /* Adjust width to a larger size */
+        max-width: 90%; /* Ensure it remains responsive */
       }
 
       /* Additional styling for smooth transition (optional) */
@@ -170,10 +171,19 @@
       }
 
       .close-btn {
-        background: none;
-        border: none;
+        border: 2px solid #ccc; /* Add a border for visibility */
+        border-radius: 5px; /* Optional: add rounded corners */
         float: right;
+        margin-right: 37rem;
+        margin-top: 10rem;
+        padding: 10px 20px; /* Increase padding for larger button size */
+        font-size: 18px; /* Increase font size for better visibility */
         cursor: pointer;
+        transition: background 0.3s; /* Smooth transition for hover effect */
+      }
+
+      .close-btn:hover {
+        background: #f0f0f0; /* Optional: change background on hover */
       }
 
       @media (max-width: 768px) {
@@ -208,6 +218,28 @@
           </div>
           <button id="verifyOtpButton" class="btn solid">Verify OTP</button>
           <div id="otpMessage" class="message"></div>
+        </div>
+      </div>
+
+      <div id="forgotPasswordModal" class="otp-modal" style="display: none">
+        <div class="otp-modal-content">
+          <h2 class="title">Forgot Password</h2>
+          <div class="input-field">
+            <i class="fas fa-envelope"></i>
+            <input
+              type="email"
+              id="forgotEmail"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+          <button id="sendResetButton" class="btn solid">
+            Send Reset Link
+          </button>
+          <button class="close-btn" id="closeForgotPasswordModal">
+            &times;
+          </button>
+          <div id="forgotPasswordMessage" class="message"></div>
         </div>
       </div>
 
@@ -258,13 +290,11 @@
               "
             >
               <input type="submit" value="Login" class="btn solid" />
-              <p class="social-text">Or</p>
-              <div class="social-media">
-                <a href="#" class="social-icon">
-                  <i class="fab fa-google"></i>
-                </a>
-              </div>
             </div>
+
+            <p style="text-align: center; margin-top: 15px">
+              <a href="#" id="forgotPasswordBtn">Forgot Password?</a>
+            </p>
           </form>
 
           <form id="signupForm" class="sign-up-form">
@@ -320,12 +350,6 @@
               "
             >
               <input type="submit" value="Sign Up" class="btn solid" />
-              <p class="social-text">Or</p>
-              <div class="social-media">
-                <a href="#" class="social-icon">
-                  <i class="fab fa-google"></i>
-                </a>
-              </div>
             </div>
           </form>
         </div>
@@ -364,14 +388,52 @@
             </div>
           </div>
         </div>
-
-        
       </div>
     </div>
 
     <!-- JavaScript for handling API calls -->
     <script src="loader.js"></script>
     <script>
+      const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+      const forgotPasswordModal = document.getElementById(
+        "forgotPasswordModal"
+      );
+      const closeForgotPasswordModal = document.getElementById(
+        "closeForgotPasswordModal"
+      );
+
+      // Show forgot password modal
+      forgotPasswordBtn.addEventListener("click", (e) => {
+        e.preventDefault(); // Prevent the default anchor behavior
+        forgotPasswordModal.style.display = "flex"; // Show modal
+      });
+
+      // Close forgot password modal
+      closeForgotPasswordModal.addEventListener("click", () => {
+        forgotPasswordModal.style.display = "none"; // Hide modal
+      });
+
+      // Optional: Close modal when clicking outside of the modal content
+      window.addEventListener("click", (event) => {
+        if (event.target === forgotPasswordModal) {
+          forgotPasswordModal.style.display = "none";
+        }
+      });
+
+      // Handle send reset link button click
+      document
+        .getElementById("sendResetButton")
+        .addEventListener("click", () => {
+          const email = document.getElementById("forgotEmail").value;
+          if (email) {
+            // Here you can implement your reset password logic (e.g., sending an email)
+            alert(`Reset link sent to ${email}`);
+            forgotPasswordModal.style.display = "none"; // Hide modal after sending
+          } else {
+            alert("Please enter your email.");
+          }
+        });
+
       const signInBtn = document.getElementById("sign-in-btn");
       const signUpBtn = document.getElementById("sign-up-btn");
       const container = document.querySelector(".container");
@@ -417,8 +479,8 @@
 
           try {
             const res = await fetch(
-               "https://aicalling-demo.onrender.com/api/auth/signup",
-             // "http://localhost:3000/api/auth/signup",
+              "https://aicalling-demo.onrender.com/api/auth/signup",
+              //  "http://localhost:3000/api/auth/signup",
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -455,8 +517,8 @@
 
           try {
             const res = await fetch(
-               "https://aicalling-demo.onrender.com/api/auth/verify-otp",
-             // "http://localhost:3000/api/auth/verify-otp",
+              "https://aicalling-demo.onrender.com/api/auth/verify-otp",
+              // "http://localhost:3000/api/auth/verify-otp",
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -539,14 +601,18 @@
           const password = document.getElementById("loginPassword").value;
 
           try {
-          //  const res = await fetch("http://localhost:3000/api/auth/login", {
-              const res = await fetch("https://aicalling-demo.onrender.com/api/auth/login", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ email, password }),
-            });
+            //    const res = await fetch("http://localhost:3000/api/auth/login", {
+            const res = await fetch(
+              "https://aicalling-demo.onrender.com/api/auth/login",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+              }
+            );
 
             const data = await res.json();
+            console.log(data);
             if (data.success) {
               showLoader();
               localStorage.setItem("token", data.token);

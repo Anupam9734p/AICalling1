@@ -266,13 +266,19 @@
                         </div>
                         <div class="col-md-8">
                           <h6 class="text-muted font-semibold">Contact</h6>
-                          <h6 class="font-extrabold mb-0" id="phone">Loading....</h6>
+                          <h6 class="font-extrabold mb-0" id="phone">
+                            Loading....
+                          </h6>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div class="col-6 col-lg-3 col-md-6">
+                <div
+                  class="col-6 col-lg-3 col-md-6"
+                  style="display: none"
+                  id="sub-user-card"
+                >
                   <div class="card">
                     <div class="card-body px-3 py-4-5">
                       <div class="row">
@@ -283,7 +289,9 @@
                         </div>
                         <div class="col-md-8">
                           <h6 class="text-muted font-semibold">SubUser</h6>
-                          <h6 class="font-extrabold mb-0" id="subuser">Loading....</h6>
+                          <h6 class="font-extrabold mb-0" id="subuser">
+                            Loading....
+                          </h6>
                         </div>
                       </div>
                     </div>
@@ -310,20 +318,33 @@
                 </div>
               </div>
 
-              <div class="row">
+              <div class="row" id="profile-visit" style="display: none">
                 <div class="col-12">
                   <div class="card">
                     <div class="card-header">
                       <h4>Profile Visit</h4>
                     </div>
                     <div class="card-body">
+                      <select
+                        id="time-period"
+                        onchange="handleDropdownChange()"
+                      >
+                        <option value="0">Select Value</option>
+                        <option value="15">15 Days</option>
+                        <option value="30">1 Month</option>
+                        <option value="60">2 Months</option>
+                        <option value="90">3 Months</option>
+                      </select>
+
                       <div id="chart-profile-visit"></div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="row">
+              <!-- latest call log -->
+
+              <div class="row" style="display: none" id="call-log">
                 <div class="col-12">
                   <div class="card">
                     <div class="card-header">
@@ -364,7 +385,7 @@
                   </div>
                 </div>
               </div>
-              <div class="card">
+              <!-- <div class="card">
                 <div class="card-header">
                   <h4>Recent Messages</h4>
                 </div>
@@ -406,13 +427,14 @@
                     >
                   </div>
                 </div>
-              </div>
-              <div class="card">
+              </div> -->
+
+              <div class="card" style="display: none" id="message">
                 <div class="card-header">
-                  <h4>Visitors Profile</h4>
+                  <h4>Recent Messages</h4>
                 </div>
-                <div class="card-body">
-                  <div id="chart-visitors-profile"></div>
+                <div class="card-content pb-4" id="messages-container">
+                  <!-- Messages will be inserted here dynamically -->
                 </div>
               </div>
             </div>
@@ -422,13 +444,10 @@
     </div>
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
-
     <script src="assets/vendors/apexcharts/apexcharts.js"></script>
-    <!-- <script src="assets/js/pages/dashboard.js"></script> -->
 
     <script src="assets/js/main.js"></script>
     <script src="loader.js"></script>
-    <script src="assets/vendors/apexcharts/apexcharts.js"></script>
 
     <script>
       const logoutBtn = document.getElementById("logout-btn");
@@ -437,6 +456,13 @@
         localStorage.removeItem("token");
         window.location.href = "login.html";
       });
+
+      function arrayBufferToBase64(buffer) {
+        let binary = "";
+        const bytes = new Uint8Array(buffer);
+        bytes.forEach((b) => (binary += String.fromCharCode(b)));
+        return window.btoa(binary);
+      }
 
       async function validateToken() {
         const token = localStorage.getItem("token");
@@ -451,8 +477,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-             "https://aicalling-demo.onrender.com/api/auth/validate",
-         //   "http://localhost:3000/api/auth/validate",
+            "https://aicalling-demo.onrender.com/api/auth/validate",
+            // "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -461,44 +487,60 @@
               },
             }
           );
-
+          hideLoader();
           if (!response.ok) {
             throw new Error("Token validation failed");
           }
 
           const data = await response.json();
-          hideLoader();
-          console.log(data);
+          const profileImg = document.getElementById("profileDropdown");
+          if (data.data.profileImage && data.data.profileImage.buffer) {
+            console.log("Come");
+            const base64String = arrayBufferToBase64(
+              data.data.profileImage.buffer.data
+            );
+            const mimeType = data.data.profileImage.contentType;
+            profileImg.src = `data:${mimeType};base64,${base64String}`;
+          } else {
+            console.log("Using default profile image");
+          }
+
           if (!data.valid) {
-            // If token is not valid, redirect to login page
             window.location.href = "login.html";
           }
 
-          getGraphData();
+          getGraphData(0);
           const role = data.role;
           const creditElement = document.getElementById("creditValue");
           const userName = document.getElementById("name");
           const userPhone = document.getElementById("phone");
           const userRole = document.getElementById("role");
           const userSubUser = document.getElementById("subuser");
+
+          const recentMessage = document.getElementById("message");
+          const callLog = document.getElementById("call-log");
+          const profileVisit = document.getElementById("profile-visit");
+          const subUserCard = document.getElementById("sub-user-card");
+
           console.log(data.data.name);
           userName.textContent = data.data.name;
           userRole.textContent = data.role;
-          userPhone.textContent = data.data.phone
+          userPhone.textContent = data.data.phone;
           if (role === "super_admin") {
             creditElement.textContent = "9999";
-            userSubUser.textContent = "Super_Admin"
+            userSubUser.textContent = "Super_Admin";
           } else if (role === "admin") {
             creditElement.textContent = data.data.credits || "No credit";
-            userSubUser.textContent = data.data.subUsers.length || "No Data"
+            userSubUser.textContent = data.data.subUsers.length || "No Data";
           } else {
             creditElement.textContent = data.data.credit || "No credit";
-             userSubUser.textContent = "No Data"
+            userSubUser.textContent = "No Data";
           }
 
           if (role === "admin" || role === "super_admin") {
             document.getElementById("admin-super_admin").style.display =
               "block";
+            subUserCard.style = "block";
           }
 
           if (
@@ -507,22 +549,24 @@
             role === "super_admin"
           ) {
             const dropdownMenu = document.getElementById("dropdownMenu");
-
+            recentMessage.style.display = "block";
+            callLog.style.display = "block";
+            profileVisit.style.display = "block";
             const adminItems = `
-      <li>
-        <a class="dropdown-item" href="bulk-call-email.html">
-          <i class="fa-solid fa-envelope"></i> Send Bulk Email
-        </a>
-      </li>
-      <li>
-        <a class="dropdown-item" href="bulk-sms.html">
-          <i class="fa-solid fa-comments"></i> Send Bulk SMS
-        </a>
-      </li>
-      <li>
-       
-      </li>
-    `;
+            <li>
+              <a class="dropdown-item" href="bulk-call-email.html">
+                <i class="fa-solid fa-envelope"></i> Send Bulk Email
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="bulk-sms.html">
+                <i class="fa-solid fa-comments"></i> Send Bulk SMS
+              </a>
+            </li>
+            <li>
+
+            </li>
+          `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
@@ -541,14 +585,14 @@
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `
-          <li>
-        <a class="dropdown-item" href="add-member.html">
-          <i class="fa-solid fa-comments"></i> Add Member
-        </a>
-      <li>
-       
-      </li>
-    `;
+                <li>
+              <a class="dropdown-item" href="add-member.html">
+                <i class="fa-solid fa-comments"></i> Add Member
+              </a>
+            <li>
+
+            </li>
+          `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
@@ -558,25 +602,25 @@
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `
-<li>
-<a class="dropdown-item" href="buy-membership.html">
-<i class="fa-solid fa-credit-card"></i> Buy Membership
-</a>
-</li>
-<li>
-<hr
-style="
-border: none;
-height: 0.5px;
-background-color: #e9ecef;
-margin: 0.5rem 0;
-width: calc(100% - 1rem);
-margin-left: auto;
-margin-right: auto;
-"
-/>
-</li>
-`;
+      <li>
+      <a class="dropdown-item" href="buy-membership.html">
+      <i class="fa-solid fa-credit-card"></i> Buy Membership
+      </a>
+      </li>
+      <li>
+      <hr
+      style="
+      border: none;
+      height: 0.5px;
+      background-color: #e9ecef;
+      margin: 0.5rem 0;
+      width: calc(100% - 1rem);
+      margin-left: auto;
+      margin-right: auto;
+      "
+      />
+      </li>
+      `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
@@ -619,27 +663,27 @@ margin-right: auto;
             latestCalls.forEach((call) => {
               const row = document.createElement("tr");
               row.innerHTML = `
-                            <td class="col-3">
-                                <div class="d-flex align-items-center">
-                                    <p class="font-bold ms-3 mb-0">${new Date(
-                                      call.createdAt
-                                    ).toLocaleString()}</p>
-                                </div>
-                            </td>
-                            <td class="col-auto">
-                                <p class="mb-0">${new Date(
-                                  call.endedAt
-                                ).toLocaleString()}</p>
-                            </td>
-                            <td class="col-auto">
-                                <p class="mb-0">${call.status}</p>
-                            </td>
-                            <td class="col-auto">
-                                <p class="mb-0">${
-                                  call.customer?.number || "N/A"
-                                }</p>
-                            </td>
-                        `;
+                                  <td class="col-3">
+                                      <div class="d-flex align-items-center">
+                                          <p class="font-bold ms-3 mb-0">${new Date(
+                                            call.createdAt
+                                          ).toLocaleString()}</p>
+                                      </div>
+                                  </td>
+                                  <td class="col-auto">
+                                      <p class="mb-0">${new Date(
+                                        call.endedAt
+                                      ).toLocaleString()}</p>
+                                  </td>
+                                  <td class="col-auto">
+                                      <p class="mb-0">${call.status}</p>
+                                  </td>
+                                  <td class="col-auto">
+                                      <p class="mb-0">${
+                                        call.customer?.number || "N/A"
+                                      }</p>
+                                  </td>
+                              `;
               tableBody.appendChild(row);
             });
           })
@@ -651,28 +695,158 @@ margin-right: auto;
         setInterval(updateCallLogs, 60000); // Refresh call logs every 60 seconds
       });
 
-      const getGraphData = async () => {
+      const renderMessages = (messages) => {
+        const container = document.getElementById("messages-container");
+        container.innerHTML = ""; // Clear existing content
+        const latestThreeMessages = messages.slice(0, 3);
+        latestThreeMessages.forEach((message, index) => {
+          // Create a message div element
+          const messageDiv = document.createElement("div");
+          messageDiv.className = "recent-message d-flex px-4 py-3";
+
+          // Create avatar element
+          const avatarDiv = document.createElement("div");
+          avatarDiv.className = "avatar avatar-lg";
+          const avatarImg = document.createElement("img");
+          avatarImg.src = `assets/images/faces/${(index % 5) + 1}.jpg`; // Cycle through 5 images
+          avatarDiv.appendChild(avatarImg);
+
+          // Create message content
+          const nameDiv = document.createElement("div");
+          nameDiv.className = "name ms-4";
+          const nameHeading = document.createElement("h5");
+          nameHeading.className = "mb-1";
+          nameHeading.textContent = `From: ${message.from}`;
+          const usernameHeading = document.createElement("h6");
+          usernameHeading.className = "text-muted mb-0";
+          usernameHeading.textContent = `To: ${message.to}`;
+          const bodyParagraph = document.createElement("p");
+          bodyParagraph.className = "text-muted mb-0";
+          bodyParagraph.textContent = message.body;
+
+          nameDiv.appendChild(nameHeading);
+          nameDiv.appendChild(usernameHeading);
+          nameDiv.appendChild(bodyParagraph);
+
+          // Append avatar and message content to the message div
+          messageDiv.appendChild(avatarDiv);
+          messageDiv.appendChild(nameDiv);
+
+          // Append the message div to the container
+          container.appendChild(messageDiv);
+        });
+      };
+
+      const handleDropdownChange = () => {
+        const selectedDays = document.getElementById("time-period").value;
+        console.log(`Selected Time Period: ${selectedDays} days`);
+
+        getGraphData(Number(selectedDays));
+      };
+
+      const getGraphData = async (days) => {
         try {
+          console.log(`Fetching graph data for the last ${days} days...`);
           showLoader();
 
-          const res = await fetch(
-          // "http://localhost:3000/api/auth/get-graphData"
-           "https://aicalling-demo.onrender.com/api/auth/get-graphData"
-          );
-          const data = await res.json();
-          console.log(data);
-          hideLoader();
+          // const currentDate = new Date();
+          // const startDate = new Date();
+          // startDate.setDate(currentDate.getDate() - days);
 
+          // const formattedStartDate = startDate.toISOString().split("T")[0];
+          // const formattedEndDate = currentDate.toISOString().split("T")[0];
+
+          // // Construct the URL with query parameters
+          // const apiUrl = `https://api.vapi.ai/call?createdAtGt=${formattedStartDate}&createdAtLt=${formattedEndDate}`;
+
+          // const res = await fetch(apiUrl, {
+          //   method: "GET",
+          //   headers: {
+          //     Authorization: "Bearer 22576079-730d-4707-b8ab-f780113249f3",
+          //     "Content-Type": "application/json",
+          //   },
+          // });
+
+          // if (!res.ok) {
+          //   throw new Error(
+          //     `Error fetching graph data: ${res.status} ${res.statusText}`
+          //   );
+          // }
+
+          // const data = await res.json();
+          // console.log("Graph Data:", data);
+
+          const accountSid = "AC3384b9969d736016bc322ab80d84e2e2";
+          const authToken = "f399adebf7c41a8a1009c1ed37ef24d9";
+
+          // Basic Authorization header for Twilio
+          const authHeader = "Basic " + btoa(accountSid + ":" + authToken);
+
+          const today = new Date();
+          const startDate = new Date();
+          startDate.setDate(today.getDate() - days);
+
+          const formattedStartDate = startDate.toISOString().split("T")[0];
+          const formattedEndDate = today.toISOString().split("T")[0];
+
+          const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json?DateSent>=${formattedStartDate}&DateSent<=${formattedEndDate}`;
+
+          const twilioMessagesResponse = await fetch(url, {
+            method: "GET",
+            headers: {
+              Authorization: authHeader,
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          });
+
+          if (!twilioMessagesResponse.ok) {
+            const errorData = await twilioMessagesResponse.json();
+            console.error("Error Response from Twilio API:", errorData);
+            throw new Error(
+              `Error: ${twilioMessagesResponse.status} ${twilioMessagesResponse.statusText}`
+            );
+          }
+
+          const twilioMessagesData = await twilioMessagesResponse.json();
+          console.log("Twilio Messages Data:", twilioMessagesData);
+          renderMessages(twilioMessagesData.messages);
+          // Constructing chart data
           const chartData = {
-            categories: ["", "", ""],
+            categories: ["Calls", "SMS", "Emails"],
             series: [
-              { name: "Calls", data: data.callData },
-              { name: "SMS", data: [25, 30, 45] },
-              { name: "Emails", data: [20, 35, 30] },
+              {
+                name: "Calls",
+                data: [100],
+              },
+              {
+                name: "SMS",
+                data: [
+                  Array.isArray(twilioMessagesData.messages)
+                    ? twilioMessagesData.messages.length
+                    : 0,
+                ],
+              },
+              { name: "Emails", data: [20] },
             ],
           };
+
+          const chartContainer = document.querySelector("#chart-profile-visit");
+          if (!chartContainer) {
+            throw new Error("Chart container not found");
+          }
+
+          if (days != 0) {
+            const existingChart = ApexCharts.getChartByID(
+              "chart-profile-visit"
+            ); // No # symbol
+            if (existingChart) {
+              existingChart.destroy();
+            }
+          }
+
           const options1 = {
             chart: {
+              id: "chart-profile-visit",
               type: "bar",
               height: 350,
             },
@@ -692,19 +866,32 @@ margin-right: auto;
               categories: chartData.categories,
             },
             title: {
-              text: "Profile Visits for the Last 3 Months",
+              text: `Profile Visits for the Last ${days} Days`,
               align: "center",
+              style: {
+                fontSize: "16px",
+                fontWeight: "bold",
+                color: "#333",
+              },
+            },
+            yaxis: {
+              title: {
+                text: "Visits",
+              },
+            },
+            legend: {
+              position: "top",
+              horizontalAlign: "center",
             },
           };
 
-          const chart = new ApexCharts(
-            document.querySelector("#chart-profile-visit"),
-            options1
-          );
-          chart.render();
+          // Create and render the chart
+          const chart = new ApexCharts(chartContainer, options1);
+          await chart.render(); // Ensure the chart is rendered
         } catch (error) {
-          hideLoader();
-          console.log("Error" + error);
+          console.error("Error:", error);
+        } finally {
+          hideLoader(); // Ensure loader is hidden regardless of success or error
         }
       };
     </script>

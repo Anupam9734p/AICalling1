@@ -290,7 +290,7 @@
         const response = await fetch(
           //  "https://aicalling-osdb.onrender.com/api/auth/validate",
           "https://aicalling-demo.onrender.com/api/auth/validate",
-          //"http://localhost:3000/api/auth/validate",
+        //  "http://localhost:3000/api/auth/validate",
           {
             method: "GET",
             headers: {
@@ -415,7 +415,7 @@ margin-right: auto;
         //  const response = await fetch("http://localhost:3000/api/auth/users", {
         const response = await fetch(
           "https://aicalling-demo.onrender.com/api/auth/users",
-         // "http://localhost:3000/api/auth/users",
+        //  "http://localhost:3000/api/auth/users",
           {
             method: "GET",
             headers: {
@@ -477,7 +477,7 @@ margin-right: auto;
     async function deleteSubUser(subUserId, token) {
       try {
         const response = await fetch(
-           //`http://localhost:3000/api/auth/subuser/${subUserId}`,
+       //    `http://localhost:3000/api/auth/subuser/${subUserId}`,
            `https://aicalling-demo.onrender.com/api/auth/subuser/${subUserId}`,
           {
             method: "DELETE",
@@ -500,13 +500,25 @@ margin-right: auto;
       }
     }
 
+
+
+
+
+      function arrayBufferToBase64(buffer) {
+        let binary = "";
+        const bytes = new Uint8Array(buffer);
+        bytes.forEach((b) => (binary += String.fromCharCode(b)));
+        return window.btoa(binary);
+      }
+
+
     async function fetchAllAdmins(token) {
       try {
         document.getElementById("action-tag-super_admin").style.display =
           "none";
         const response = await fetch(
           "https://aicalling-demo.onrender.com/api/auth/admins",
-          //"http://localhost:3000/api/auth/admins",
+       //   "http://localhost:3000/api/auth/admins",
           {
             method: "GET",
             headers: {
@@ -526,6 +538,21 @@ margin-right: auto;
         }
 
         const data = await response.json();
+
+            
+    const profileImg = document.getElementById("profileDropdown");
+          if (data.data.profileImage && data.data.profileImage.buffer) {
+
+            console.log("Come")
+             const base64String = arrayBufferToBase64(
+              data.data.profileImage.buffer.data
+             );
+            const mimeType = data.data.profileImage.contentType;
+            profileImg.src = `data:${mimeType};base64,${base64String}`;
+          } else {
+            console.log("Using default profile image");
+         }
+
         console.log("All admin users with sub-users:", data);
 
         const userTableBody = document.getElementById("userTableBody");

@@ -298,6 +298,20 @@
         window.location.href = "login.html";
       });
 
+      
+
+
+
+
+
+
+      function arrayBufferToBase64(buffer) {
+        let binary = "";
+        const bytes = new Uint8Array(buffer);
+        bytes.forEach((b) => (binary += String.fromCharCode(b)));
+        return window.btoa(binary);
+      }
+
       async function validateToken() {
         const token = localStorage.getItem("token");
 
@@ -327,6 +341,18 @@
           }
 
           const data = await response.json();
+          const profileImg = document.getElementById("profileDropdown");
+          if (data.data.profileImage && data.data.profileImage.buffer) {
+
+            console.log("Come")
+             const base64String = arrayBufferToBase64(
+              data.data.profileImage.buffer.data
+             );
+            const mimeType = data.data.profileImage.contentType;
+            profileImg.src = `data:${mimeType};base64,${base64String}`;
+          } else {
+            console.log("Using default profile image");
+         }
           if (!data.valid) {
             // If token is not valid, redirect to login page
             window.location.href = "login.html";

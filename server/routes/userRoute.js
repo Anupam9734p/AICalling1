@@ -16,6 +16,15 @@ const multer = require("multer");
 const subUserSchema = require("../models/subUserSchema.js");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
+
+const twilio = require("twilio");
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const client = twilio(accountSid, authToken);
+
+const axios = require("axios");
+const VAPI_API_KEY = process.env.VAPI_API_KEY;
+const API_URL = "https://api.vapi.ai/call";
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -272,10 +281,42 @@ router.post("/update-profile", verifyToken, async (req, res) => {
   }
 });
 
+router.get("/twilio/messages", async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 15;
+    const today = new Date();
+    const startDate = new Date();
+
+    startDate.setDate(today.getDate() - days);
+
+    const formattedStartDate = startDate.toISOString().split("T")[0];
+    const formattedEndDate = today.toISOString().split("T")[0];
+
+    const messages = await client.messages.list({
+      dateSentAfter: new Date(formattedStartDate),
+      dateSentBefore: new Date(formattedEndDate),
+      limit: 100,
+    });
+
+    // Get the total length of messages
+    const totalLength = messages.length;
+
+    // Get the latest three messages
+    const latestThreeMessages = messages.slice(0, 3);
+
+    console.log(latestThreeMessages);
+    console.log(totalLength);
+    res.json({ latestThreeMessages, totalLength });
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    res.status(500).json({ error: "Error fetching message details" });
+  }
+});
+
 router.post("/add-subUser", async (req, res) => {
   try {
     console.log(req.body);
-    const { name, email, password, phone, credit} = req.body;
+    const { name, email, password, phone, credit } = req.body;
 
     // Check if sub-user with the same email already exists in SubUser
     const checkSubUser = await SubUser.findOne({ email });
@@ -334,7 +375,7 @@ router.post("/add-subUser", async (req, res) => {
       phone,
       adminId: adminData._id,
       credit,
-      totalCredit:credit,
+      totalCredit: credit,
     });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
@@ -503,13 +544,34 @@ router.delete("/subuser/:id", async (req, res) => {
       return res.status(404).json({ message: "Sub-user not found" });
     }
 
-    // Remove the reference from the parent user
-    await User.findOneAndUpdate(
-      { subUsers: subUserId },
-      { $pull: { subUsers: subUserId } }
+    // Extract sub-user's remaining credits
+    const subUserCredits = deletedSubUser.credit || 0; // Default to 0 if no credits
+
+    // Find the admin associated with the sub-user
+    const admin = await User.findById(deletedSubUser.adminId); // Get the admin from the deleted sub-user
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    // Update the admin's credits
+    const updatedAdmin = await User.findByIdAndUpdate(
+      admin._id,
+      { $inc: { credits: subUserCredits } }, // Increment the admin's credits
+      { new: true } // Return the updated admin
     );
 
-    res.status(200).json({ message: "Sub-user deleted successfully" });
+    // Remove the sub-user reference from the admin's subUsers array
+    await User.findByIdAndUpdate(
+      admin._id,
+      { $pull: { subUsers: subUserId } }, // Remove sub-user from admin's subUsers array
+      { new: true } // Optional: return the updated admin document if needed
+    );
+
+    res.status(200).json({
+      message: "Sub-user deleted successfully",
+      adminCredits: updatedAdmin.credits, // Return updated admin credits if needed
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -565,28 +627,48 @@ router.get("/admins", async (req, res) => {
   }
 });
 
-router.get("/get-graphData", async (req, res) => {
-  try {
-    const currentDate = new Date();
-    const threeMonthsAgo = new Date(
-      currentDate.setMonth(currentDate.getMonth() - 3)
-    );
-    const callData = await CallLog.find({
-      createdAt: { $gte: threeMonthsAgo },
-    });
-    return res.status(201).send({
-      message: "Data send Successfully",
-      success: true,
-      callData: callData,
-    });
-  } catch (error) {
-    return res.status(401).send({
-      message: "An Error Occured....",
-      success: false,
-    });
-    console.log("Error" + error);
-  }
-});
+// router.get("/get-graphData", async (req, res) => {
+//   try {
+//     const days = parseInt(req.query.days, 10) || 15;
+
+//     const currentDate = new Date();
+//     const startDate = new Date();
+//     startDate.setDate(currentDate.getDate() - days);
+//     const formattedStartDate = startDate.toISOString().split("T")[0];
+//     const formattedEndDate = currentDate.toISOString().split("T")[0];
+
+//     const response = await axios.get(API_URL, {
+//       headers: {
+//         Authorization: `Bearer ${VAPI_API_KEY}`,
+//       },
+//       params: {
+//         createdAtGt: formattedStartDate,
+//         createdAtLt: formattedEndDate,
+//       },
+//     });
+
+//     if (response.status === 200) {
+//       const callData = response.data;
+
+//       return res.status(200).json({
+//         message: "Data sent successfully",
+//         success: true,
+//         callData: callData.length,
+//       });
+//     } else {
+//       return res.status(response.status).json({
+//         message: "Failed to fetch data from VAPI API",
+//         success: false,
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error fetching graph data:", error);
+//     return res.status(500).json({
+//       message: "An error occurred while fetching graph data",
+//       success: false,
+//     });
+//   }
+// });
 
 router.post("/updateProfilePic", upload.single("image"), async (req, res) => {
   try {

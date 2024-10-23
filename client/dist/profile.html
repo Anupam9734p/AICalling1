@@ -167,11 +167,6 @@
                   </div>
                   <div class="col-sm-9 d-flex align-items-center">
                     <p class="text-dark mb-0" id="email">Loading...</p>
-                    <i
-                      class="bi bi-pencil ms-2 text-muted"
-                      onclick="openEdit('email')"
-                      style="cursor: pointer"
-                    ></i>
                   </div>
                 </div>
                 <hr />
@@ -457,7 +452,7 @@
           showLoader()
           try {
             const response = await fetch(
-          //    "http://localhost:3000/api/auth/updateProfilePic",
+          //   "http://localhost:3000/api/auth/updateProfilePic",
               "https://aicalling-demo.onrender.com/api/auth/updateProfilePic",
               {
                 method: "POST",
