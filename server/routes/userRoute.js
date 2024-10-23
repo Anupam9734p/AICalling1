@@ -17,6 +17,8 @@ const subUserSchema = require("../models/subUserSchema.js");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
+
+
 const twilio = require("twilio");
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -449,6 +451,176 @@ router.post("/reset-password", async (req, res) => {
     });
   }
 });
+
+
+
+
+router.post("/forgot-password",async(req,res)=>{
+  const {email}=req.body;
+ 
+  try {
+    const oldUser=await User.findOne({email});
+    if(!oldUser)
+    {
+      return res.json({status:"User not Exits!"});
+    }
+    const secret=JWT_SECRET + oldUser.password;
+    const token=jwt.sign({email:oldUser.email, id:oldUser._id},secret,{expiresIn:"5m"});
+    const link=`https://ai-calling-demo.vercel.app/client/dist/passwordForgot.html?id=${oldUser._id}&token=${token}`;
+
+    var transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: 'arijitghosh1203@gmail.com',
+        pass: 'hryc yasr hlft mjsi'
+      }
+    });
+    
+    var mailOptions = {
+      from: 'arijitghosh1203@gmail.com',
+      to: email,
+      subject: 'Password Reset - Mazer',
+      html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+              body {
+                  font-family: Arial, sans-serif;
+                  background-color: #f4f4f4;
+                  margin: 0;
+                  padding: 20px;
+              }
+              .container {
+                  background-color: #ffffff;
+                  border-radius: 8px;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  padding: 20px;
+                  max-width: 600px;
+                  margin: auto;
+              }
+              h1 {
+                  color: #004aad; /* Dark blue */
+                  text-align: center;
+              }
+              p {
+                  color: #333333; /* Dark gray */
+                  line-height: 1.6;
+              }
+              .button {
+                  display: inline-block;
+                  background-color: #004aad; /* Dark blue */
+                  color: black;
+                  padding: 10px 20px;
+                  text-decoration: none;
+                  border-radius: 5px;
+                  margin: 20px 0;
+              }
+              .footer {
+                  text-align: center;
+                  margin-top: 20px;
+                  font-size: 12px;
+                  color: #777777; /* Light gray */
+              }
+          </style>
+      </head>
+      <body>
+          <div class="container">
+              <h1>Password Reset Request</h1>
+              <p>Hi there,</p>
+              <p>We received a request to reset your password for your account on <strong>Mazer</strong>.</p>
+              <p>To reset your password, please click the link below:</p>
+              <a href="${link}" class="button">Reset Password</a>
+              <p>This link will expire in <strong>5 minutes</strong>.</p>
+              <p>If you did not request a password reset, please ignore this email.</p>
+              <p>Thank you!</p>
+              <div class="footer">
+                  <p>&copy; ${new Date().getFullYear()} Mazer. All rights reserved.</p>
+              </div>
+          </div>
+      </body>
+      </html>
+      `,
+    };
+    
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+        console.log(error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
+
+   
+    return res.json({ status: "Success", link });
+  } catch (error) {
+    console.log("Forgot password Error : "+error);
+    return res.status(500).json({ status: "Server error" });
+  }
+})
+
+
+router.get("/forgot-password/:id/:token", async (req, res) => {
+  const { id, token } = req.params;
+
+  try {
+    const oldUser = await User.findOne({ _id: id });
+    if (!oldUser) {
+      return res.status(400).json({ message: "User Not Exists!", success: false });
+    }
+
+    const secret = JWT_SECRET + oldUser.password;
+    try {
+      jwt.verify(token, secret);
+      return res.status(200).json({
+        message: "Verified",
+        success: true,
+      });
+    } catch (error) {
+      return res.status(400).json({ message: "Token not verified", success: false });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", success: false });
+  }
+});
+
+
+
+router.post("/forgot-password/:id/:token", async (req, res) => {
+  const { id, token } = req.params;
+  const {password}=req.body;
+  try {
+    const oldUser = await User.findOne({ _id: id });
+    if (!oldUser) {
+      return res.status(400).json({ message: "User Not Exists!", success: false });
+    }
+
+    const secret = JWT_SECRET + oldUser.password;
+    try {
+      jwt.verify(token, secret);
+      const encryptedPassword=await bcrypt.hash(password,10);
+      await User.updateOne({
+        _id:id,
+
+      },
+      {
+        $set:{
+          password:encryptedPassword,
+        },
+      }
+    )
+    res.json({message:"Password Update"});
+    } catch (error) {
+      return res.status(400).json({ message: "Something Went Wrong", success: false });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", success: false });
+  }
+});
+
+
 
 router.get("/check-credit", verifyToken, async (req, res) => {
   try {
