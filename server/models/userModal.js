@@ -38,6 +38,7 @@ const userSchema = new mongoose.Schema(
 
     demoCall: {
       type: Number,
+      default:0
     },
     subUsers: [
       {
