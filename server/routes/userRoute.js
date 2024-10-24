@@ -578,7 +578,8 @@ router.get("/forgot-password/:id/:token", async (req, res) => {
       return res.status(400).json({ message: "User Not Exists!", success: false });
     }
 
-    const secret = JWT_SECRET + oldUser.password;
+   // const secret = JWT_SECRET + oldUser.password;
+   const secret =  process.env.JWT_SECRET + oldUser.password;
     try {
       jwt.verify(token, secret);
       return res.status(200).json({
@@ -604,7 +605,8 @@ router.post("/forgot-password/:id/:token", async (req, res) => {
       return res.status(400).json({ message: "User Not Exists!", success: false });
     }
 
-    const secret = JWT_SECRET + oldUser.password;
+   // const secret = JWT_SECRET + oldUser.password;
+   const secret = process.env.JWT_SECRET + oldUser.password;
     try {
       jwt.verify(token, secret);
       const encryptedPassword=await bcrypt.hash(password,10);
