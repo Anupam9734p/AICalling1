@@ -474,17 +474,17 @@ router.post("/forgot-password",async(req,res)=>{
     var transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        // user: 'arijitghosh1203@gmail.com',
-        // pass: 'hryc yasr hlft mjsi'
+         user: 'arijitghosh1203@gmail.com',
+        pass: 'hryc yasr hlft mjsi'
 
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
+        //user: process.env.EMAIL_USER,
+       // pass: process.env.EMAIL_PASSWORD,
       }
     });
     
     var mailOptions = {
-     // from: 'arijitghosh1203@gmail.com',
-      form:process.env.EMAIL_USER,
+     from: 'arijitghosh1203@gmail.com',
+     // form:process.env.EMAIL_USER,
       to: email,
       subject: 'Password Reset - Mazer',
       html: `
