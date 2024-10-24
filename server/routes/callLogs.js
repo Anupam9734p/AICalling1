@@ -7,7 +7,7 @@ const bodyParser = require('body-parser');
 // const router = express.Router();
 const cors = require('cors');
 
-const app = express();
+const app = express()
 
 // Middleware
 app.use(cors());
