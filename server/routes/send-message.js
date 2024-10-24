@@ -9,6 +9,7 @@ const client = twilio(accountSid, authToken);
 router.post('/send-sms', (req, res) => {
   const { toNumber, message } = req.body;
 
+  console.log(toNumber)
   client.messages
     .create({
       body: message,
@@ -20,6 +21,7 @@ router.post('/send-sms', (req, res) => {
       res.status(200).send({ success: true, sid: message.sid });
     })
     .catch((error) => {
+      console.log("Error" + error)
       console.error(`Failed to send message: ${error.message}`);
       res.status(500).send({ success: false, error: error.message });
     });

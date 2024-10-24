@@ -470,7 +470,7 @@ router.post("/forgot-password",async(req,res)=>{
     const token=jwt.sign({email:oldUser.email, id:oldUser._id},secret,{expiresIn:"5m"});
 
    // const link=`http://127.0.0.1:5501/client/dist/passwordForgot.html?id=${oldUser._id}&token=${token}`;
-    const link=`https://ai-calling-demo-otyj.vercel.app/client/dist/passwordForgot.html?id=${oldUser._id}&token=${token}`;
+    const link=`https://ai-calling-demo-otyj.vercel.app/passwordForgot.html?id=${oldUser._id}&token=${token}`;
     var transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
