@@ -111,7 +111,7 @@ router.post("/send-emails", verifyToken, async (req, res) => {
         from: "arijitghosh1203@gmail.com",
         to: emailAddress,
         subject: additionalInput,
-        text: `Hello ${name}, this is a email from MAZER`,
+        text: `Hello ${name}, this is a email from MAZER ${additionalInput}`,
       };
 
       // Return a promise for sending the email
