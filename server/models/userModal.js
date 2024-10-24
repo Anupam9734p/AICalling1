@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin","super_admin"],
+      enum: ["user", "admin", "super_admin"],
       default: "user",
     },
     profileImage: {
@@ -36,6 +36,9 @@ const userSchema = new mongoose.Schema(
       originalName: String,
     },
 
+    demoCall: {
+      type: Number,
+    },
     subUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,

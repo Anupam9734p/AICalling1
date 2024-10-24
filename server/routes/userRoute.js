@@ -17,8 +17,6 @@ const subUserSchema = require("../models/subUserSchema.js");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-
-
 const twilio = require("twilio");
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -452,41 +450,39 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
 
-
-
-router.post("/forgot-password",async(req,res)=>{
-  const {email}=req.body;
- 
   try {
-    const oldUser=await User.findOne({email});
-    if(!oldUser)
-    {
-      return res.json({status:"User not Exits!"});
+    const oldUser = await User.findOne({ email });
+    if (!oldUser) {
+      return res.json({ status: "User not Exits!" });
     }
     //const secret=JWT_SECRET + oldUser.password;
 
-    const secret= process.env.JWT_SECRET  + oldUser.password;
-    const token=jwt.sign({email:oldUser.email, id:oldUser._id},secret,{expiresIn:"5m"});
+    const secret = process.env.JWT_SECRET + oldUser.password;
+    const token = jwt.sign({ email: oldUser.email, id: oldUser._id }, secret, {
+      expiresIn: "5m",
+    });
 
-   // const link=`http://127.0.0.1:5501/client/dist/passwordForgot.html?id=${oldUser._id}&token=${token}`;
-    const link=`https://ai-calling-demo-otyj.vercel.app/passwordForgot.html?id=${oldUser._id}&token=${token}`;
+    // const link=`http://127.0.0.1:5501/client/dist/passwordForgot.html?id=${oldUser._id}&token=${token}`;
+    const link = `https://ai-calling-demo-otyj.vercel.app/passwordForgot.html?id=${oldUser._id}&token=${token}`;
     var transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
-         user: 'arijitghosh1203@gmail.com',
-        pass: 'hryc yasr hlft mjsi'
+        user: "arijitghosh1203@gmail.com",
+        pass: "hryc yasr hlft mjsi",
 
         //user: process.env.EMAIL_USER,
-       // pass: process.env.EMAIL_PASSWORD,
-      }
+        // pass: process.env.EMAIL_PASSWORD,
+      },
     });
-    
+
     var mailOptions = {
-     from: 'arijitghosh1203@gmail.com',
-     // form:process.env.EMAIL_USER,
+      from: "arijitghosh1203@gmail.com",
+      // form:process.env.EMAIL_USER,
       to: email,
-      subject: 'Password Reset - Mazer',
+      subject: "Password Reset - Mazer",
       html: `
       <!DOCTYPE html>
       <html lang="en">
@@ -551,23 +547,21 @@ router.post("/forgot-password",async(req,res)=>{
       </html>
       `,
     };
-    
-    transporter.sendMail(mailOptions, function(error, info){
+
+    transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
         console.log(error);
       } else {
-        console.log('Email sent: ' + info.response);
+        console.log("Email sent: " + info.response);
       }
     });
 
-   
     return res.json({ status: "Success", link });
   } catch (error) {
-    console.log("Forgot password Error : "+error);
+    console.log("Forgot password Error : " + error);
     return res.status(500).json({ status: "Server error" });
   }
-})
-
+});
 
 router.get("/forgot-password/:id/:token", async (req, res) => {
   const { id, token } = req.params;
@@ -575,11 +569,13 @@ router.get("/forgot-password/:id/:token", async (req, res) => {
   try {
     const oldUser = await User.findOne({ _id: id });
     if (!oldUser) {
-      return res.status(400).json({ message: "User Not Exists!", success: false });
+      return res
+        .status(400)
+        .json({ message: "User Not Exists!", success: false });
     }
 
-   // const secret = JWT_SECRET + oldUser.password;
-   const secret =  process.env.JWT_SECRET + oldUser.password;
+    // const secret = JWT_SECRET + oldUser.password;
+    const secret = process.env.JWT_SECRET + oldUser.password;
     try {
       jwt.verify(token, secret);
       return res.status(200).json({
@@ -587,49 +583,51 @@ router.get("/forgot-password/:id/:token", async (req, res) => {
         success: true,
       });
     } catch (error) {
-      return res.status(400).json({ message: "Token not verified", success: false });
+      return res
+        .status(400)
+        .json({ message: "Token not verified", success: false });
     }
   } catch (error) {
     return res.status(500).json({ message: "Server error", success: false });
   }
 });
-
-
 
 router.post("/forgot-password/:id/:token", async (req, res) => {
   const { id, token } = req.params;
-  const {password}=req.body;
+  const { password } = req.body;
   try {
     const oldUser = await User.findOne({ _id: id });
     if (!oldUser) {
-      return res.status(400).json({ message: "User Not Exists!", success: false });
+      return res
+        .status(400)
+        .json({ message: "User Not Exists!", success: false });
     }
 
-   // const secret = JWT_SECRET + oldUser.password;
-   const secret = process.env.JWT_SECRET + oldUser.password;
+    // const secret = JWT_SECRET + oldUser.password;
+    const secret = process.env.JWT_SECRET + oldUser.password;
     try {
       jwt.verify(token, secret);
-      const encryptedPassword=await bcrypt.hash(password,10);
-      await User.updateOne({
-        _id:id,
-
-      },
-      {
-        $set:{
-          password:encryptedPassword,
+      const encryptedPassword = await bcrypt.hash(password, 10);
+      await User.updateOne(
+        {
+          _id: id,
         },
-      }
-    )
-    res.status(200).json({message:"Password Update",success:true});
+        {
+          $set: {
+            password: encryptedPassword,
+          },
+        }
+      );
+      res.status(200).json({ message: "Password Update", success: true });
     } catch (error) {
-      return res.status(400).json({ message: "Something Went Wrong", success: false });
+      return res
+        .status(400)
+        .json({ message: "Something Went Wrong", success: false });
     }
   } catch (error) {
     return res.status(500).json({ message: "Server error", success: false });
   }
 });
-
-
 
 router.get("/check-credit", verifyToken, async (req, res) => {
   try {
@@ -892,6 +890,29 @@ router.post("/updateProfilePic", upload.single("image"), async (req, res) => {
   } catch (error) {
     console.error("Profile Image error: " + error);
     res.status(500).json({ status: "error", message: error.message });
+  }
+});
+
+router.post("/request-demo", verifyToken, async (req, res) => {
+  const { timePeriod } = req.body;
+  try {
+    console.log(req.userId);
+    const user = await User.findById(req.userId);
+    console.log(user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.demoCall >= 3) {
+      return res.status(403).json({ message: "Demo call limit exceeded" });
+    }
+    user.demoCall += 1;
+    await user.save();
+    return res.status(200).json({ message: "Demo requested successfully" });
+  } catch (error) {
+    console.error("Error requesting demo:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error. Please try again later." });
   }
 });
 

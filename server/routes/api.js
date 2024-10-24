@@ -180,7 +180,7 @@ router.post("/send-sms", verifyToken, async (req, res) => {
       // Send the SMS
       const messageResult = await client.messages.create({
         body: `Hello ${name}, ${message}`,
-        from: "+18552974391",
+        from: "+18064194064 ",
         to: toNumber,
       });
 
