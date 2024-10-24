@@ -466,8 +466,8 @@ router.post("/forgot-password",async(req,res)=>{
     }
     const secret=JWT_SECRET + oldUser.password;
     const token=jwt.sign({email:oldUser.email, id:oldUser._id},secret,{expiresIn:"5m"});
+   // const link=`http://127.0.0.1:5501/client/dist/passwordForgot.html?id=${oldUser._id}&token=${token}`;
     const link=`https://ai-calling-demo.vercel.app/client/dist/passwordForgot.html?id=${oldUser._id}&token=${token}`;
-
     var transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -611,7 +611,7 @@ router.post("/forgot-password/:id/:token", async (req, res) => {
         },
       }
     )
-    res.json({message:"Password Update"});
+    res.status(200).json({message:"Password Update",success:true});
     } catch (error) {
       return res.status(400).json({ message: "Something Went Wrong", success: false });
     }
