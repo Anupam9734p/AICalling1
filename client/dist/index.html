@@ -586,8 +586,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-            "https://aicalling-demo.onrender.com/api/auth/validate",
-            // "http://localhost:3000/api/auth/validate",
+                "https://aicalling-demo.onrender.com/api/auth/validate",
+         //   "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -866,7 +866,13 @@
       }
 
       function updateCallLogs() {
-        fetch("https://api.vapi.ai/call", options)
+     //   fetch("http://localhost:3000/api/auth/get-call-data", {
+        fetch("https://aicalling-demo.onrender.com/api/auth/get-call-data", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
           .then((response) => response.json())
           .then((data) => {
             console.log(data);
@@ -877,41 +883,35 @@
             tableBody.innerHTML = "";
 
             // Update total calls
-            totalCalls.textContent = data.length;
-
-            // Sort the data by createdAt in descending order
-            data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            totalCalls.textContent = data.totalCalls;
 
             // Update table with the latest 7 calls
-            const latestCalls = data.slice(0, 7);
-            latestCalls.forEach((call) => {
+            data.latestCalls.forEach((call) => {
               const row = document.createElement("tr");
               row.innerHTML = `
-                                  <td class="col-3">
-                                      <div class="d-flex align-items-center">
-                                          <p class="font-bold ms-3 mb-0">${new Date(
-                                            call.createdAt
-                                          ).toLocaleString()}</p>
-                                      </div>
-                                  </td>
-                                  <td class="col-auto">
-                                      <p class="mb-0">${new Date(
-                                        call.endedAt
-                                      ).toLocaleString()}</p>
-                                  </td>
-                                  <td class="col-auto">
-                                      <p class="mb-0">${call.status}</p>
-                                  </td>
-                                  <td class="col-auto">
-                                      <p class="mb-0">${
-                                        call.customer?.number || "N/A"
-                                      }</p>
-                                  </td>
-                              `;
+          <td class="col-3">
+              <div class="d-flex align-items-center">
+                  <p class="font-bold ms-3 mb-0">${new Date(
+                    call.createdAt
+                  ).toLocaleString()}</p>
+              </div>
+          </td>
+          <td class="col-auto">
+              <p class="mb-0">${new Date(call.endedAt).toLocaleString()}</p>
+          </td>
+          <td class="col-auto">
+              <p class="mb-0">${call.status}</p>
+          </td>
+          <td class="col-auto">
+              <p class="mb-0">${call.customer?.number || "N/A"}</p>
+          </td>
+        `;
               tableBody.appendChild(row);
             });
           })
-          .catch((err) => console.error("Error fetching call logs:", err));
+          .catch((err) =>
+            console.error("Error fetching call logs from backend:", err)
+          );
       }
 
       document.addEventListener("DOMContentLoaded", function () {
@@ -1034,8 +1034,8 @@
           let TotalTwiloData = 0;
           try {
             const twilioMessagesResponse = await fetch(
-              //    `http://localhost:3000/api/auth/get-twilio-data?dayes=${days}`,
-              `https://aicalling-demo.onrender.com/api/auth/get-twilio-data?days=${days}`,
+          //    `http://localhost:3000/api/auth/get-twilio-data?dayes=${days}`,
+               `https://aicalling-demo.onrender.com/api/auth/get-twilio-data?days=${days}`,
 
               {
                 method: "GET",

@@ -52,6 +52,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    vapiPhoneNumberId: {
+      type: String,
+      default: "",
+    },
+    vapiSipUri: {
+      type: String,
+      default: "",
+    },
     subUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,

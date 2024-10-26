@@ -633,23 +633,39 @@ router.get("/check-credit", verifyToken, async (req, res) => {
   try {
     const { userId, role } = req;
     let user;
+    let adminUser; // For storing admin details if the role is subuser
 
     if (role === "admin") {
+      // Find the user directly if they are an admin
       user = await User.findById(userId);
     } else if (role === "subuser") {
+      // Find the subuser
       user = await SubUser.findById(userId);
+      if (user && user.adminId) {
+        // Find the corresponding admin using adminId from the subuser document
+        adminUser = await User.findById(user.adminId);
+      }
     }
 
-    if (!user) {
+    if (!user || (role === "subuser" && !adminUser)) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the user has at least one credit
-    if (user.credits < 1 || user.credit < 1) {
+    // Check if credits are sufficient
+    const credits = role === "admin" ? user.credits : user.credit;
+    if (credits < 1) {
       return res.status(403).json({ message: "Insufficient credits" });
     }
 
-    res.status(200).json({ message: "Sufficient credits available" });
+    // Respond with vapiPhoneNumberId if available
+    const response = {
+      message: "Sufficient credits available",
+      vapiPhoneNumberId:
+        role === "admin" ? user.vapiPhoneNumberId : adminUser.vapiPhoneNumberId,
+      userId: userId,
+    };
+
+    res.status(200).json(response);
   } catch (error) {
     console.error("Error checking credits: ", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -762,31 +778,43 @@ router.post("/check-bulk-credit", verifyToken, async (req, res) => {
     const { userId, role } = req;
     const { callCount } = req.body; // Number of calls to be made in bulk
 
-    let user;
+    let user, adminData;
 
     if (role === "admin") {
       user = await User.findById(userId);
     } else if (role === "subuser") {
-      user = await SubUser.findById(userId);
+      user = await SubUser.findById(userId).populate("adminId"); // Get subuser and populate admin details
+
+      if (user && user.adminId) {
+        // Retrieve admin's information if subuser has an associated admin
+        adminData = await User.findById(user.adminId);
+      }
     }
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the user has enough credits for the bulk call
-    const availableCredits = user.credits || user.credit;
+    // Determine available credits (for subuser, check own or admin's credits)
+    const availableCredits =
+      user.credits || user.credit || (adminData ? adminData.credits : 0);
 
     if (availableCredits >= callCount) {
-      // Return success message without deducting credits
+      // Return success message including vapiPhoneNumberId from user or admin
       return res.json({
         message: "Sufficient credits available",
         remainingCredits: availableCredits,
+        vapiPhoneNumberId:
+          user.vapiPhoneNumberId ||
+          (adminData ? adminData.vapiPhoneNumberId : null),
       });
     } else {
-      return res
-        .status(403)
-        .json({ message: "Insufficient credits for bulk call" });
+      return res.status(403).json({
+        message: "Insufficient credits for bulk call",
+        vapiPhoneNumberId:
+          user.vapiPhoneNumberId ||
+          (adminData ? adminData.vapiPhoneNumberId : null),
+      });
     }
   } catch (error) {
     console.error("Error checking credits for bulk call:", error);
@@ -916,77 +944,78 @@ router.post("/request-demo", verifyToken, async (req, res) => {
   }
 });
 
-router.post('/config', async (req, res) => {
+const { VapiClient } = require("@vapi-ai/server-sdk");
+const client1 = new VapiClient({
+  token: "22576079-730d-4707-b8ab-f780113249f3",
+});
+
+router.post("/config", async (req, res) => {
   try {
-    console.log("Come")
-    // Get the token from the Authorization header
-    const token = req.headers.authorization.split(' ')[1]; // Extract the token from "Bearer <token>"
-
-    // Verify and decode the token
-    const decoded = jwt.verify(token, JWT_SECRET); // Use your JWT secret key
-    const userId = decoded.userId; // Assuming the token contains user ID as `id`
-
-    // Find the user by ID
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
-
-    // Extract Twilio configuration details from the request body
     const { twilioSid, twilioToken, twilioNum } = req.body;
-
-    // Update the Twilio configuration fields for the user
     user.twilioSid = twilioSid;
     user.twilioToken = twilioToken;
     user.twilioNum = twilioNum;
-
-    // Save the updated user object
     await user.save();
-
-    // Send success response
-    res.status(200).json({ message: 'Configuration saved successfully!' });
+    const vapiResponse = await client1.phoneNumbers.create({
+      provider: "twilio",
+      number: twilioNum,
+      twilioAccountSid: twilioSid,
+      twilioAuthToken: twilioToken,
+    });
+    console.log(vapiResponse);
+    user.vapiPhoneNumberId = vapiResponse.id;
+    user.vapiSipUri = vapiResponse.sipUri;
+    await user.save();
+    res.status(200).json({
+      message: "Configuration saved and Vapi details added successfully!",
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'An error occurred', error });
+    res.status(500).json({ message: "An error occurred", error });
   }
 });
 
-
-router.get('/get-twilio-data', verifyToken, async (req, res) => {
+router.get("/get-twilio-data", verifyToken, async (req, res) => {
   try {
     const { userId, role } = req;
     const { days } = req.query; // Get 'days' parameter from query string
 
     let twilioSid, twilioToken;
-    
-    // Default to 1 day if 'days' is not provided
     const daysBack = parseInt(days) || 1;
-
-    // Fetch admin or subuser data
-    if (role === 'admin') {
+    if (role === "admin") {
       const adminUser = await User.findById(userId);
-      if (!adminUser) return res.status(404).json({ message: 'Admin not found' });
+      if (!adminUser)
+        return res.status(404).json({ message: "Admin not found" });
       twilioSid = adminUser.twilioSid;
       twilioToken = adminUser.twilioToken;
-    } else if (role === 'subuser') {
+    } else if (role === "subuser") {
       const subUser = await SubUser.findById(userId);
-      if (!subUser) return res.status(404).json({ message: 'Subuser not found' });
+      if (!subUser)
+        return res.status(404).json({ message: "Subuser not found" });
       const admin = await User.findById(subUser.adminId);
-      if (!admin) return res.status(404).json({ message: 'Admin for subuser not found' });
+      if (!admin)
+        return res.status(404).json({ message: "Admin for subuser not found" });
       twilioSid = admin.twilioSid;
       twilioToken = admin.twilioToken;
     }
 
     if (!twilioSid || !twilioToken) {
-      return res.status(400).json({ message: 'Twilio credentials missing' });
+      return res.status(400).json({ message: "Twilio credentials missing" });
     }
 
     // Date range for filtering messages (based on 'days' parameter)
     const today = new Date();
-    const formattedEndDate = today.toISOString().split('T')[0];
+    const formattedEndDate = today.toISOString().split("T")[0];
     const startDate = new Date();
     startDate.setDate(today.getDate() - daysBack); // Get messages from 'days' before
-    const formattedStartDate = startDate.toISOString().split('T')[0];
+    const formattedStartDate = startDate.toISOString().split("T")[0];
 
     // Fetch the messages from Twilio API
     const twilioResponse = await axios.get(
@@ -1001,14 +1030,69 @@ router.get('/get-twilio-data', verifyToken, async (req, res) => {
 
     // Return the last 3 messages
     const messages = twilioResponse.data.messages.slice(0, 3);
-    res.status(200).json({ success: true, messages,total:twilioResponse.data.messages.length });
+    res.status(200).json({
+      success: true,
+      messages,
+      total: twilioResponse.data.messages.length,
+    });
   } catch (error) {
     console.error(`Error fetching Twilio messages: ${error.message}`);
-    res.status(500).json({ success: false, message: 'Failed to fetch Twilio messages' });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch Twilio messages" });
   }
 });
 
+router.get("/get-call-data", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
 
+  if (!token) {
+    return res.status(401).json({ error: "Authorization token missing" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+    let user = await User.findById(userId);
+    let vapiPhoneNumberId;
+
+    if (!user) {
+      const subUser = await SubUser.findOne({ _id: userId });
+
+      if (!subUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      user = await User.findById(subUser.adminId);
+      if (!user) {
+        return res.status(404).json({ error: "Admin user not found" });
+      }
+    }
+    vapiPhoneNumberId = user.vapiPhoneNumberId;
+
+    if (!vapiPhoneNumberId) {
+      return res.status(404).json({ error: "vapiPhoneNumberId not found for this user" });
+    }
+    console.log("vapiPhoneNumberId:", vapiPhoneNumberId);
+    const response = await client1.calls.list({from:vapiPhoneNumberId,limit:20});
+    const data = response;
+    console.log(response)
+    const sortedCalls = data
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 7);
+
+    console.log("Latest Calls:", sortedCalls);
+    res.status(200).json({
+      totalCalls: data.length,
+      latestCalls: sortedCalls,
+    });
+  } catch (error) {
+    console.error("Error fetching call logs:", error);
+    if (error.statusCode === 404) {
+      return res.status(404).json({ error: "Call data not found in VAPI for this vapiPhoneNumberId" });
+    }
+    res.status(500).json({ error: "Error fetching call logs" });
+  }
+});
 
 
 router.get("/home", authMiddleware, (req, res) => {
