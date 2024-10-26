@@ -38,7 +38,19 @@ const userSchema = new mongoose.Schema(
 
     demoCall: {
       type: Number,
-      default:0
+      default: 0,
+    },
+    twilioToken: {
+      type: String,
+      default: "",
+    },
+    twilioSid: {
+      type: String,
+      default: "",
+    },
+    twilioNum: {
+      type: String,
+      default: "",
     },
     subUsers: [
       {

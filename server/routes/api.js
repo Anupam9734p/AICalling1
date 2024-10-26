@@ -143,7 +143,7 @@ router.post("/send-emails", verifyToken, async (req, res) => {
 });
 
 router.post("/send-sms", verifyToken, async (req, res) => {
-  const { users, additionalInfo } = req.body;
+  const { users, additionalInfo } = req.body; // Get users and message
   const message = additionalInfo;
   const smsCostPerMessage = 2; // Each SMS costs 2 credits
   const totalSMS = users.length;
@@ -151,42 +151,62 @@ router.post("/send-sms", verifyToken, async (req, res) => {
 
   try {
     const { userId, role } = req;
-    let user;
+    let user, twilioSid, twilioToken, twilioNum;
 
+    // Check if the user is an admin or subuser
     if (role === "admin") {
+      // Fetch admin user
       user = await User.findById(userId);
+      if (!user)
+        return res.status(404).json({ message: "Admin user not found" });
+
+      // Get Twilio credentials from admin user
+      ({ twilioSid, twilioToken, twilioNum } = user);
     } else if (role === "subuser") {
-      user = await subUserSchema.findById(userId);
+      // Fetch subuser
+      const subuser = await subUserSchema.findById(userId);
+      if (!subuser)
+        return res.status(404).json({ message: "Subuser not found" });
+
+      // Fetch the admin for the subuser
+      const admin = await User.findById(subuser.adminId);
+      if (!admin)
+        return res.status(404).json({ message: "Admin for subuser not found" });
+
+      // Get Twilio credentials from admin user
+      ({ twilioSid, twilioToken, twilioNum } = admin);
+
+      // Use the subuser's credits
+      user = subuser;
     }
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Check if the user has enough credits to send all the SMS
+    // Check if the user (admin or subuser) has enough credits to send all SMS
     if (user.credits < totalCost) {
       return res
         .status(403)
         .json({ message: "Insufficient credits to send messages" });
     }
 
+    // Initialize Twilio client with the admin's Twilio credentials
+    const twilioClient = require("twilio")(twilioSid, twilioToken);
+
+    console.log(twilioSid);
     // Send the SMS messages
     const sendSmsPromises = users.map(async (user) => {
       const [name, phone] = user;
       const toNumber = phone.startsWith("+") ? phone : `+${phone}`;
 
-      console.log(`Sending to: ${toNumber}`);
-
       // Send the SMS
-      const messageResult = await client.messages.create({
+      const messageResult = await twilioClient.messages.create({
         body: `Hello ${name}, ${message}`,
-        from: "+18064194064 ",
+        from: twilioNum,
         to: toNumber,
       });
 
       return messageResult.sid;
     });
 
+    // Wait for all SMS to be sent
     const messageSids = await Promise.all(sendSmsPromises);
 
     // Deduct credits from the user after successfully sending all SMS

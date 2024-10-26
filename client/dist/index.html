@@ -151,6 +151,12 @@
                     <span>Appointment</span>
                   </a>
                 </li>
+                <li class="sidebar-item">
+                  <a href="config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Add Configuration</span>
+                  </a>
+                </li>
               </div>
               <!-- <li class="sidebar-item">
                 <a href="#" class="sidebar-link" id="logout-btn">
@@ -542,17 +548,17 @@
 
     <script>
       const categorySelect = document.getElementById("category");
-  const customField = document.getElementById("customField");
-  const customValueInput = document.getElementById("customValue");
+      const customField = document.getElementById("customField");
+      const customValueInput = document.getElementById("customValue");
 
-  // Show/hide custom field based on category selection
-  categorySelect.addEventListener("change", function () {
-    if (categorySelect.value === "Custom") {
-      customField.style.display = "block"; // Show custom input if "Custom" is selected
-    } else {
-      customField.style.display = "none"; // Hide custom input for predefined options
-    }
-  });
+      // Show/hide custom field based on category selection
+      categorySelect.addEventListener("change", function () {
+        if (categorySelect.value === "Custom") {
+          customField.style.display = "block"; // Show custom input if "Custom" is selected
+        } else {
+          customField.style.display = "none"; // Hide custom input for predefined options
+        }
+      });
       const logoutBtn = document.getElementById("logout-btn");
 
       logoutBtn.addEventListener("click", () => {
@@ -580,8 +586,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-               "https://aicalling-demo.onrender.com/api/auth/validate",
-           // "http://localhost:3000/api/auth/validate",
+            "https://aicalling-demo.onrender.com/api/auth/validate",
+            // "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -752,12 +758,13 @@
       async function requestDemo() {
         const phoneNumber = document.getElementById("phone-number").value;
         const selectedLanguage = document.getElementById("language").value;
-       // const prompt = document.getElementById("prompt").value;
-       const selectedCategory = categorySelect.value;
-       const customValue = customValueInput.value;
+        // const prompt = document.getElementById("prompt").value;
+        const selectedCategory = categorySelect.value;
+        const customValue = customValueInput.value;
         console.log(phoneNumber);
         console.log(selectedLanguage);
-        const prompt = selectedCategory === "Custom" ? customValue : selectedCategory;
+        const prompt =
+          selectedCategory === "Custom" ? customValue : selectedCategory;
         console.log(prompt);
 
         if (!phoneNumber) {
@@ -993,41 +1000,62 @@
           // const data = await res.json();
           // console.log("Graph Data:", data);
 
-          const accountSid = "AC38b77eb609d6644e5a2cdcef9d0428ea";
-          const authToken = "8154fc1e036c0624d33749b58c398361";
+          // const accountSid = "AC38b77eb609d6644e5a2cdcef9d0428ea";
+          // const authToken = "8154fc1e036c0624d33749b58c398361";
 
-          // Basic Authorization header for Twilio
-          const authHeader = "Basic " + btoa(accountSid + ":" + authToken);
+          // // Basic Authorization header for Twilio
+          // const authHeader = "Basic " + btoa(accountSid + ":" + authToken);
 
-          const today = new Date();
-          const startDate = new Date();
-          startDate.setDate(today.getDate() - days);
+          // const today = new Date();
+          // const startDate = new Date();
+          // startDate.setDate(today.getDate() - days);
 
-          const formattedStartDate = startDate.toISOString().split("T")[0];
-          const formattedEndDate = today.toISOString().split("T")[0];
+          // const formattedStartDate = startDate.toISOString().split("T")[0];
+          // const formattedEndDate = today.toISOString().split("T")[0];
 
-          const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json?DateSent>=${formattedStartDate}&DateSent<=${formattedEndDate}`;
+          // const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json?DateSent>=${formattedStartDate}&DateSent<=${formattedEndDate}`;
 
-          const twilioMessagesResponse = await fetch(url, {
-            method: "GET",
-            headers: {
-              Authorization: authHeader,
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-          });
+          // const twilioMessagesResponse = await fetch(url, {
+          //   method: "GET",
+          //   headers: {
+          //     Authorization: authHeader,
+          //     "Content-Type": "application/x-www-form-urlencoded",
+          //   },
+          // });
 
-          if (!twilioMessagesResponse.ok) {
-            const errorData = await twilioMessagesResponse.json();
-            console.error("Error Response from Twilio API:", errorData);
-            throw new Error(
-              `Error: ${twilioMessagesResponse.status} ${twilioMessagesResponse.statusText}`
+          // if (!twilioMessagesResponse.ok) {
+          //   const errorData = await twilioMessagesResponse.json();
+          //   console.error("Error Response from Twilio API:", errorData);
+          //   throw new Error(
+          //     `Error: ${twilioMessagesResponse.status} ${twilioMessagesResponse.statusText}`
+          //   );
+          // }
+
+          let TotalTwiloData = 0;
+          try {
+            const twilioMessagesResponse = await fetch(
+              //    `http://localhost:3000/api/auth/get-twilio-data?dayes=${days}`,
+              `https://aicalling-demo.onrender.com/api/auth/get-twilio-data?days=${days}`,
+
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`, // Use Authorization header for token
+                  "Content-Type": "application/json",
+                },
+              }
             );
+
+            const twilioMessagesData = await twilioMessagesResponse.json();
+            console.log("Twilio Messages Data:", twilioMessagesData);
+            TotalTwiloData = twilioMessagesData.total;
+            renderMessages(twilioMessagesData.messages);
+          } catch (error) {
+            console.log("Error" + error);
           }
 
-          const twilioMessagesData = await twilioMessagesResponse.json();
-          console.log("Twilio Messages Data:", twilioMessagesData);
-          renderMessages(twilioMessagesData.messages);
           // Constructing chart data
+
           const chartData = {
             categories: ["Calls", "SMS", "Emails"],
             series: [
@@ -1037,11 +1065,7 @@
               },
               {
                 name: "SMS",
-                data: [
-                  Array.isArray(twilioMessagesData.messages)
-                    ? twilioMessagesData.messages.length
-                    : 0,
-                ],
+                data: [TotalTwiloData],
               },
               { name: "Emails", data: [20] },
             ],

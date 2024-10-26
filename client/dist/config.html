@@ -3,15 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Table - Mazer Admin Dashboard</title>
-
+    <title>Dashboard - Mazer Admin Dashboard</title>
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="assets/css/bootstrap.css" />
-
+    <link rel="stylesheet" href="assets/vendors/iconly/bold.css" />
     <link
       rel="stylesheet"
       href="assets/vendors/perfect-scrollbar/perfect-scrollbar.css"
@@ -34,44 +33,6 @@
       referrerpolicy="no-referrer"
     />
     <style>
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
-      }
-
-      .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 600px;
-        position: relative;
-        top: 50%;
-        transform: translateY(-50%);
-      }
-
-      .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-      }
-
-      .close:hover,
-      .close:focus {
-        color: black;
-        text-decoration: none;
-      }
-
       .dashboard-header {
         display: flex;
         justify-content: space-between;
@@ -85,12 +46,10 @@
         border-radius: 50%;
         cursor: pointer;
       }
-
       .burger-btn {
         display: flex;
         align-items: center;
       }
-
       .dropdown-menu {
         min-width: 150px;
         text-align: center;
@@ -115,9 +74,9 @@
       }
     </style>
   </head>
-
   <body>
     <div id="app">
+      <!-- Your Sidebar and Header sections -->
       <div id="sidebar" class="active">
         <div class="sidebar-wrapper active">
           <div class="sidebar-header">
@@ -137,11 +96,14 @@
           <div class="sidebar-menu">
             <ul class="menu">
               <li class="sidebar-title">Menu</li>
+
               <li class="sidebar-item">
-                <a href="index.html" class="sidebar-link"
-                  ><i class="bi bi-grid-fill"></i><span>Dashboard</span></a
-                >
+                <a href="index.html" class="sidebar-link">
+                  <i class="bi bi-grid-fill"></i>
+                  <span>Dashboard</span>
+                </a>
               </li>
+
               <div id="admin-subuser-features" style="display: none">
                 <li class="sidebar-item">
                   <a href="single-call.html" class="sidebar-link">
@@ -163,13 +125,14 @@
                   </a>
                 </li>
 
-                <li class="sidebar-item active">
+                <li class="sidebar-item">
                   <a href="sms-email.html" class="sidebar-link">
                     <i class="bi bi-envelope-fill"></i>
                     <span>SMS & Email</span>
                   </a>
                 </li>
               </div>
+
               <div id="admin-super_admin" style="display: none">
                 <li class="sidebar-item">
                   <a href="users.html" class="sidebar-link">
@@ -183,20 +146,27 @@
                     <span>Appointment</span>
                   </a>
                 </li>
-                <li class="sidebar-item">
+                <li class="sidebar-item active">
                   <a href="config.html" class="sidebar-link">
                     <i class="bi bi-calendar-check-fill"></i>
                     <span>Add Configuration</span>
                   </a>
                 </li>
               </div>
+
+              <!-- <li class="sidebar-item">
+                    <a href="#" class="sidebar-link" id="logout-btn">
+                      <i class="bi bi-calendar-check-fill"></i>
+                      <span>Logout</span>
+                    </a>
+                  </li> -->
             </ul>
           </div>
         </div>
       </div>
       <div id="main">
         <header
-          class="dashboard-header d-flex align-items-center justify-content-between px-3 py-2"
+          class="dashboard-header d-flex align-items-center justify-content-between px-3 py-3"
         >
           <a href="#" class="burger-btn d-block d-xl-none">
             <i class="bi bi-justify fs-3"></i>
@@ -232,63 +202,99 @@
           </div>
         </header>
 
-        <div class="page-heading">
-          <div class="page-title">
-            <div class="row">
-              <div class="col-12 col-md-6 order-md-1 order-last">
-                <h3>User Imformation</h3>
-                <p class="text-subtitle text-muted">
-                  Check imformation from calls
-                </p>
-              </div>
-              <div class="col-12 col-md-6 order-md-2 order-first">
-                <nav
-                  aria-label="breadcrumb"
-                  class="breadcrumb-header float-start float-lg-end"
+        <section class="vh-100 gradient-custom">
+          <div class="container py-5 h-70">
+            <div class="row justify-content-center align-items-center h-70">
+              <div class="col-12 col-lg-9 col-xl-7">
+                <div
+                  class="card shadow-2-strong card-registration"
+                  style="border-radius: 15px"
                 >
-                  <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                      <a href="index.html">Dashboard</a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">
-                      Table
-                    </li>
-                  </ol>
-                </nav>
+                  <div class="card-body p-4 p-md-5">
+                    <h3 class="mb-4 pb-2 pb-md-0 mb-md-5">Add Configuration</h3>
+                    <form id="memberForm">
+                      <div class="row">
+                        <div class="col-md-6 mb-4">
+                          <div class="form-outline">
+                            <label class="form-label" for="name"
+                              >Enter Twilio Sid</label
+                            >
+                            <input
+                              type="text"
+                              id="name"
+                              class="form-control form-control-lg"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                          <div class="form-outline">
+                            <label class="form-label" for="email"
+                              >Enter Twilio Auth Token</label
+                            >
+                            <input
+                              type="text"
+                              id="email"
+                              class="form-control form-control-lg"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row">
+                        <div class="col-md-6 mb-4">
+                          <div class="form-outline">
+                            <label class="form-label" for="password"
+                              >Enter Twilio Phone</label
+                            >
+                            <input
+                              type="text"
+                              id="password"
+                              class="form-control form-control-lg"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="mt-4 pt-2">
+                        <input
+                          class="btn btn-primary btn-lg"
+                          type="submit"
+                          value="Add Config"
+                        />
+                      </div>
+                    </form>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-
-          <!-- table with light -->
-          <div class="table-responsive">
-            <table class="table table-light mb-0" id="call-logs-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Customer Number</th>
-                  <th>Email</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Data will be inserted here by JavaScript -->
-              </tbody>
-            </table>
-          </div>
-        </div>
+        </section>
       </div>
     </div>
 
-    <!-- Modal -->
-    <div id="myModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2 id="modalTitle"></h2>
-        <p id="modalContent"></p>
-      </div>
-    </div>
+    <!-- jQuery (necessary for AJAX) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+    <!-- Bootstrap JS -->
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+
+    <script src="assets/vendors/apexcharts/apexcharts.js"></script>
+    <script src="assets/js/pages/dashboard.js"></script>
+
+    <script src="assets/js/main.js"></script>
+    <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+
+    <script src="assets/vendors/apexcharts/apexcharts.js"></script>
+    <script src="assets/js/pages/dashboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="assets/js/main.js"></script>
     <script src="loader.js"></script>
     <script>
@@ -303,39 +309,6 @@
 
         window.location.href = "login.html";
       });
-      document.addEventListener("DOMContentLoaded", () => {
-        //   fetch("https://aicalling-osdb.onrender.com/imf/call-logs")
-        fetch("https://aicalling-demo.onrender.com/imf/call-logs")
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            console.log(data); // Check the structure of data
-            const tableBody = document.querySelector("#call-logs-table tbody");
-            tableBody.innerHTML = ""; // Clear existing rows
-
-            data.forEach((log) => {
-              // Access properties according to the data structure
-              const row = document.createElement("tr");
-              row.innerHTML = `
-                            <td>${log.extractedInfo.name || "N/A"}</td>
-                            <td>${log.extractedInfo.phone || "N/A"}</td>
-                            <td>${log.extractedInfo.email || "N/A"}</td>
-                        `;
-              tableBody.appendChild(row);
-            });
-          })
-          .catch((error) => {
-            console.error("Error fetching call logs:", error);
-          });
-      });
-
-
-
-
 
       function arrayBufferToBase64(buffer) {
         let binary = "";
@@ -352,12 +325,15 @@
           window.location.href = "login.html";
           return;
         }
+
         showLoader();
         try {
           const response = await fetch(
-            // "https://aicalling-osdb.onrender.com/api/auth/validate",
-            "https://aicalling-demo.onrender.com/api/auth/validate",
-            // "http://localhost:3000/api/auth/validate",
+            //  "https://aicalling-osdb.onrender.com/api/auth/validate",
+
+            "http://localhost:3000/api/auth/validate",
+
+            //   "https://aicalling-demo.onrender.com/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -366,7 +342,9 @@
               },
             }
           );
+
           hideLoader();
+
           if (!response.ok) {
             throw new Error("Token validation failed");
           }
@@ -375,52 +353,55 @@
 
           const profileImg = document.getElementById("profileDropdown");
           if (data.data.profileImage && data.data.profileImage.buffer) {
-
-            console.log("Come")
-             const base64String = arrayBufferToBase64(
+            console.log("Come");
+            const base64String = arrayBufferToBase64(
               data.data.profileImage.buffer.data
-             );
+            );
             const mimeType = data.data.profileImage.contentType;
             profileImg.src = `data:${mimeType};base64,${base64String}`;
           } else {
             console.log("Using default profile image");
-         }
-
-
+          }
           if (!data.valid) {
             // If token is not valid, redirect to login page
             window.location.href = "login.html";
           }
-
           const role = data.role;
           //console.log(role);
           if (role === "admin" || role === "super_admin") {
             document.getElementById("admin-super_admin").style.display =
               "block";
           }
-          if (role === "admin" || role === "subuser" ||  role === "super_admin") {
+          if (
+            role === "admin" ||
+            role === "subuser" ||
+            role === "super_admin"
+          ) {
             document.getElementById("admin-subuser-features").style.display =
               "block";
           }
-
-          if (role === "admin" || role === "subuser" ||  role === "super_admin") {
+          if (
+            role === "admin" ||
+            role === "subuser" ||
+            role === "super_admin"
+          ) {
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `
-     <li>
-        <a class="dropdown-item" href="bulk-call-email.html">
-          <i class="fa-solid fa-envelope"></i> Send Bulk Email
-        </a>
-      </li>
-      <li>
-        <a class="dropdown-item" href="bulk-sms.html">
-          <i class="fa-solid fa-comments"></i> Send Bulk SMS
-        </a>
-      </li>
-      <li>
-       
-      </li>
-    `;
+            <li>
+              <a class="dropdown-item" href="bulk-call-email.html">
+                <i class="fa-solid fa-envelope"></i> Send Bulk Email
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="bulk-sms.html">
+                <i class="fa-solid fa-comments"></i> Send Bulk SMS
+              </a>
+            </li>
+            <li>
+
+            </li>
+          `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
@@ -430,14 +411,14 @@
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `
-      <li>
-        <a class="dropdown-item" href="add-member.html">
-          <i class="fa-solid fa-comments"></i> Add Member
-        </a>
-      <li>
-       
-      </li>
-    `;
+            <li>
+              <a class="dropdown-item" href="add-member.html">
+                <i class="fa-solid fa-comments"></i> Add Member
+              </a>
+            <li>
+
+            </li>
+          `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
@@ -447,25 +428,25 @@
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `
-<li>
-<a class="dropdown-item" href="buy-membership.html">
-<i class="fa-solid fa-credit-card"></i> Buy Membership
-</a>
-</li>
-<li>
-<hr
-style="
-border: none;
-height: 0.5px;
-background-color: #e9ecef;
-margin: 0.5rem 0;
-width: calc(100% - 1rem);
-margin-left: auto;
-margin-right: auto;
-"
-/>
-</li>
-`;
+      <li>
+      <a class="dropdown-item" href="buy-membership.html">
+      <i class="fa-solid fa-credit-card"></i> Buy Membership
+      </a>
+      </li>
+      <li>
+      <hr
+      style="
+      border: none;
+      height: 0.5px;
+      background-color: #e9ecef;
+      margin: 0.5rem 0;
+      width: calc(100% - 1rem);
+      margin-left: auto;
+      margin-right: auto;
+      "
+      />
+      </li>
+      `;
 
             // Insert admin items before the logout button
             dropdownMenu.insertAdjacentHTML("beforeend", adminItems);
@@ -479,6 +460,66 @@ margin-right: auto;
 
       // Call the validateToken function when the page loads
       window.onload = validateToken;
+
+      document
+        .getElementById("memberForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault(); // Prevent form from submitting the default way
+
+          // Capture the form data
+          const twilioSid = document.getElementById("name").value;
+          const authToken = document.getElementById("email").value;
+          const twilioPhone = document.getElementById("password").value;
+
+          // Prepare data to be sent
+          const data = {
+            twilioSid: twilioSid,
+            twilioToken: authToken,
+            twilioNum: twilioPhone,
+          };
+
+          try {
+            // Send the form data to the backend using the fetch API
+            const response = await fetch(
+            //  "http://localhost:3000/api/auth/config",
+              "https://aicalling-demo.onrender.com/api/auth/config",
+              {
+                method: "POST", // POST method for sending data
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("token")}`, // Set headers
+                },
+                body: JSON.stringify(data), // Convert data object to JSON string
+              }
+            );
+
+            // Handle response from backend
+            if (response.ok) {
+              const result = await response.json();
+              // Display success message with SweetAlert2
+              Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: "Configuration added successfully!",
+              });
+            } else {
+              // Display failure message with SweetAlert2
+              Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Failed to add configuration.",
+              });
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            // Display error message with SweetAlert2
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "An error occurred while submitting the form.",
+            });
+          }
+        });
     </script>
   </body>
 </html>

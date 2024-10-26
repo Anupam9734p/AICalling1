@@ -916,6 +916,101 @@ router.post("/request-demo", verifyToken, async (req, res) => {
   }
 });
 
+router.post('/config', async (req, res) => {
+  try {
+    console.log("Come")
+    // Get the token from the Authorization header
+    const token = req.headers.authorization.split(' ')[1]; // Extract the token from "Bearer <token>"
+
+    // Verify and decode the token
+    const decoded = jwt.verify(token, JWT_SECRET); // Use your JWT secret key
+    const userId = decoded.userId; // Assuming the token contains user ID as `id`
+
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Extract Twilio configuration details from the request body
+    const { twilioSid, twilioToken, twilioNum } = req.body;
+
+    // Update the Twilio configuration fields for the user
+    user.twilioSid = twilioSid;
+    user.twilioToken = twilioToken;
+    user.twilioNum = twilioNum;
+
+    // Save the updated user object
+    await user.save();
+
+    // Send success response
+    res.status(200).json({ message: 'Configuration saved successfully!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred', error });
+  }
+});
+
+
+router.get('/get-twilio-data', verifyToken, async (req, res) => {
+  try {
+    const { userId, role } = req;
+    const { days } = req.query; // Get 'days' parameter from query string
+
+    let twilioSid, twilioToken;
+    
+    // Default to 1 day if 'days' is not provided
+    const daysBack = parseInt(days) || 1;
+
+    // Fetch admin or subuser data
+    if (role === 'admin') {
+      const adminUser = await User.findById(userId);
+      if (!adminUser) return res.status(404).json({ message: 'Admin not found' });
+      twilioSid = adminUser.twilioSid;
+      twilioToken = adminUser.twilioToken;
+    } else if (role === 'subuser') {
+      const subUser = await SubUser.findById(userId);
+      if (!subUser) return res.status(404).json({ message: 'Subuser not found' });
+      const admin = await User.findById(subUser.adminId);
+      if (!admin) return res.status(404).json({ message: 'Admin for subuser not found' });
+      twilioSid = admin.twilioSid;
+      twilioToken = admin.twilioToken;
+    }
+
+    if (!twilioSid || !twilioToken) {
+      return res.status(400).json({ message: 'Twilio credentials missing' });
+    }
+
+    // Date range for filtering messages (based on 'days' parameter)
+    const today = new Date();
+    const formattedEndDate = today.toISOString().split('T')[0];
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - daysBack); // Get messages from 'days' before
+    const formattedStartDate = startDate.toISOString().split('T')[0];
+
+    // Fetch the messages from Twilio API
+    const twilioResponse = await axios.get(
+      `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json?DateSent>=${formattedStartDate}&DateSent<=${formattedEndDate}`,
+      {
+        auth: {
+          username: twilioSid,
+          password: twilioToken,
+        },
+      }
+    );
+
+    // Return the last 3 messages
+    const messages = twilioResponse.data.messages.slice(0, 3);
+    res.status(200).json({ success: true, messages,total:twilioResponse.data.messages.length });
+  } catch (error) {
+    console.error(`Error fetching Twilio messages: ${error.message}`);
+    res.status(500).json({ success: false, message: 'Failed to fetch Twilio messages' });
+  }
+});
+
+
+
+
 router.get("/home", authMiddleware, (req, res) => {
   res.flash("Welcome to home page");
   res.status(200).json({
