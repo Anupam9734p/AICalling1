@@ -1100,7 +1100,6 @@ router.get("/get-call-data", async (req, res) => {
   }
 });
 
-
 router.get("/get-call-data-all", async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
@@ -1149,6 +1148,32 @@ router.get("/get-call-data-all", async (req, res) => {
     res.status(500).json({ error: "Error fetching call logs" });
   }
 });
+
+router.post("/transcript", async (req, res) => {
+  const { callSid } = req.body;
+  if (!callSid) return res.status(400).json({ error: "Call SID is required" });
+
+  try {
+    const vapiResponse = await client1.calls.list();
+
+    const callDetails = vapiResponse.find(
+      (call) => call.phoneCallProviderId === callSid
+    );
+
+    if (callDetails) {
+      res.json({
+        transcript: callDetails.transcript || "Transcript not available",
+        summary: callDetails.analysis?.summary || "Summary not available",
+      });
+    } else {
+      res.status(404).json({ error: "Call not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching transcript data:", error);
+    res.status(500).json({ error: "Failed to fetch transcript" });
+  }
+});
+
 
 router.get("/home", authMiddleware, (req, res) => {
   res.flash("Welcome to home page");

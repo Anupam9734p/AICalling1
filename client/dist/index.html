@@ -586,8 +586,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-               "https://aicalling-demo.onrender.com/api/auth/validate",
-         //   "http://localhost:3000/api/auth/validate",
+              "https://aicalling-demo.onrender.com/api/auth/validate",
+          //  "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -866,7 +866,7 @@
       }
 
       function updateCallLogs() {
-       // fetch("http://localhost:3000/api/auth/get-call-data", {
+      //  fetch("http://localhost:3000/api/auth/get-call-data", {
            fetch("https://aicalling-demo.onrender.com/api/auth/get-call-data", {
           method: "GET",
           headers: {
@@ -1032,7 +1032,7 @@
           // }
 
           const response = await fetch(
-           // "http://localhost:3000/api/auth/get-call-data",
+         //   "http://localhost:3000/api/auth/get-call-data",
               "https://aicalling-demo.onrender.com/api/auth/get-call-data",
             {
               // Alternatively, use the production URL if neede
@@ -1051,7 +1051,7 @@
           try {
             const twilioMessagesResponse = await fetch(
               //    `http://localhost:3000/api/auth/get-twilio-data?dayes=${days}`,
-              `https://aicalling-demo.onrender.com/api/auth/get-twilio-data?days=${days}`,
+             `https://aicalling-demo.onrender.com/api/auth/get-twilio-data?days=${days}`,
 
               {
                 method: "GET",
