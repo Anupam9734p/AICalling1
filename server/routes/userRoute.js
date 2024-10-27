@@ -1053,12 +1053,11 @@ router.get("/get-call-data", async (req, res) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.userId;
+
+    // Find user or sub-user
     let user = await User.findById(userId);
-    let vapiPhoneNumberId;
-
     if (!user) {
-      const subUser = await SubUser.findOne({ _id: userId });
-
+      const subUser = await SubUser.findById(userId);
       if (!subUser) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -1067,33 +1066,89 @@ router.get("/get-call-data", async (req, res) => {
         return res.status(404).json({ error: "Admin user not found" });
       }
     }
-    vapiPhoneNumberId = user.vapiPhoneNumberId;
 
-    if (!vapiPhoneNumberId) {
-      return res.status(404).json({ error: "vapiPhoneNumberId not found for this user" });
+    // Ensure Twilio and VAPI configuration exists
+    const { twilioNum, twilioSid, twilioToken, vapiPhoneNumberId } = user;
+    if (!twilioNum || !twilioSid || !twilioToken || !vapiPhoneNumberId) {
+      return res
+        .status(404)
+        .json({ error: "Configuration missing for this user" });
     }
-    console.log("vapiPhoneNumberId:", vapiPhoneNumberId);
-    const response = await client1.calls.list({from:vapiPhoneNumberId,limit:20});
-    const data = response;
-    console.log(response)
-    const sortedCalls = data
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+    // Initialize Twilio Client
+    const twilioClient = new twilio(twilioSid, twilioToken);
+
+    // Fetch call data from Twilio
+    const twilioCalls = await twilioClient.calls.list({
+      limit: 500,
+    });
+    const sortedCalls = twilioCalls
+      .sort(
+        (a, b) =>
+          new Date(b.startTime || b.createdAt) -
+          new Date(a.startTime || a.createdAt)
+      )
       .slice(0, 7);
 
-    console.log("Latest Calls:", sortedCalls);
     res.status(200).json({
-      totalCalls: data.length,
+      totalCalls: twilioCalls.length,
       latestCalls: sortedCalls,
     });
   } catch (error) {
     console.error("Error fetching call logs:", error);
-    if (error.statusCode === 404) {
-      return res.status(404).json({ error: "Call data not found in VAPI for this vapiPhoneNumberId" });
-    }
     res.status(500).json({ error: "Error fetching call logs" });
   }
 });
 
+
+router.get("/get-call-data-all", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ error: "Authorization token missing" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+
+    // Find user or sub-user
+    let user = await User.findById(userId);
+    if (!user) {
+      const subUser = await SubUser.findById(userId);
+      if (!subUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      user = await User.findById(subUser.adminId);
+      if (!user) {
+        return res.status(404).json({ error: "Admin user not found" });
+      }
+    }
+
+    // Ensure Twilio and VAPI configuration exists
+    const { twilioNum, twilioSid, twilioToken, vapiPhoneNumberId } = user;
+    if (!twilioNum || !twilioSid || !twilioToken || !vapiPhoneNumberId) {
+      return res
+        .status(404)
+        .json({ error: "Configuration missing for this user" });
+    }
+
+    // Initialize Twilio Client
+    const twilioClient = new twilio(twilioSid, twilioToken);
+
+    // Fetch call data from Twilio
+    const twilioCalls = await twilioClient.calls.list({
+      limit: 500,
+    });
+
+    res.status(200).json({
+      latestCalls: twilioCalls,
+    });
+  } catch (error) {
+    console.error("Error fetching call logs:", error);
+    res.status(500).json({ error: "Error fetching call logs" });
+  }
+});
 
 router.get("/home", authMiddleware, (req, res) => {
   res.flash("Welcome to home page");
