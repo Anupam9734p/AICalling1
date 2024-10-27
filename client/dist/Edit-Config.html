@@ -498,10 +498,13 @@ margin-right: auto;
         const userTableBody = document.getElementById("userTableBody");
         userTableBody.innerHTML = "";
 
-        if (!users || Object.keys(users).length === 0) {
+        const allFieldsEmpty = !users.twilioSid && !users.twilioToken && !users.twilioNum && 
+                           !users.vapiPhoneNumberId && !users.sendGridEmail && !users.sendGridApiKey;
+
+    if (allFieldsEmpty) {
       userTableBody.innerHTML = "<tr><td colspan='7'>No data found</td></tr>";
       return;
-        }
+    }
 
         const row = document.createElement("tr");
         row.innerHTML = `
