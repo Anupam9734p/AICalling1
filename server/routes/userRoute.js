@@ -959,7 +959,8 @@ router.post("/config", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { twilioSid, twilioToken, twilioNum, sendGridEmail, sendGridApiKey} = req.body;
+    const { twilioSid, twilioToken, twilioNum, sendGridEmail, sendGridApiKey } =
+      req.body;
     user.twilioSid = twilioSid;
     user.twilioToken = twilioToken;
     user.twilioNum = twilioNum;
@@ -1221,7 +1222,6 @@ router.get("/admin/users", async (req, res) => {
 
 router.put("/admin/users", async (req, res) => {
   try {
-
     // Extract the token from the Authorization header
     const token = req.headers.authorization.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -1233,7 +1233,8 @@ router.put("/admin/users", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { twilioSid, twilioToken, twilioNum , sendGridEmail, sendGridApiKey } = req.body;
+    const { twilioSid, twilioToken, twilioNum, sendGridEmail, sendGridApiKey } =
+      req.body;
     let credentialsUpdated = false;
 
     // Check if any Twilio credentials have changed
@@ -1307,6 +1308,72 @@ router.put("/admin/users", async (req, res) => {
   }
 });
 
+router.get("/get-mail-data", verifyToken, async (req, res) => {
+  const { userId, role } = req; 
+  console.log(userId)
+  // Correctly extracting userId and role
+  console.log("Come");
+  const days = parseInt(req.query.days) || 0;
+
+  try {
+    let mailData;
+    let adminUser;
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    if (role === "admin") {
+      // Fetch mail data for the admin user
+      adminUser = await User.findById(userId);
+      console.log(adminUser)
+      console.log("Here")
+      if (!adminUser) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+    } else if (role === "subuser") {
+      const subUser = await SubUser.findById(userId);
+      if (!subUser) {
+        return res.status(404).json({ message: "Sub-user not found" });
+      }
+      adminUser = await User.findById(subUser.adminId);
+      if (!adminUser) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+
+      console.log("Hee")
+      console.log(adminUser);
+     
+    } else {
+      return res.status(403).json({ message: "Unauthorized access" });
+    }
+    const sendGridApiKey = adminUser.sendGridApiKey;
+    const sendGridData = await fetchSendGridData(sendGridApiKey, startDate);
+    
+    console.log(sendGridData);
+    return res.status(200).json({ sendGridData });
+  } catch (error) {
+    console.error("Failed to retrieve mail data:", error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Function to fetch email data from SendGrid
+async function fetchSendGridData(apiKey, startDate) {
+  const sendGridApiUrl = `https://api.sendgrid.com/v3/messages`; // Example endpoint
+  try {
+    const response = await axios.get(sendGridApiUrl, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      params: {
+        start_time: startDate.toISOString(),
+      },
+    });
+    console.log(response.data); // Log the response data
+    return response.data; // Return the data received from SendGrid
+  } catch (error) {
+    console.error("Error fetching data from SendGrid:", error.message);
+    throw new Error("Failed to fetch data from SendGrid");
+  }
+}
 
 router.get("/home", authMiddleware, (req, res) => {
   res.flash("Welcome to home page");

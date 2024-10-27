@@ -592,8 +592,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-            //  "https://aicalling-demo.onrender.com/api/auth/validate",
-            "http://localhost:3000/api/auth/validate",
+              "https://aicalling-demo.onrender.com/api/auth/validate",
+           // "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -874,8 +874,8 @@
       }
 
       function updateCallLogs() {
-        fetch("http://localhost:3000/api/auth/get-call-data", {
-     //      fetch("https://aicalling-demo.onrender.com/api/auth/get-call-data", {
+      //  fetch("http://localhost:3000/api/auth/get-call-data", {
+           fetch("https://aicalling-demo.onrender.com/api/auth/get-call-data", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -1039,9 +1039,24 @@
           //   );
           // }
 
+          
+          const mailRes = await fetch(
+      //      `http://localhost:3000/api/auth/get-mail-data?days=${days}`,
+              "https://aicalling-demo.onrender.com/api/auth/get-call-data",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+
+          const mailData = await mailRes.json();
+
+          console.log(mailData)
           const response = await fetch(
-            "http://localhost:3000/api/auth/get-call-data",
-           //   "https://aicalling-demo.onrender.com/api/auth/get-call-data",
+     //       "http://localhost:3000/api/auth/get-call-data",
+              "https://aicalling-demo.onrender.com/api/auth/get-call-data",
             {
               // Alternatively, use the production URL if neede
 
@@ -1058,8 +1073,8 @@
           let TotalTwiloData = 0;
           try {
             const twilioMessagesResponse = await fetch(
-                  `http://localhost:3000/api/auth/get-twilio-data?dayes=${days}`,
-            // `https://aicalling-demo.onrender.com/api/auth/get-twilio-data?days=${days}`,
+             //     `http://localhost:3000/api/auth/get-twilio-data?dayes=${days}`,
+             `https://aicalling-demo.onrender.com/api/auth/get-twilio-data?days=${days}`,
 
               {
                 method: "GET",
@@ -1085,11 +1100,11 @@
             series: [
               {
                 name: "Calls",
-                data: [totalCallData],
+                data: [totalCallData ? totalCallData : 0],
               },
               {
                 name: "SMS",
-                data: [TotalTwiloData],
+                data: [TotalTwiloData ? TotalTwiloData : 0],
               },
               { name: "Emails", data: [20] },
             ],
