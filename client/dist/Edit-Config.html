@@ -498,6 +498,11 @@ margin-right: auto;
         const userTableBody = document.getElementById("userTableBody");
         userTableBody.innerHTML = "";
 
+        if (!users || Object.keys(users).length === 0) {
+      userTableBody.innerHTML = "<tr><td colspan='7'>No data found</td></tr>";
+      return;
+        }
+
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${users.twilioSid}</td>
