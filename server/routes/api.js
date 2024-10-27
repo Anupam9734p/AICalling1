@@ -11,6 +11,7 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID.trim();
 const authToken = process.env.TWILIO_AUTH_TOKEN.trim();
 const client = twilio(accountSid, authToken);
 const jwt = require("jsonwebtoken");
+const sgMail = require("@sendgrid/mail");
 
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
@@ -67,20 +68,32 @@ const transporter = nodemailer.createTransport({
 });
 
 router.post("/send-emails", verifyToken, async (req, res) => {
-  const { users, additionalInput } = req.body;
-  const { userId, role } = req;
+  const { users, additionalInput } = req.body; // Extract users and additional input from request body
+  const { userId, role } = req; // Extract userId and role from the request
 
   let user;
+  let fromEmail; // Declare the fromEmail variable
+
   try {
     // Fetch user details based on their role
     if (role === "admin") {
       user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      fromEmail = user.sendGridEmail; // Assuming admin's email is stored in User model
+      sgMail.setApiKey(user.sendGridApiKey); // Set API key for SendGrid
     } else if (role === "subuser") {
-      user = await subUserSchema.findById(userId);
-    }
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      user = await SubUser.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Sub-user not found" });
+      }
+      const adminUser = await User.findById(user.adminId); // Get admin details
+      if (!adminUser) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+      fromEmail = adminUser.sendGridEmail; // Get admin's email
+      sgMail.setApiKey(adminUser.sendGridApiKey); // Set API key for SendGrid
     }
 
     // Calculate total emails to be sent
@@ -89,43 +102,25 @@ router.post("/send-emails", verifyToken, async (req, res) => {
 
     // Check if the user has enough credits to send the emails
     if (user.credits < totalCost) {
-      return res
-        .status(403)
-        .json({ message: "Insufficient credits to send emails" });
+      return res.status(403).json({ message: "Insufficient credits to send emails" });
     }
 
-    // Validate email addresses and prepare mail options
+    // Validate email addresses and prepare email sending promises
     const emailPromises = users.map((user) => {
-      const emailAddress = user[1];
+      const emailAddress = user[1]; // Assuming user is an array with [name, email]
       const name = user[0];
 
       // Simple regex to validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(emailAddress)) {
-        return Promise.reject(
-          new Error(`Invalid email address: ${emailAddress}`)
-        );
+        return Promise.reject(new Error(`Invalid email address: ${emailAddress}`));
       }
 
-      const mailOptions = {
-        from: "arijitghosh1203@gmail.com",
-        to: emailAddress,
-        subject: additionalInput,
-        text: `Hello ${name}, this is a email from MAZER ${additionalInput}`,
-      };
+      const subject = additionalInput;
+      const text = `Hello ${name}, this is an email from MAZER. ${additionalInput}`;
 
-      // Return a promise for sending the email
-      return new Promise((resolve, reject) => {
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.log(`Error sending email to ${emailAddress}:`, error);
-            reject(new Error(`Failed to send email to ${emailAddress}`));
-          } else {
-            console.log(`Email sent to ${emailAddress}: ${info.response}`);
-            resolve(info.response);
-          }
-        });
-      });
+      // Send email using SendGrid
+      return sendEmail(emailAddress, subject, text, fromEmail);
     });
 
     // Wait for all emails to be sent
@@ -141,6 +136,24 @@ router.post("/send-emails", verifyToken, async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+async function sendEmail(to, subject, text, fromEmail) {
+  const msg = {
+    to: to,
+    from: fromEmail, // Use the admin's verified sender email address
+    subject: subject,
+    text: text,
+  };
+
+  try {
+    await sgMail.send(msg);
+    console.log(`Email sent to ${to}`);
+    return `Email sent to ${to}`;
+  } catch (error) {
+    console.error(`Error sending email to ${to}:`, error);
+    throw new Error(`Failed to send email to ${to}`);
+  }
+}
 
 router.post("/send-sms", verifyToken, async (req, res) => {
   const { users, additionalInfo } = req.body; // Get users and message

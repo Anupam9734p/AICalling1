@@ -146,10 +146,10 @@
                     <span>Appointment</span>
                   </a>
                 </li>
-                <li class="sidebar-item active">
-                  <a href="config.html" class="sidebar-link">
+                <li class="sidebar-item" style="display: none;" id="edit-config">
+                  <a href="Edit-Config.html" class="sidebar-link">
                     <i class="bi bi-calendar-check-fill"></i>
-                    <span>Add Configuration</span>
+                    <span>Edit Configuration</span>
                   </a>
                 </li>
               </div>
@@ -258,6 +258,32 @@
                         </div>
                       </div>
 
+                      <div class="row">
+                        <div class="col-md-6 mb-4">
+                          <div class="form-outline">
+                            <label class="form-label" for="sendGridEmail">Enter SendGrid Email</label>
+                            <input
+                              type="text"
+                              id="sendGridEmail"
+                              class="form-control form-control-lg"
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                          <div class="form-outline">
+                            <label class="form-label" for="sendGridApiKey">Enter SendGrid API Key</label>
+                            <input
+                              type="text"
+                              id="sendGridApiKey"
+                              class="form-control form-control-lg"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+
                       <div class="mt-4 pt-2">
                         <input
                           class="btn btn-primary btn-lg"
@@ -331,9 +357,9 @@
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
 
-        //    "http://localhost:3000/api/auth/validate",
+           //    "http://localhost:3000/api/auth/validate",
 
-              "https://aicalling-demo.onrender.com/api/auth/validate",
+           "https://aicalling-demo.onrender.com/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -367,6 +393,11 @@
             window.location.href = "login.html";
           }
           const role = data.role;
+          const editConfig = document.getElementById("edit-config");
+          if(role === "admin")
+          {
+               editConfig.style.display="block"
+          }
           //console.log(role);
           if (role === "admin" || role === "super_admin") {
             document.getElementById("admin-super_admin").style.display =
@@ -470,18 +501,21 @@
           const twilioSid = document.getElementById("name").value;
           const authToken = document.getElementById("email").value;
           const twilioPhone = document.getElementById("password").value;
-
+          const sendGridEmail = document.getElementById("sendGridEmail").value; // New field
+          const sendGridApiKey = document.getElementById("sendGridApiKey").value; 
           // Prepare data to be sent
           const data = {
             twilioSid: twilioSid,
             twilioToken: authToken,
             twilioNum: twilioPhone,
+            sendGridEmail: sendGridEmail, // New field
+            sendGridApiKey: sendGridApiKey,
           };
 
           try {
             // Send the form data to the backend using the fetch API
             const response = await fetch(
-           //   "http://localhost:3000/api/auth/config",
+               //  "http://localhost:3000/api/auth/config",
               "https://aicalling-demo.onrender.com/api/auth/config",
               {
                 method: "POST", // POST method for sending data

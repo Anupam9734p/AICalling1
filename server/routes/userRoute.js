@@ -958,20 +958,49 @@ router.post("/config", async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const { twilioSid, twilioToken, twilioNum } = req.body;
+
+    const { twilioSid, twilioToken, twilioNum, sendGridEmail, sendGridApiKey} = req.body;
     user.twilioSid = twilioSid;
     user.twilioToken = twilioToken;
     user.twilioNum = twilioNum;
+    user.sendGridEmail = sendGridEmail; // New field
+    user.sendGridApiKey = sendGridApiKey;
     await user.save();
-    const vapiResponse = await client1.phoneNumbers.create({
-      provider: "twilio",
-      number: twilioNum,
-      twilioAccountSid: twilioSid,
-      twilioAuthToken: twilioToken,
-    });
-    console.log(vapiResponse);
-    user.vapiPhoneNumberId = vapiResponse.id;
-    user.vapiSipUri = vapiResponse.sipUri;
+
+    let vapiResponse;
+    try {
+      // Attempt to create a new phone number in the Vapi API
+      vapiResponse = await client1.phoneNumbers.create({
+        provider: "twilio",
+        number: twilioNum,
+        twilioAccountSid: twilioSid,
+        twilioAuthToken: twilioToken,
+      });
+      user.vapiPhoneNumberId = vapiResponse.id;
+      user.vapiSipUri = vapiResponse.sipUri;
+    } catch (error) {
+      // Check if the error is due to an existing phone number
+      if (
+        error.statusCode === 400 &&
+        error.body.message.includes("Existing Phone Number")
+      ) {
+        // Extract the existing phone number ID from the error message
+        const existingPhoneNumberId = error.body.message.match(
+          /Existing Phone Number ([\w-]+)/
+        )[1];
+
+        // If the phone number already exists, retrieve its details
+        const existingPhoneNumber = await client1.phoneNumbers.get(
+          existingPhoneNumberId
+        );
+        user.vapiPhoneNumberId = existingPhoneNumber.id;
+        user.vapiSipUri = existingPhoneNumber.sipUri;
+      } else {
+        // If it's a different error, rethrow it
+        throw error;
+      }
+    }
+
     await user.save();
     res.status(200).json({
       message: "Configuration saved and Vapi details added successfully!",
@@ -1171,6 +1200,110 @@ router.post("/transcript", async (req, res) => {
   } catch (error) {
     console.error("Error fetching transcript data:", error);
     res.status(500).json({ error: "Failed to fetch transcript" });
+  }
+});
+
+router.get("/admin/users", async (req, res) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+
+    if (user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied: Admins only" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "An error occurred", error });
+  }
+});
+
+router.put("/admin/users", async (req, res) => {
+  try {
+
+    // Extract the token from the Authorization header
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { twilioSid, twilioToken, twilioNum , sendGridEmail, sendGridApiKey } = req.body;
+    let credentialsUpdated = false;
+
+    // Check if any Twilio credentials have changed
+    if (
+      user.twilioSid !== twilioSid ||
+      user.twilioToken !== twilioToken ||
+      user.twilioNum !== twilioNum ||
+      user.sendGridEmail !== sendGridEmail ||
+      user.sendGridApiKey !== sendGridApiKey
+    ) {
+      user.twilioSid = twilioSid;
+      user.twilioToken = twilioToken;
+      user.twilioNum = twilioNum;
+      user.sendGridEmail = sendGridEmail;
+      user.sendGridApiKey = sendGridApiKey;
+      credentialsUpdated = true;
+    }
+
+    if (credentialsUpdated) {
+      let vapiResponse;
+      try {
+        // Attempt to create a new phone number in VAPI
+        vapiResponse = await client1.phoneNumbers.create({
+          provider: "twilio",
+          number: twilioNum,
+          twilioAccountSid: twilioSid,
+          twilioAuthToken: twilioToken,
+        });
+
+        // If successful, store the new VAPI phone number ID and SIP URI
+        user.vapiPhoneNumberId = vapiResponse.id;
+        user.vapiSipUri = vapiResponse.sipUri;
+      } catch (error) {
+        // Handle existing phone number case or other errors
+        if (
+          error.statusCode === 400 &&
+          error.body.message.includes("Existing Phone Number")
+        ) {
+          // Extract the existing phone number ID
+          const existingPhoneNumberId = error.body.message.match(
+            /Existing Phone Number ([\w-]+)/
+          )[1];
+
+          // Retrieve existing phone number details
+          const existingPhoneNumber = await client1.phoneNumbers.get(
+            existingPhoneNumberId
+          );
+          user.vapiPhoneNumberId = existingPhoneNumber.id;
+          user.vapiSipUri = existingPhoneNumber.sipUri;
+        } else {
+          // If it's a different error, rethrow it
+          throw error;
+        }
+      }
+
+      // Save user data after updating credentials and VAPI details
+      await user.save();
+      return res.status(200).json({
+        message: "Configuration saved and Vapi details added successfully!",
+      });
+    } else {
+      // Save the user if no VAPI update was required
+      await user.save();
+      return res.status(200).json({
+        message: "Configuration saved successfully!",
+      });
+    }
+  } catch (error) {
+    console.error("An error occurred:", error);
+    res.status(500).json({ message: "An error occurred", error });
   }
 });
 

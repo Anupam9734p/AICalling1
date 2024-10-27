@@ -95,6 +95,10 @@
         vertical-align: middle;
         text-align: center;
       }
+      .modal-open .modal-backdrop-blur {
+        backdrop-filter: blur(5px);
+        background: rgba(0, 0, 0, 0.5);
+      }
     </style>
   </head>
   <body>
@@ -243,18 +247,17 @@
         </header>
 
         <div class="container-fluid table-container">
-          <h3 class="text-center mb-4">User Information</h3>
+          <h3 class="text-center mb-4">Admin Information</h3>
           <div class="table-responsive">
             <table class="table table-hover table-bordered" id="userTable">
               <thead class="thead-light">
                 <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">User Name</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">Phone</th>
-                  <th scope="col">Credit Available</th>
-                  <th scope="col">Credit Uses</th>
-                  <th scope="col">Role</th>
+                  <th scope="col">Twili Sid</th>
+                  <th scope="col">Twilio Auth Token</th>
+                  <th scope="col">Twilio Phone Number</th>
+                  <th scope="col">Vapi Id</th>
+                  <th scope="col">SendGridEmail</th>
+                  <th scope="col">SendGridApiKey</th>
                   <th
                     scope="col"
                     id="action-tag-super_admin"
@@ -272,15 +275,57 @@
         </div>
       </div>
     </div>
+
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editUserModalLabel">Edit User Information</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <form id="editUserForm">
+              <div class="form-group">
+                <label for="editTwilioSid">Twilio SID</label>
+                <input type="text" class="form-control" id="editTwilioSid" name="twilioSid" />
+              </div>
+              <div class="form-group">
+                <label for="editTwilioToken">Twilio Auth Token</label>
+                <input type="text" class="form-control" id="editTwilioToken" name="twilioToken" />
+              </div>
+              <div class="form-group">
+                <label for="editTwilioNum">Twilio Phone Number</label>
+                <input type="text" class="form-control" id="editTwilioNum" name="twilioNum" />
+              </div>
+              <div class="form-group">
+                <label for="editSendGridEmail">SendGrid Email</label>
+                <input type="text" class="form-control" id="editSendGridEmail" name="sendGridEmail" />
+              </div>
+              <div class="form-group">
+                <label for="editSendGridApiKey">SendGrid API Key</label>
+                <input type="text" class="form-control" id="editSendGridApiKey" name="sendGridApiKey" />
+              </div>
+              <input type="hidden" id="editUserId" />
+              <button type="button" class="btn btn-primary" onclick="saveUserChanges()">Save Changes</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    
   </body>
 
   <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
   <script src="assets/js/bootstrap.bundle.min.js"></script>
-
-  <script src="assets/vendors/apexcharts/apexcharts.js"></script>
   <script src="assets/js/pages/dashboard.js"></script>
   <script src="loader.js"></script>
   <script src="assets/js/main.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
   <script>
     const logoutBtn = document.getElementById("logout-btn");
 
@@ -301,8 +346,8 @@
       try {
         const response = await fetch(
           //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-          "https://aicalling-demo.onrender.com/api/auth/validate",
-        //  "http://localhost:3000/api/auth/validate",
+          //  "https://aicalling-demo.onrender.com/api/auth/validate",
+          "http://localhost:3000/api/auth/validate",
           {
             method: "GET",
             headers: {
@@ -317,6 +362,7 @@
         }
 
         const data = await response.json();
+        fetchUserInformation();
         if (!data.valid) {
           // If token is not valid, redirect to login page
           window.location.href = "login.html";
@@ -327,19 +373,14 @@
         const role = data.role;
 
         //console.log(role);
-        const editConfig = document.getElementById("edit-config");
-          if(role === "admin")
-          {
-               editConfig.style.display="block"
-          }
 
-        if (role === "admin") {
-          fetchAllUsers(localStorage.getItem("token"));
-        }
+        // if (role === "admin") {
+        //   fetchAllUsers(localStorage.getItem("token"));
+        // }
 
-        if (role === "super_admin") {
-          fetchAllAdmins(localStorage.getItem("token"));
-        }
+        // if (role === "super_admin") {
+        //   fetchAllAdmins(localStorage.getItem("token"));
+        // }
 
         if (role === "admin" || role === "super_admin") {
           document.getElementById("admin-super_admin").style.display = "block";
@@ -427,182 +468,92 @@ margin-right: auto;
     // Call the validateToken function when the page loads
     window.onload = validateToken;
 
-    async function fetchAllUsers(token) {
+    async function fetchUserInformation() {
+      const token = localStorage.getItem("token");
+
       try {
-        //  const response = await fetch("http://localhost:3000/api/auth/users", {
         const response = await fetch(
-          "https://aicalling-demo.onrender.com/api/auth/users",
-        //  "http://localhost:3000/api/auth/users",
+          "http://localhost:3000/api/auth/admin/users",
           {
             method: "GET",
             headers: {
-              "Content-Type": "application/json",
               Authorization: `Bearer ${token}`,
             },
           }
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch users");
+          throw new Error("Failed to fetch user information");
         }
 
-        const data = await response.json();
-        console.log("All users with sub-users:", data);
-
+        const users = await response.json();
+        console.log(users);
         const userTableBody = document.getElementById("userTableBody");
-        userTableBody.innerHTML = ""; // Clear the table body
+        userTableBody.innerHTML = "";
 
-        if (data.subUsers && data.subUsers.length > 0) {
-          data.subUsers.forEach((subUser, index) => {
-            const row = document.createElement("tr");
-
-            // Populate the row with user details
-            row.innerHTML = `
-          <th scope="row">${index + 1}</th>
-          <td>${subUser.name || "No name found"}</td>
-          <td>${subUser.email || "No email found"}</td>
-          <td>${subUser.phone || "No phone found"}</td>
-          <td>${subUser.credit || "No credit available"}</td>
-          <td>${subUser.totalCredit-subUser.credit || "No credit used"}</td>
-          <td>${subUser.role || "User"}</td>
-          <td><button class="delete-btn" data-id="${
-            subUser._id
-          }">delete</button></td>
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${users.twilioSid}</td>
+          <td>${users.twilioToken}</td>
+          <td>${users.twilioNum}</td>
+          <td>${users.vapiPhoneNumberId}</td>
+          <td>${users.sendGridEmail}</td>
+          <td>${users.sendGridApiKey}</td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="openEditModal('${users._id}', '${users.twilioSid}', '${users.twilioToken}', '${users.twilioNum}', '${users.sendGridEmail}', '${users.sendGridApiKey}')">Edit</button>
+          </td>
         `;
-
-            userTableBody.appendChild(row);
-          });
-
-          // Add event listeners for delete buttons after rows are added
-          document.querySelectorAll(".delete-btn").forEach((button) => {
-            button.addEventListener("click", (event) => {
-              const subUserId = event.target.getAttribute("data-id"); // Replace with the actual token
-              deleteSubUser(subUserId, localStorage.getItem("token"));
-            });
-          });
-        } else {
-          // Show a message if no users found
-          const row = document.createElement("tr");
-          row.innerHTML = `<td colspan="7" class="text-center">No users found</td>`;
-          userTableBody.appendChild(row);
-        }
+        userTableBody.appendChild(row);
       } catch (error) {
-        console.error("Error fetching users:", error);
+        console.error("Error fetching user data:", error);
       }
     }
 
-    async function deleteSubUser(subUserId, token) {
-      try {
-        const response = await fetch(
-       //    `http://localhost:3000/api/auth/subuser/${subUserId}`,
-           `https://aicalling-demo.onrender.com/api/auth/subuser/${subUserId}`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+    function openEditModal(userId, twilioSid, twilioToken, twilioNum, sendGridEmail, sendGridApiKey) {
+  document.getElementById("editTwilioSid").value = twilioSid;
+  document.getElementById("editTwilioToken").value = twilioToken;
+  document.getElementById("editTwilioNum").value = twilioNum;
+  document.getElementById("editSendGridEmail").value = sendGridEmail;
+  document.getElementById("editSendGridApiKey").value = sendGridApiKey;
+  document.getElementById("editUserId").value = userId;
 
-        if (!response.ok) {
-          throw new Error("Failed to delete sub-user");
-        }
+  // Show the modal
+  $("#editUserModal").modal("show");
+}
 
-        console.log("Sub-user deleted successfully");
-        // Refresh the list of users after deletion
-        fetchAllUsers(token);
-      } catch (error) {
-        console.error("Error deleting sub-user:", error);
-      }
+
+    async function saveUserChanges() {
+  const userId = document.getElementById("editUserId").value;
+  const twilioSid = document.getElementById("editTwilioSid").value;
+  const twilioToken = document.getElementById("editTwilioToken").value;
+  const twilioNum = document.getElementById("editTwilioNum").value;
+  const sendGridEmail = document.getElementById("editSendGridEmail").value;
+  const sendGridApiKey = document.getElementById("editSendGridApiKey").value;
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch("http://localhost:3000/api/auth/admin/users", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ twilioSid, twilioToken, twilioNum, sendGridEmail, sendGridApiKey }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to save user changes");
     }
+    alert("Updated Successfully");
 
+    fetchUserInformation();
+    $("#editUserModal").modal("hide");
+  } catch (error) {
+    alert("Internal Server Error");
+    console.error("Error saving user changes:", error);
+  }
+}
 
-
-
-
-      function arrayBufferToBase64(buffer) {
-        let binary = "";
-        const bytes = new Uint8Array(buffer);
-        bytes.forEach((b) => (binary += String.fromCharCode(b)));
-        return window.btoa(binary);
-      }
-
-
-    async function fetchAllAdmins(token) {
-      try {
-        document.getElementById("action-tag-super_admin").style.display =
-          "none";
-        const response = await fetch(
-          "https://aicalling-demo.onrender.com/api/auth/admins",
-       //   "http://localhost:3000/api/auth/admins",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          if (response.status === 401) {
-            alert("Session expired. Please log in again.");
-            window.location.href = "/login";
-            return;
-          }
-          throw new Error("Failed to fetch admins");
-        }
-
-        const data = await response.json();
-
-            
-    const profileImg = document.getElementById("profileDropdown");
-          if (data.data.profileImage && data.data.profileImage.buffer) {
-
-            console.log("Come")
-             const base64String = arrayBufferToBase64(
-              data.data.profileImage.buffer.data
-             );
-            const mimeType = data.data.profileImage.contentType;
-            profileImg.src = `data:${mimeType};base64,${base64String}`;
-          } else {
-            console.log("Using default profile image");
-         }
-
-        console.log("All admin users with sub-users:", data);
-
-        const userTableBody = document.getElementById("userTableBody");
-        userTableBody.innerHTML = ""; // Clear the table body
-
-        if (data.admins && data.admins.length > 0) {
-          data.admins.forEach((admin, index) => {
-            if (admin.role === "admin") {
-              const row = document.createElement("tr");
-
-              row.innerHTML = `
-                        <th scope="row">${index + 1}</th>
-                        <td>${admin.name || "No name found"}</td>
-                        <td>${admin.email || "No email found"}</td>
-                        <td>${admin.phone || "No phone found"}</td>
-                        <td>${admin.credits || "No credit available"}</td>
-                        <td>${admin.role || "Admin"}</td>
-                    `;
-
-              userTableBody.appendChild(row);
-            }
-          });
-        } else {
-          const row = document.createElement("tr");
-          row.innerHTML = `<td colspan="7" class="text-center">No admin users found</td>`;
-          userTableBody.appendChild(row);
-        }
-      } catch (error) {
-        console.error("Error fetching admins:", error);
-        alert(
-          "An error occurred while fetching admin data. Please try again later."
-        );
-      }
-    }
+    // Call the function on page load or user action
   </script>
 </html>

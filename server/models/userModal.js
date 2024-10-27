@@ -60,6 +60,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    sendGridApiKey:{
+      type:String,
+      default:""
+    },
+    sendGridEmail:{
+      type:String,
+      default:""
+    },
     subUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,

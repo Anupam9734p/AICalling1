@@ -189,6 +189,12 @@
                     <span>Add Configuration</span>
                   </a>
                 </li>
+                <li class="sidebar-item" style="display: none;" id="edit-config">
+                  <a href="Edit-Config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Edit Configuration</span>
+                  </a>
+                </li>
               </div>
             </ul>
           </div>
@@ -359,6 +365,11 @@
             window.location.href = "login.html";
           }
           const role = data.role;
+          const editConfig = document.getElementById("edit-config");
+          if(role === "admin")
+          {
+               editConfig.style.display="block"
+          }
           if (role === "admin" || role === "super_admin") {
             document.getElementById("admin-super_admin").style.display =
               "block";
