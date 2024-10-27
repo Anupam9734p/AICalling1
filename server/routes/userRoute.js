@@ -1374,6 +1374,29 @@ async function fetchSendGridData(apiKey, startDate) {
     throw new Error("Failed to fetch data from SendGrid");
   }
 }
+router.delete("/admin/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Use $unset to remove only specific fields
+    await User.findByIdAndUpdate(id, {
+      $unset: {
+        twilioSid: "",
+        twilioToken: "",
+        twilioNum: "",
+        vapiPhoneNumberId: "",
+        vapiSipUri: "",
+        sendGridApiKey: "",
+        sendGridEmail: ""
+      }
+    });
+
+    res.status(200).json({ message: "Specified fields removed successfully" });
+  } catch (error) {
+    console.error("Error removing specified fields:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
 router.get("/home", authMiddleware, (req, res) => {
   res.flash("Welcome to home page");
