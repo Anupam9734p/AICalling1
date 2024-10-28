@@ -25,6 +25,8 @@ const client = twilio(accountSid, authToken);
 const axios = require("axios");
 const VAPI_API_KEY = process.env.VAPI_API_KEY;
 const API_URL = "https://api.vapi.ai/call";
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey("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");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -46,10 +48,10 @@ router.post("/signup", async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore[email] = otp; // Store the OTP for later verification
 
-    // Send OTP to the user's email
-    await transporter.sendMail({
-      from: "arijitghosh1203@gmail.com",
+    // Prepare email content
+    const msg = {
       to: email,
+      from: "choudhardiv@gmail.com", // Your verified sender email
       subject: "Your OTP for Signup - OTP Mazer",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
@@ -66,15 +68,16 @@ router.post("/signup", async (req, res) => {
           </footer>
         </div>
       `,
-    });
+    };
 
+    // Send the email
+    await sgMail.send(msg);
     res.status(200).json({ message: "OTP sent to email. Please verify." });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server Error" });
   }
 });
-
 // Route to verify OTP and complete the registration
 router.post("/verify-otp", async (req, res) => {
   const { name, email, password, phone, otp } = req.body;
@@ -401,22 +404,24 @@ router.post("/add-subUser", async (req, res) => {
   }
 });
 async function sendPasswordResetEmail(email, resetUrl) {
-  console.log("Come");
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "arijitghosh1203@gmail.com",
-      pass: "hryc yasr hlft mjsi",
-    },
-  });
-  const mailOptions = {
-    from: "arijitghosh1203@gmail.com",
+  const msg = {
     to: email,
+    from: 'choudhardiv@gmail.com', // Your verified sender email in SendGrid
     subject: "Change Your Password",
-    html: `<p>Please click the following link to change your password:</p><a href="${resetUrl}">Change Your Password</a>`,
+    html: `
+      <p>Please click the following link to change your password:</p>
+      <a href="${resetUrl}">Change Your Password</a>
+      <p>This link will expire in <strong>5 minutes</strong>.</p>
+    `,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    await sgMail.send(msg);
+    console.log("Password reset email sent successfully.");
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    throw new Error("Email sending failed");
+  }
 }
 
 router.post("/reset-password", async (req, res) => {
@@ -454,34 +459,33 @@ router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
 
   try {
-    const oldUser = await User.findOne({ email });
-    if (!oldUser) {
-      return res.json({ status: "User not Exits!" });
-    }
-    //const secret=JWT_SECRET + oldUser.password;
+    // Attempt to find the user in the User collection
+    let user = await User.findOne({ email });
+    let isSubUser = false;
 
-    const secret = process.env.JWT_SECRET + oldUser.password;
-    const token = jwt.sign({ email: oldUser.email, id: oldUser._id }, secret, {
+    // If not found in User collection, attempt to find in SubUser collection
+    if (!user) {
+      user = await SubUser.findOne({ email });
+      isSubUser = true; // Mark this as a SubUser if found here
+    }
+
+    // If email not found in both collections, return an error
+    if (!user) {
+      return res.json({ message: "User not Exists!", status: "false" });
+    }
+
+    // Generate token with secret that includes the user's password hash
+    const secret = process.env.JWT_SECRET + user.password;
+    const token = jwt.sign({ email: user.email, id: user._id }, secret, {
       expiresIn: "5m",
     });
 
-    // const link=`http://127.0.0.1:5501/client/dist/passwordForgot.html?id=${oldUser._id}&token=${token}`;
-    const link = `https://ai-calling-demo-otyj.vercel.app/passwordForgot.html?id=${oldUser._id}&token=${token}`;
-    var transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: "arijitghosh1203@gmail.com",
-        pass: "hryc yasr hlft mjsi",
+    // Password reset link
+    const link = `https://ai-calling-demo-otyj.vercel.app/passwordForgot.html?id=${user._id}&token=${token}`;
 
-        //user: process.env.EMAIL_USER,
-        // pass: process.env.EMAIL_PASSWORD,
-      },
-    });
-
-    var mailOptions = {
-      from: "arijitghosh1203@gmail.com",
-      // form:process.env.EMAIL_USER,
+    const msg = {
       to: email,
+      from: "choudhardiv@gmail.com", // Your verified sender email
       subject: "Password Reset - Mazer",
       html: `
       <!DOCTYPE html>
@@ -505,17 +509,17 @@ router.post("/forgot-password", async (req, res) => {
                   margin: auto;
               }
               h1 {
-                  color: #004aad; /* Dark blue */
+                  color: #004aad;
                   text-align: center;
               }
               p {
-                  color: #333333; /* Dark gray */
+                  color: #333333;
                   line-height: 1.6;
               }
               .button {
                   display: inline-block;
-                  background-color: #004aad; /* Dark blue */
-                  color: black;
+                  background-color: #004aad;
+                  color: white;
                   padding: 10px 20px;
                   text-decoration: none;
                   border-radius: 5px;
@@ -525,7 +529,7 @@ router.post("/forgot-password", async (req, res) => {
                   text-align: center;
                   margin-top: 20px;
                   font-size: 12px;
-                  color: #777777; /* Light gray */
+                  color: #777777;
               }
           </style>
       </head>
@@ -548,20 +552,15 @@ router.post("/forgot-password", async (req, res) => {
       `,
     };
 
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log(error);
-      } else {
-        console.log("Email sent: " + info.response);
-      }
-    });
-
+    // Send the email
+    await sgMail.send(msg);
     return res.json({ status: "Success", link });
   } catch (error) {
-    console.log("Forgot password Error : " + error);
+    console.error("Forgot password Error: ", error);
     return res.status(500).json({ status: "Server error" });
   }
 });
+
 
 router.get("/forgot-password/:id/:token", async (req, res) => {
   const { id, token } = req.params;
