@@ -183,16 +183,16 @@
                     <span>Appointment</span>
                   </a>
                 </li>
-                <li class="sidebar-item">
-                  <a href="config.html" class="sidebar-link">
-                    <i class="bi bi-calendar-check-fill"></i>
-                    <span>Add Configuration</span>
-                  </a>
-                </li>
                 <li class="sidebar-item" style="display: none;" id="edit-config">
                   <a href="Edit-Config.html" class="sidebar-link">
                     <i class="bi bi-calendar-check-fill"></i>
-                    <span>Edit Configuration</span>
+                    <span>Connect Twilio</span>
+                  </a>
+                </li>
+                <li class="sidebar-item" style="display: none;" id="send-config">
+                  <a href="sendgrid-config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect SendGrid</span>
                   </a>
                 </li>
               </div>
@@ -366,8 +366,10 @@
           }
           const role = data.role;
           const editConfig = document.getElementById("edit-config");
+          const sendConfig = document.getElementById("send-config");
           if(role === "admin")
           {
+             sendConfig.style.display="block"
                editConfig.style.display="block"
           }
           if (role === "admin" || role === "super_admin") {

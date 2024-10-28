@@ -4,11 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard - Mazer Admin Dashboard</title>
-
-
-
-    
+    <title>Add Member</title>
     <link rel="preconnect" href="https://fonts.gstatic.com" />
     <link
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap"
@@ -65,7 +61,7 @@
       }
 
       .dropdown-item i {
-        margin-right: 8px; /* Adds space between the icon and text */
+        margin-right: 8px;
       }
 
       .dropdown-divider {
@@ -151,26 +147,20 @@
                     <span>Appointment</span>
                   </a>
                 </li>
-                <li class="sidebar-item">
-                  <a href="config.html" class="sidebar-link">
-                    <i class="bi bi-calendar-check-fill"></i>
-                    <span>Add Configuration</span>
-                  </a>
-                </li>
                 <li class="sidebar-item" style="display: none;" id="edit-config">
                   <a href="Edit-Config.html" class="sidebar-link">
                     <i class="bi bi-calendar-check-fill"></i>
-                    <span>Edit Configuration</span>
+                    <span>Connect Twilio</span>
+                  </a>
+                </li>
+                <li class="sidebar-item" style="display: none;" id="send-config">
+                  <a href="sendgrid-config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect SendGrid</span>
                   </a>
                 </li>
               </div>
-
-              <!-- <li class="sidebar-item">
-                    <a href="#" class="sidebar-link" id="logout-btn">
-                      <i class="bi bi-calendar-check-fill"></i>
-                      <span>Logout</span>
-                    </a>
-                  </li> -->
+              </div>
             </ul>
           </div>
         </div>
@@ -339,21 +329,9 @@
       const logoutBtn = document.getElementById("logout-btn");
 
       logoutBtn.addEventListener("click", () => {
-        // Remove the JWT token from localStorage
-        console.log("click");
         localStorage.removeItem("token");
-
-        // Redirect the user to the login page
-
         window.location.href = "login.html";
       });
-
-
-
-
-
-
-
       function arrayBufferToBase64(buffer) {
         let binary = "";
         const bytes = new Uint8Array(buffer);
@@ -466,9 +444,11 @@
          
           //console.log(role);
           const editConfig = document.getElementById("edit-config");
+          const sendConfig = document.getElementById("send-config");
           if(role === "admin")
           {
                editConfig.style.display="block"
+               sendConfig.style.display="block"
           }
           if (role === "admin" || role === "super_admin") {
             document.getElementById("admin-super_admin").style.display =

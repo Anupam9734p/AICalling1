@@ -959,13 +959,11 @@ router.post("/config", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { twilioSid, twilioToken, twilioNum, sendGridEmail, sendGridApiKey } =
+    const { twilioSid, twilioToken, twilioNum } =
       req.body;
     user.twilioSid = twilioSid;
     user.twilioToken = twilioToken;
     user.twilioNum = twilioNum;
-    user.sendGridEmail = sendGridEmail; // New field
-    user.sendGridApiKey = sendGridApiKey;
     await user.save();
 
     let vapiResponse;
@@ -1222,41 +1220,32 @@ router.get("/admin/users", async (req, res) => {
 
 router.put("/admin/users", async (req, res) => {
   try {
-    // Extract the token from the Authorization header
     const token = req.headers.authorization.split(" ")[1];
     const decoded = jwt.verify(token, JWT_SECRET);
     const userId = decoded.userId;
 
-    // Find the user by ID
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const { twilioSid, twilioToken, twilioNum, sendGridEmail, sendGridApiKey } =
-      req.body;
+    const { twilioSid, twilioToken, twilioNum } = req.body;
     let credentialsUpdated = false;
 
-    // Check if any Twilio credentials have changed
     if (
       user.twilioSid !== twilioSid ||
       user.twilioToken !== twilioToken ||
-      user.twilioNum !== twilioNum ||
-      user.sendGridEmail !== sendGridEmail ||
-      user.sendGridApiKey !== sendGridApiKey
+      user.twilioNum !== twilioNum
     ) {
       user.twilioSid = twilioSid;
       user.twilioToken = twilioToken;
       user.twilioNum = twilioNum;
-      user.sendGridEmail = sendGridEmail;
-      user.sendGridApiKey = sendGridApiKey;
       credentialsUpdated = true;
     }
 
     if (credentialsUpdated) {
       let vapiResponse;
       try {
-        // Attempt to create a new phone number in VAPI
         vapiResponse = await client1.phoneNumbers.create({
           provider: "twilio",
           number: twilioNum,
@@ -1264,39 +1253,41 @@ router.put("/admin/users", async (req, res) => {
           twilioAuthToken: twilioToken,
         });
 
-        // If successful, store the new VAPI phone number ID and SIP URI
         user.vapiPhoneNumberId = vapiResponse.id;
         user.vapiSipUri = vapiResponse.sipUri;
       } catch (error) {
-        // Handle existing phone number case or other errors
+        // Specific handling for invalid phone number format
         if (
+          error.statusCode === 400 &&
+          error.body.message.includes("number must be a valid phone number")
+        ) {
+          return res.status(400).json({
+            message:
+              "Invalid phone number format. Please enter the phone number in E.164 format (e.g., +1xxxxxxxxxx).",
+          });
+        } else if (
           error.statusCode === 400 &&
           error.body.message.includes("Existing Phone Number")
         ) {
-          // Extract the existing phone number ID
           const existingPhoneNumberId = error.body.message.match(
             /Existing Phone Number ([\w-]+)/
           )[1];
 
-          // Retrieve existing phone number details
           const existingPhoneNumber = await client1.phoneNumbers.get(
             existingPhoneNumberId
           );
           user.vapiPhoneNumberId = existingPhoneNumber.id;
           user.vapiSipUri = existingPhoneNumber.sipUri;
         } else {
-          // If it's a different error, rethrow it
           throw error;
         }
       }
 
-      // Save user data after updating credentials and VAPI details
       await user.save();
       return res.status(200).json({
         message: "Configuration saved and Vapi details added successfully!",
       });
     } else {
-      // Save the user if no VAPI update was required
       await user.save();
       return res.status(200).json({
         message: "Configuration saved successfully!",
@@ -1307,6 +1298,8 @@ router.put("/admin/users", async (req, res) => {
     res.status(500).json({ message: "An error occurred", error });
   }
 });
+
+
 
 router.get("/get-mail-data", verifyToken, async (req, res) => {
   const { userId, role } = req; 
@@ -1378,6 +1371,8 @@ router.delete("/admin/users/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
+    console.log(id)
+    console.log("Heerereeeee")
     // Use $unset to remove only specific fields
     await User.findByIdAndUpdate(id, {
       $unset: {
@@ -1386,8 +1381,6 @@ router.delete("/admin/users/:id", async (req, res) => {
         twilioNum: "",
         vapiPhoneNumberId: "",
         vapiSipUri: "",
-        sendGridApiKey: "",
-        sendGridEmail: ""
       }
     });
 
@@ -1397,6 +1390,85 @@ router.delete("/admin/users/:id", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+
+router.post("/config-mail", async (req, res) => {
+  try {
+    // Extract the token from the Authorization header
+    const token = req.headers.authorization.split(" ")[1];
+    if (!token) return res.status(403).json({ message: "Authorization token required" });
+
+    // Verify and decode the token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId; // Ensure 'userId' was included in your token payload
+
+    // Fetch the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Extract SendGrid details from request body
+    const { sendGridEmail, sendGridApiKey } = req.body;
+
+    // Update user's SendGrid configuration
+    user.sendGridEmail = sendGridEmail;
+    user.sendGridApiKey = sendGridApiKey;
+
+    // Save the updated user data
+    await user.save();
+
+    return res.status(200).json({ message: "Configuration added successfully!" });
+  } catch (error) {
+    console.error("Error in config-mail route:", error);
+    return res.status(500).json({ message: "An error occurred while adding configuration", error });
+  }
+});
+
+// Route to delete specific fields (sendGridApiKey and sendGridEmail) for a user by ID
+router.delete("/admin/sendgrid/:userId", verifyToken, async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Use MongoDB $unset operator to remove the specific fields
+    await User.findByIdAndUpdate(userId, {
+      $unset: {
+        sendGridApiKey: "",
+        sendGridEmail: "",
+      },
+    });
+
+    return res.status(200).json({ message: "SendGrid configuration removed successfully" });
+  } catch (error) {
+    console.error("Error deleting SendGrid configuration:", error);
+    return res.status(500).json({ message: "An error occurred while deleting SendGrid configuration", error });
+  }
+});
+
+// Route to update SendGrid email and API key for a user by ID
+router.put("/admin/sendgrid/update/:userId", verifyToken, async (req, res) => {
+  const { userId } = req.params;
+  const { sendGridEmail, sendGridApiKey } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.sendGridEmail = sendGridEmail || user.sendGridEmail;
+    user.sendGridApiKey = sendGridApiKey || user.sendGridApiKey;
+
+    await user.save();
+
+    return res.status(200).json({ message: "SendGrid configuration updated successfully" });
+  } catch (error) {
+    console.error("Error updating SendGrid configuration:", error);
+    return res.status(500).json({ message: "An error occurred while updating SendGrid configuration", error });
+  }
+});
+
 
 router.get("/home", authMiddleware, (req, res) => {
   res.flash("Welcome to home page");
