@@ -42,6 +42,19 @@ const subUserSchema = new mongoose.Schema(
     totalCredit:{
        type:Number,
     },
+    mainCount: [
+      {
+        count: {
+          type: Number,
+          default: 0
+        },
+        date: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
+    
     profileImage: {
       buffer: Buffer,
       contentType: String,

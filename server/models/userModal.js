@@ -68,6 +68,19 @@ const userSchema = new mongoose.Schema(
       type:String,
       default:""
     },
+    mainCount: [
+      {
+        count: {
+          type: Number,
+          default: 0
+        },
+        date: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
+    
     subUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,

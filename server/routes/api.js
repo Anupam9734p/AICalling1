@@ -70,7 +70,8 @@ const transporter = nodemailer.createTransport({
 router.post("/send-emails", verifyToken, async (req, res) => {
   const { users, additionalInput } = req.body; // Extract users and additional input from request body
   const { userId, role } = req; // Extract userId and role from the request
-
+  const totalEmails = users.length;
+  const totalCost = totalEmails;
   let user;
   let fromEmail; // Declare the fromEmail variable
 
@@ -81,12 +82,22 @@ router.post("/send-emails", verifyToken, async (req, res) => {
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
+      if (user.credits < totalCost) {
+        return res
+          .status(403)
+          .json({ message: "Insufficient credits to send messages" });
+      }
       fromEmail = user.sendGridEmail; // Assuming admin's email is stored in User model
       sgMail.setApiKey(user.sendGridApiKey); // Set API key for SendGrid
     } else if (role === "subuser") {
-      user = await SubUser.findById(userId);
+      user = await subUserSchema.findById(userId);
       if (!user) {
         return res.status(404).json({ message: "Sub-user not found" });
+      }
+      if (user.credit < totalCost) {
+        return res
+          .status(403)
+          .json({ message: "Insufficient credits to send messages" });
       }
       const adminUser = await User.findById(user.adminId); // Get admin details
       if (!adminUser) {
@@ -97,12 +108,13 @@ router.post("/send-emails", verifyToken, async (req, res) => {
     }
 
     // Calculate total emails to be sent
-    const totalEmails = users.length;
-    const totalCost = totalEmails; // Assuming each email costs 1 credit
+    // Assuming each email costs 1 credit
 
     // Check if the user has enough credits to send the emails
     if (user.credits < totalCost) {
-      return res.status(403).json({ message: "Insufficient credits to send emails" });
+      return res
+        .status(403)
+        .json({ message: "Insufficient credits to send emails" });
     }
 
     // Validate email addresses and prepare email sending promises
@@ -113,7 +125,9 @@ router.post("/send-emails", verifyToken, async (req, res) => {
       // Simple regex to validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(emailAddress)) {
-        return Promise.reject(new Error(`Invalid email address: ${emailAddress}`));
+        return Promise.reject(
+          new Error(`Invalid email address: ${emailAddress}`)
+        );
       }
 
       const subject = additionalInput;
@@ -126,9 +140,19 @@ router.post("/send-emails", verifyToken, async (req, res) => {
     // Wait for all emails to be sent
     await Promise.all(emailPromises);
 
-    // Deduct credits from the user after successfully sending all emails
-    user.credits -= totalCost;
-    await user.save(); // Save the updated credits
+    const emailLogEntries = users.map(() => ({
+      count: 1,
+      date: new Date(), // Timestamp for each email sent
+    }));
+    user.mainCount.push(...emailLogEntries);
+
+    // Deduct credits from the user and increment emailCount after sending all emails
+    if (role === "admin") {
+      user.credits -= totalCost;
+    } else if (role === "subuser") {
+      user.credit -= totalCost;
+    }
+    await user.save(); // Save the updated credits and emailCount
 
     res.status(200).json({ message: "Emails sent successfully!" });
   } catch (error) {
@@ -159,8 +183,6 @@ router.post("/send-sms", verifyToken, async (req, res) => {
   const { users, additionalInfo } = req.body; // Get users and message
   const message = additionalInfo;
   const smsCostPerMessage = 2; // Each SMS costs 2 credits
-  const totalSMS = users.length;
-  const totalCost = totalSMS * smsCostPerMessage;
 
   try {
     const { userId, role } = req;
@@ -168,7 +190,6 @@ router.post("/send-sms", verifyToken, async (req, res) => {
 
     // Check if the user is an admin or subuser
     if (role === "admin") {
-      // Fetch admin user
       user = await User.findById(userId);
       if (!user)
         return res.status(404).json({ message: "Admin user not found" });
@@ -176,7 +197,6 @@ router.post("/send-sms", verifyToken, async (req, res) => {
       // Get Twilio credentials from admin user
       ({ twilioSid, twilioToken, twilioNum } = user);
     } else if (role === "subuser") {
-      // Fetch subuser
       const subuser = await subUserSchema.findById(userId);
       if (!subuser)
         return res.status(404).json({ message: "Subuser not found" });
@@ -188,45 +208,46 @@ router.post("/send-sms", verifyToken, async (req, res) => {
 
       // Get Twilio credentials from admin user
       ({ twilioSid, twilioToken, twilioNum } = admin);
-
-      // Use the subuser's credits
       user = subuser;
-    }
-
-    // Check if the user (admin or subuser) has enough credits to send all SMS
-    if (user.credits < totalCost) {
-      return res
-        .status(403)
-        .json({ message: "Insufficient credits to send messages" });
     }
 
     // Initialize Twilio client with the admin's Twilio credentials
     const twilioClient = require("twilio")(twilioSid, twilioToken);
 
-    console.log(twilioSid);
-    // Send the SMS messages
-    const sendSmsPromises = users.map(async (user) => {
-      const [name, phone] = user;
+    const successfulMessages = []; // To keep track of successfully sent messages
+
+    for (let i = 0; i < users.length; i++) {
+      const [name, phone] = users[i];
       const toNumber = phone.startsWith("+") ? phone : `+${phone}`;
 
-      // Send the SMS
-      const messageResult = await twilioClient.messages.create({
-        body: `Hello ${name}, ${message}`,
-        from: twilioNum,
-        to: toNumber,
-      });
+      try {
+        // Send the SMS
+        const messageResult = await twilioClient.messages.create({
+          body: `Hello ${name}, ${message}`,
+          from: twilioNum,
+          to: toNumber,
+        });
 
-      return messageResult.sid;
-    });
+        successfulMessages.push(messageResult.sid);
 
-    // Wait for all SMS to be sent
-    const messageSids = await Promise.all(sendSmsPromises);
+        // Deduct credits after each successful message send
+        if (role === "admin") {
+          user.credits -= smsCostPerMessage;
+        } else if (role === "subuser") {
+          user.credit -= smsCostPerMessage;
+        }
 
-    // Deduct credits from the user after successfully sending all SMS
-    user.credits -= totalCost;
-    await user.save(); // Save the updated credits
+        // Save the user with updated credits after each message
+        await user.save();
+      } catch (error) {
+        console.error(
+          `Failed to send message to ${toNumber}: ${error.message}`
+        );
+        // Continue with the next message if there's an error
+      }
+    }
 
-    res.status(200).send({ success: true, messageSids });
+    res.status(200).send({ success: true, messageSids: successfulMessages });
   } catch (error) {
     console.error(`Failed to send messages: ${error.message}`);
     res.status(500).send({ success: false, error: error.message });
