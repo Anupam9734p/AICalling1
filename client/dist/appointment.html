@@ -135,13 +135,6 @@
                     <span>Call Logs</span>
                   </a>
                 </li>
-
-                <li class="sidebar-item">
-                  <a href="sms-email.html" class="sidebar-link">
-                    <i class="bi bi-envelope-fill"></i>
-                    <span>SMS & Email</span>
-                  </a>
-                </li>
               </div>
 
               <div id="admin-super_admin" style="display: none">
@@ -157,18 +150,19 @@
                     <span>Appointment</span>
                   </a>
                 </li>
+                <li class="sidebar-item" style="display: none;" id="edit-config">
+                  <a href="Edit-Config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect Twilio</span>
+                  </a>
+                </li>
+                <li class="sidebar-item" style="display: none;" id="send-config">
+                  <a href="sendgrid-config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect SendGrid</span>
+                  </a>
+                </li>
               </div>
-
- 
-          
-           
-
-              <!-- <li class="sidebar-item">
-                    <a href="#" class="sidebar-link" id="logout-btn">
-                      <i class="bi bi-calendar-check-fill"></i>
-                      <span>Logout</span>
-                    </a>
-                  </li> -->
             </ul>
           </div>
         </div>
@@ -232,11 +226,12 @@
   <script src="loader.js"></script>
   <script>
 
-    
+const logoutBtn = document.getElementById("logout-btn");
 
-
-
-
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("token");
+  window.location.href = "login.html";
+});
 
 
       function arrayBufferToBase64(buffer) {
@@ -294,6 +289,13 @@
             window.location.href = "login.html";
           }
           const role = data.role;
+          const editConfig = document.getElementById("edit-config");
+          const sendConfig = document.getElementById("send-config");
+          if(role === "admin")
+          {
+               editConfig.style.display="block"
+                sendConfig.style.display="block"
+          }
           //console.log(role);
           if (role === "admin" || role === "super_admin") {
             document.getElementById("admin-super_admin").style.display =

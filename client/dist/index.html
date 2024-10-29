@@ -129,13 +129,6 @@
                     <span>Call Logs</span>
                   </a>
                 </li>
-
-                <li class="sidebar-item">
-                  <a href="sms-email.html" class="sidebar-link">
-                    <i class="bi bi-envelope-fill"></i>
-                    <span>SMS & Email</span>
-                  </a>
-                </li>
               </div>
 
               <div id="admin-super_admin" style="display: none">
@@ -149,6 +142,24 @@
                   <a href="appointment.html" class="sidebar-link">
                     <i class="bi bi-calendar-check-fill"></i>
                     <span>Appointment</span>
+                  </a>
+                </li>
+                <!-- <li class="sidebar-item">
+                  <a href="config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Add Configuration</span>
+                  </a>
+                </li> -->
+                <li class="sidebar-item" style="display: none;" id="edit-config">
+                  <a href="Edit-Config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect Twilio</span>
+                  </a>
+                </li>
+                <li class="sidebar-item" style="display: none;" id="send-config">
+                  <a href="sendgrid-config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect SendGrid</span>
                   </a>
                 </li>
               </div>
@@ -236,7 +247,11 @@
           <section class="row">
             <div class="col-12 col-lg-9">
               <div class="row">
-                <div class="col-6 col-lg-3 col-md-6">
+                <div
+                  class="col-6 col-lg-3 col-md-6"
+                  style="display: none"
+                  id="total-call-card"
+                >
                   <div class="card">
                     <div class="card-body px-3 py-4-5">
                       <div class="row">
@@ -255,6 +270,7 @@
                     </div>
                   </div>
                 </div>
+
                 <div class="col-6 col-lg-3 col-md-6">
                   <div class="card">
                     <div class="card-body px-3 py-4-5">
@@ -313,6 +329,92 @@
                           </h6>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row" id="demo-block" style="display: block">
+                <div class="col-12">
+                  <div class="card">
+                    <div class="card-header">
+                      <h4>Request Demo</h4>
+                    </div>
+                    <div class="card-body">
+                      <form id="demo-request-form">
+                        <div class="form-group">
+                          <label for="phone-number">Phone Number</label>
+                          <input
+                            type="text"
+                            id="phone-number"
+                            class="form-control"
+                            placeholder="Enter phone number"
+                            required
+                          />
+                        </div>
+
+                        <div class="form-group">
+                          <label for="category">Select a Category</label>
+                          <select id="category" class="form-control" required>
+                            <option value="" disabled selected>
+                              Select an option
+                            </option>
+                            <option value="Home Sellers">Home Sellers</option>
+                            <option value="Home Buyers">Home Buyers</option>
+                            <option value="Real Estate Investor / Wholesaler">
+                              Real Estate Investor / Wholesaler
+                            </option>
+                            <option value="Custom">Custom</option>
+                          </select>
+                        </div>
+
+                        <!-- Custom value input, hidden initially -->
+                        <div
+                          class="form-group"
+                          id="customField"
+                          style="display: none"
+                        >
+                          <label for="customValue">Enter Custom Value</label>
+                          <input
+                            type="text"
+                            id="customValue"
+                            class="form-control"
+                            placeholder="Enter your custom value"
+                          />
+                        </div>
+
+                        <div class="form-group">
+                          <label for="language">Select Language</label>
+                          <select class="form-control" id="language" required>
+                            <option value="">Select Language</option>
+                            <option value="bg">Bulgarian</option>
+                            <option value="ca">Catalan</option>
+                            <option value="cs">Czech</option>
+                            <option value="da">Danish</option>
+                            <option value="de">German</option>
+                            <option value="el">Greek</option>
+                            <option value="en">English</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                            <option value="hi">Hindi</option>
+                            <option value="it">Italian</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                            <option value="lt">Lithuanian</option>
+                            <option value="ru">Russian</option>
+                            <option value="zh">Chinese</option>
+                          </select>
+                        </div>
+
+                        <button
+                          type="button"
+                          class="btn btn-primary"
+                          onclick="requestDemo()"
+                        >
+                          Request Demo
+                        </button>
+                      </form>
+                      <div id="response-message"></div>
                     </div>
                   </div>
                 </div>
@@ -450,6 +552,18 @@
     <script src="loader.js"></script>
 
     <script>
+      const categorySelect = document.getElementById("category");
+      const customField = document.getElementById("customField");
+      const customValueInput = document.getElementById("customValue");
+
+      // Show/hide custom field based on category selection
+      categorySelect.addEventListener("change", function () {
+        if (categorySelect.value === "Custom") {
+          customField.style.display = "block"; // Show custom input if "Custom" is selected
+        } else {
+          customField.style.display = "none"; // Hide custom input for predefined options
+        }
+      });
       const logoutBtn = document.getElementById("logout-btn");
 
       logoutBtn.addEventListener("click", () => {
@@ -477,8 +591,8 @@
         try {
           const response = await fetch(
             //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-            "https://aicalling-demo.onrender.com/api/auth/validate",
-          //   "http://localhost:3000/api/auth/validate",
+             "https://aicalling-demo.onrender.com/api/auth/validate",
+          //  "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -521,6 +635,10 @@
           const callLog = document.getElementById("call-log");
           const profileVisit = document.getElementById("profile-visit");
           const subUserCard = document.getElementById("sub-user-card");
+          const totalCall = document.getElementById("total-call-card");
+          const demoBlock = document.getElementById("demo-block");
+          const editConfig = document.getElementById("edit-config");
+          const sendConfig = document.getElementById("send-config");
 
           console.log(data.data.name);
           userName.textContent = data.data.name;
@@ -530,6 +648,8 @@
             creditElement.textContent = "9999";
             userSubUser.textContent = "Super_Admin";
           } else if (role === "admin") {
+            editConfig.style.display="block"
+            sendConfig.style.display="block"
             creditElement.textContent = data.data.credits || "No credit";
             userSubUser.textContent = data.data.subUsers.length || "No Data";
           } else {
@@ -552,6 +672,8 @@
             recentMessage.style.display = "block";
             callLog.style.display = "block";
             profileVisit.style.display = "block";
+            totalCall.style.display = "block";
+            demoBlock.style.display = "none";
             const adminItems = `
             <li>
               <a class="dropdown-item" href="bulk-call-email.html">
@@ -642,10 +764,127 @@
         },
       };
 
+      async function requestDemo() {
+        const phoneNumber = document.getElementById("phone-number").value;
+        const selectedLanguage = document.getElementById("language").value;
+        // const prompt = document.getElementById("prompt").value;
+        const selectedCategory = categorySelect.value;
+        const customValue = customValueInput.value;
+        console.log(phoneNumber);
+        console.log(selectedLanguage);
+        const prompt =
+          selectedCategory === "Custom" ? customValue : selectedCategory;
+        console.log(prompt);
+
+        if (!phoneNumber) {
+          document.getElementById("response-message").innerText =
+            "Please enter a valid phone number";
+          return;
+        }
+        if (!selectedLanguage) {
+          document.getElementById("response-message").innerText =
+            "Please select a language";
+          return;
+        }
+        if (!prompt) {
+          document.getElementById("response-message").innerText =
+            "Please enter the content";
+          return;
+        }
+        try {
+          const response = await fetch(
+            //   "http://localhost:3000/api/auth/request-demo",
+            "https://aicalling-demo.onrender.com/api/auth/request-demo",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({}),
+            }
+          );
+
+          if (response.ok) {
+            const result = await response.json();
+            document.getElementById("response-message").innerText =
+              "Demo requested successfully!";
+            await initiateVapiCall(phoneNumber, prompt, selectedLanguage);
+          } else {
+            const result = await response.json();
+            document.getElementById("response-message").innerText =
+              "Error: " + result.message;
+          }
+        } catch (error) {
+          document.getElementById("response-message").innerText =
+            "Request failed. Please try again later.";
+        }
+      }
+
+      async function initiateVapiCall(
+        formattedPhoneNumber,
+        prompt,
+        selectedLanguage
+      ) {
+        const options = {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer 22576079-730d-4707-b8ab-f780113249f3",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: `Call with ${formattedPhoneNumber}`,
+            phoneNumberId: "de61bb61-1137-4e9a-af64-61c160916729",
+            customer: {
+              number: formattedPhoneNumber,
+            },
+            assistant: {
+              transcriber: {
+                provider: "deepgram",
+                model: "nova-2",
+                language: selectedLanguage,
+                smartFormat: false,
+              },
+              model: {
+                provider: "openai",
+                model: "gpt-4",
+                messages: [
+                  {
+                    role: "system",
+                    content: prompt,
+                  },
+                ],
+                knowledgeBase: {
+                  provider: "canonical",
+                  fileIds: ["your-file-id"],
+                },
+              },
+            },
+          }),
+        };
+
+        // Make the VAPI call
+        const callResponse = await fetch("https://api.vapi.ai/call", options);
+        if (callResponse.ok) {
+          const callData = await callResponse.json();
+          const callSid = callData.id;
+          console.log(`Call to ${formattedPhoneNumber} initiated:`, callData);
+        } else {
+          throw new Error("Failed to initiate call");
+        }
+      }
+
       function updateCallLogs() {
-        fetch("https://api.vapi.ai/call", options)
+      //  fetch("http://localhost:3000/api/auth/get-call-data", {
+           fetch("https://aicalling-demo.onrender.com/api/auth/get-call-data", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
           .then((response) => response.json())
           .then((data) => {
+            console.log(data);
             const tableBody = document.querySelector("#latest-calls-table");
             const totalCalls = document.querySelector("#totalCalls");
 
@@ -653,41 +892,35 @@
             tableBody.innerHTML = "";
 
             // Update total calls
-            totalCalls.textContent = data.length;
-
-            // Sort the data by createdAt in descending order
-            data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            totalCalls.textContent = data.totalCalls;
 
             // Update table with the latest 7 calls
-            const latestCalls = data.slice(0, 7);
-            latestCalls.forEach((call) => {
+            data.latestCalls.forEach((call) => {
               const row = document.createElement("tr");
               row.innerHTML = `
-                                  <td class="col-3">
-                                      <div class="d-flex align-items-center">
-                                          <p class="font-bold ms-3 mb-0">${new Date(
-                                            call.createdAt
-                                          ).toLocaleString()}</p>
-                                      </div>
-                                  </td>
-                                  <td class="col-auto">
-                                      <p class="mb-0">${new Date(
-                                        call.endedAt
-                                      ).toLocaleString()}</p>
-                                  </td>
-                                  <td class="col-auto">
-                                      <p class="mb-0">${call.status}</p>
-                                  </td>
-                                  <td class="col-auto">
-                                      <p class="mb-0">${
-                                        call.customer?.number || "N/A"
-                                      }</p>
-                                  </td>
-                              `;
+          <td class="col-3">
+              <div class="d-flex align-items-center">
+                  <p class="font-bold ms-3 mb-0">${new Date(
+                    call.dateCreated
+                  ).toLocaleString()}</p>
+              </div>
+          </td>
+          <td class="col-auto">
+              <p class="mb-0">${new Date(call.endTime).toLocaleString()}</p>
+          </td>
+          <td class="col-auto">
+              <p class="mb-0">${call.to}</p>
+          </td>
+          <td class="col-auto">
+              <p class="mb-0">${call.status || "N/A"}</p>
+          </td>
+        `;
               tableBody.appendChild(row);
             });
           })
-          .catch((err) => console.error("Error fetching call logs:", err));
+          .catch((err) =>
+            console.error("Error fetching call logs from backend:", err)
+          );
       }
 
       document.addEventListener("DOMContentLoaded", function () {
@@ -749,7 +982,6 @@
           console.log(`Fetching graph data for the last ${days} days...`);
           showLoader();
 
-
           // const currentDate = new Date();
           // const startDate = new Date();
           // startDate.setDate(currentDate.getDate() - days);
@@ -777,57 +1009,105 @@
           // const data = await res.json();
           // console.log("Graph Data:", data);
 
-          const accountSid = "AC3384b9969d736016bc322ab80d84e2e2";
-          const authToken = "f399adebf7c41a8a1009c1ed37ef24d9";
+          // const accountSid = "AC38b77eb609d6644e5a2cdcef9d0428ea";
+          // const authToken = "8154fc1e036c0624d33749b58c398361";
 
-          // Basic Authorization header for Twilio
-          const authHeader = "Basic " + btoa(accountSid + ":" + authToken);
+          // // Basic Authorization header for Twilio
+          // const authHeader = "Basic " + btoa(accountSid + ":" + authToken);
 
-          const today = new Date();
-          const startDate = new Date();
-          startDate.setDate(today.getDate() - days);
+          // const today = new Date();
+          // const startDate = new Date();
+          // startDate.setDate(today.getDate() - days);
 
-          const formattedStartDate = startDate.toISOString().split("T")[0];
-          const formattedEndDate = today.toISOString().split("T")[0];
+          // const formattedStartDate = startDate.toISOString().split("T")[0];
+          // const formattedEndDate = today.toISOString().split("T")[0];
 
-          const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json?DateSent>=${formattedStartDate}&DateSent<=${formattedEndDate}`;
+          // const url = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json?DateSent>=${formattedStartDate}&DateSent<=${formattedEndDate}`;
 
-          const twilioMessagesResponse = await fetch(url, {
-            method: "GET",
-            headers: {
-              Authorization: authHeader,
-              "Content-Type": "application/x-www-form-urlencoded",
-            },
-          });
+          // const twilioMessagesResponse = await fetch(url, {
+          //   method: "GET",
+          //   headers: {
+          //     Authorization: authHeader,
+          //     "Content-Type": "application/x-www-form-urlencoded",
+          //   },
+          // });
 
-          if (!twilioMessagesResponse.ok) {
-            const errorData = await twilioMessagesResponse.json();
-            console.error("Error Response from Twilio API:", errorData);
-            throw new Error(
-              `Error: ${twilioMessagesResponse.status} ${twilioMessagesResponse.statusText}`
+          // if (!twilioMessagesResponse.ok) {
+          //   const errorData = await twilioMessagesResponse.json();
+          //   console.error("Error Response from Twilio API:", errorData);
+          //   throw new Error(
+          //     `Error: ${twilioMessagesResponse.status} ${twilioMessagesResponse.statusText}`
+          //   );
+          // }
+
+          
+          const mailRes = await fetch(
+          //  `http://localhost:3000/api/auth/get-mail-data?days=${days}`,
+             "https://aicalling-demo.onrender.com/api/auth/get-call-data",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+
+          const mailData = await mailRes.json();
+
+          console.log(mailData)
+          const response = await fetch(
+       //    "http://localhost:3000/api/auth/get-call-data",
+            "https://aicalling-demo.onrender.com/api/auth/get-call-data",
+            {
+              // Alternatively, use the production URL if neede
+
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+
+          const data = await response.json();
+          const totalCallData = data.totalCalls;
+
+          let TotalTwiloData = 0;
+          try {
+            const twilioMessagesResponse = await fetch(
+              //   `http://localhost:3000/api/auth/get-twilio-data?dayes=${days}`,
+          `https://aicalling-demo.onrender.com/api/auth/get-twilio-data?days=${days}`,
+
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`, // Use Authorization header for token
+                  "Content-Type": "application/json",
+                },
+              }
             );
+
+            const twilioMessagesData = await twilioMessagesResponse.json();
+            console.log("Twilio Messages Data:", twilioMessagesData);
+            TotalTwiloData = twilioMessagesData.total;
+            renderMessages(twilioMessagesData.messages);
+          } catch (error) {
+            console.log("Error" + error);
           }
 
-          const twilioMessagesData = await twilioMessagesResponse.json();
-          console.log("Twilio Messages Data:", twilioMessagesData);
-          renderMessages(twilioMessagesData.messages);
           // Constructing chart data
+
           const chartData = {
             categories: ["Calls", "SMS", "Emails"],
             series: [
               {
                 name: "Calls",
-                data: [100],
+                data: [totalCallData ? totalCallData : 0],
               },
               {
                 name: "SMS",
-                data: [
-                  Array.isArray(twilioMessagesData.messages)
-                    ? twilioMessagesData.messages.length
-                    : 0,
-                ],
+                data: [TotalTwiloData ? TotalTwiloData : 0],
               },
-              { name: "Emails", data: [20] },
+              { name: "Emails", data: [0] },
             ],
           };
 
@@ -844,8 +1124,6 @@
               existingChart.destroy();
             }
           }
-
-          
 
           const options1 = {
             chart: {

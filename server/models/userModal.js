@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin","super_admin"],
+      enum: ["user", "admin", "super_admin"],
       default: "user",
     },
     profileImage: {
@@ -36,6 +36,38 @@ const userSchema = new mongoose.Schema(
       originalName: String,
     },
 
+    demoCall: {
+      type: Number,
+      default: 0,
+    },
+    twilioToken: {
+      type: String,
+      default: "",
+    },
+    twilioSid: {
+      type: String,
+      default: "",
+    },
+    twilioNum: {
+      type: String,
+      default: "",
+    },
+    vapiPhoneNumberId: {
+      type: String,
+      default: "",
+    },
+    vapiSipUri: {
+      type: String,
+      default: "",
+    },
+    sendGridApiKey:{
+      type:String,
+      default:""
+    },
+    sendGridEmail:{
+      type:String,
+      default:""
+    },
     subUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,

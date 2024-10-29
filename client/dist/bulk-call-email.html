@@ -125,13 +125,6 @@
                     <span>Call Logs</span>
                   </a>
                 </li>
-
-                <li class="sidebar-item">
-                  <a href="sms-email.html" class="sidebar-link">
-                    <i class="bi bi-envelope-fill"></i>
-                    <span>SMS & Email</span>
-                  </a>
-                </li>
               </div>
               <div id="admin-super_admin" style="display: none">
                 <li class="sidebar-item">
@@ -146,6 +139,19 @@
                     <span>Appointment</span>
                   </a>
                 </li>
+                <li class="sidebar-item" style="display: none;" id="edit-config">
+                  <a href="Edit-Config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect Twilio</span>
+                  </a>
+                </li>
+                <li class="sidebar-item" style="display: none;" id="send-config">
+                  <a href="sendgrid-config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect SendGrid</span>
+                  </a>
+                </li>
+
               </div>
             </ul>
           </div>
@@ -307,9 +313,9 @@
           const response = await fetch(
             // "https://aicalling-osdb.onrender.com/api/auth/validate",
 
-          //  "http://localhost:3000/api/auth/validate",
+          // "http://localhost:3000/api/auth/validate",
 
-              "https://aicalling-demo.onrender.com/api/auth/validate",
+            "https://aicalling-demo.onrender.com/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -342,6 +348,13 @@
           }
 
           const role = data.role;
+          const editConfig = document.getElementById("edit-config");
+          const sendConfig = document.getElementById("send-config");
+          if(role === "admin")
+          {
+               editConfig.style.display="block"
+                  sendConfig.style.display="block"
+          }
           //console.log(role);
           if (role === "admin" || role === "super_admin") {
             document.getElementById("admin-super_admin").style.display =
@@ -469,8 +482,8 @@
       }
 
       function sendToBackend(users,additionalInput) {
-     //   fetch("http://localhost:3000/api/send-emails", {
-        fetch("https://aicalling-demo.onrender.com/api/send-emails", {
+      //  fetch("http://localhost:3000/api/send-emails", {
+      fetch("https://aicalling-demo.onrender.com/api/send-emails", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

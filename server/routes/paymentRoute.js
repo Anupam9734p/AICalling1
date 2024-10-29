@@ -74,7 +74,7 @@ router.get("/success/:email/:payment/:amount", async (req, res) => {
 
     user.transactions.push(newTransaction._id);
     await user.save();
-    res.redirect("https://ai-calling-demo.vercel.app/paymentSuccess.html");
+    res.redirect("https://ai-calling-demo-otyj.vercel.app/paymentSuccess.html");
   } catch (err) {
     console.log("Success Error: " + err);
     return res.status(500).send({
@@ -86,7 +86,7 @@ router.get("/success/:email/:payment/:amount", async (req, res) => {
 
 router.get("/failed", async (req, res) => {
   try {
-    res.redirect("https://ai-calling-demo.vercel.app/paymentFailed.html");
+    res.redirect("https://ai-calling-demo-otyj.vercel.app/paymentFailed.html");
   } catch (err) {
     console.log("failed Error" + err);
   }

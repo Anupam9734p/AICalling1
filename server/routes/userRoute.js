@@ -17,8 +17,6 @@ const subUserSchema = require("../models/subUserSchema.js");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-
-
 const twilio = require("twilio");
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
@@ -27,6 +25,8 @@ const client = twilio(accountSid, authToken);
 const axios = require("axios");
 const VAPI_API_KEY = process.env.VAPI_API_KEY;
 const API_URL = "https://api.vapi.ai/call";
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey("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");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -48,10 +48,10 @@ router.post("/signup", async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     otpStore[email] = otp; // Store the OTP for later verification
 
-    // Send OTP to the user's email
-    await transporter.sendMail({
-      from: "arijitghosh1203@gmail.com",
+    // Prepare email content
+    const msg = {
       to: email,
+      from: "choudhardiv@gmail.com", // Your verified sender email
       subject: "Your OTP for Signup - OTP Mazer",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
@@ -68,15 +68,16 @@ router.post("/signup", async (req, res) => {
           </footer>
         </div>
       `,
-    });
+    };
 
+    // Send the email
+    await sgMail.send(msg);
     res.status(200).json({ message: "OTP sent to email. Please verify." });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server Error" });
   }
 });
-
 // Route to verify OTP and complete the registration
 router.post("/verify-otp", async (req, res) => {
   const { name, email, password, phone, otp } = req.body;
@@ -390,7 +391,7 @@ router.post("/add-subUser", async (req, res) => {
     adminData.subUsers.push(newSubUser._id);
     await adminData.save();
 
-    const resetUrl = `https://ai-calling-demo.vercel.app/passwordreset.html?token=${resetToken}&email=${newSubUser.email}`;
+    const resetUrl = `https://ai-calling-demo-otyj.vercel.app/passwordreset.html?token=${resetToken}&email=${newSubUser.email}`;
     console.log(resetUrl);
     await sendPasswordResetEmail(newSubUser.email, resetUrl);
 
@@ -403,22 +404,24 @@ router.post("/add-subUser", async (req, res) => {
   }
 });
 async function sendPasswordResetEmail(email, resetUrl) {
-  console.log("Come");
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "arijitghosh1203@gmail.com",
-      pass: "hryc yasr hlft mjsi",
-    },
-  });
-  const mailOptions = {
-    from: "arijitghosh1203@gmail.com",
+  const msg = {
     to: email,
+    from: 'choudhardiv@gmail.com', // Your verified sender email in SendGrid
     subject: "Change Your Password",
-    html: `<p>Please click the following link to change your password:</p><a href="${resetUrl}">Change Your Password</a>`,
+    html: `
+      <p>Please click the following link to change your password:</p>
+      <a href="${resetUrl}">Change Your Password</a>
+      <p>This link will expire in <strong>5 minutes</strong>.</p>
+    `,
   };
 
-  await transporter.sendMail(mailOptions);
+  try {
+    await sgMail.send(msg);
+    console.log("Password reset email sent successfully.");
+  } catch (error) {
+    console.error("Error sending password reset email:", error);
+    throw new Error("Email sending failed");
+  }
 }
 
 router.post("/reset-password", async (req, res) => {
@@ -452,41 +455,38 @@ router.post("/reset-password", async (req, res) => {
   }
 });
 
+router.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
 
-
-
-router.post("/forgot-password",async(req,res)=>{
-  const {email}=req.body;
- 
   try {
-    const oldUser=await User.findOne({email});
-    if(!oldUser)
-    {
-      return res.json({status:"User not Exits!"});
+    // Attempt to find the user in the User collection
+    let user = await User.findOne({ email });
+    let isSubUser = false;
+
+    // If not found in User collection, attempt to find in SubUser collection
+    if (!user) {
+      user = await SubUser.findOne({ email });
+      isSubUser = true; // Mark this as a SubUser if found here
     }
-    //const secret=JWT_SECRET + oldUser.password;
 
-    const secret= process.env.JWT_SECRET  + oldUser.password;
-    const token=jwt.sign({email:oldUser.email, id:oldUser._id},secret,{expiresIn:"5m"});
+    // If email not found in both collections, return an error
+    if (!user) {
+      return res.json({ message: "User not Exists!", status: "false" });
+    }
 
-   // const link=`http://127.0.0.1:5501/client/dist/passwordForgot.html?id=${oldUser._id}&token=${token}`;
-    const link=`https://ai-calling-demo.vercel.app/client/dist/passwordForgot.html?id=${oldUser._id}&token=${token}`;
-    var transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        // user: 'arijitghosh1203@gmail.com',
-        // pass: 'hryc yasr hlft mjsi'
-
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
-      }
+    // Generate token with secret that includes the user's password hash
+    const secret = process.env.JWT_SECRET + user.password;
+    const token = jwt.sign({ email: user.email, id: user._id }, secret, {
+      expiresIn: "5m",
     });
-    
-    var mailOptions = {
-     // from: 'arijitghosh1203@gmail.com',
-      form:process.env.EMAIL_USER,
+
+    // Password reset link
+    const link = `https://ai-calling-demo-otyj.vercel.app/passwordForgot.html?id=${user._id}&token=${token}`;
+
+    const msg = {
       to: email,
-      subject: 'Password Reset - Mazer',
+      from: "choudhardiv@gmail.com", // Your verified sender email
+      subject: "Password Reset - Mazer",
       html: `
       <!DOCTYPE html>
       <html lang="en">
@@ -509,17 +509,17 @@ router.post("/forgot-password",async(req,res)=>{
                   margin: auto;
               }
               h1 {
-                  color: #004aad; /* Dark blue */
+                  color: #004aad;
                   text-align: center;
               }
               p {
-                  color: #333333; /* Dark gray */
+                  color: #333333;
                   line-height: 1.6;
               }
               .button {
                   display: inline-block;
-                  background-color: #004aad; /* Dark blue */
-                  color: black;
+                  background-color: #004aad;
+                  color: white;
                   padding: 10px 20px;
                   text-decoration: none;
                   border-radius: 5px;
@@ -529,7 +529,7 @@ router.post("/forgot-password",async(req,res)=>{
                   text-align: center;
                   margin-top: 20px;
                   font-size: 12px;
-                  color: #777777; /* Light gray */
+                  color: #777777;
               }
           </style>
       </head>
@@ -551,22 +551,15 @@ router.post("/forgot-password",async(req,res)=>{
       </html>
       `,
     };
-    
-    transporter.sendMail(mailOptions, function(error, info){
-      if (error) {
-        console.log(error);
-      } else {
-        console.log('Email sent: ' + info.response);
-      }
-    });
 
-   
+    // Send the email
+    await sgMail.send(msg);
     return res.json({ status: "Success", link });
   } catch (error) {
-    console.log("Forgot password Error : "+error);
+    console.error("Forgot password Error: ", error);
     return res.status(500).json({ status: "Server error" });
   }
-})
+});
 
 
 router.get("/forgot-password/:id/:token", async (req, res) => {
@@ -575,11 +568,13 @@ router.get("/forgot-password/:id/:token", async (req, res) => {
   try {
     const oldUser = await User.findOne({ _id: id });
     if (!oldUser) {
-      return res.status(400).json({ message: "User Not Exists!", success: false });
+      return res
+        .status(400)
+        .json({ message: "User Not Exists!", success: false });
     }
 
-   // const secret = JWT_SECRET + oldUser.password;
-   const secret =  process.env.JWT_SECRET + oldUser.password;
+    // const secret = JWT_SECRET + oldUser.password;
+    const secret = process.env.JWT_SECRET + oldUser.password;
     try {
       jwt.verify(token, secret);
       return res.status(200).json({
@@ -587,71 +582,89 @@ router.get("/forgot-password/:id/:token", async (req, res) => {
         success: true,
       });
     } catch (error) {
-      return res.status(400).json({ message: "Token not verified", success: false });
+      return res
+        .status(400)
+        .json({ message: "Token not verified", success: false });
     }
   } catch (error) {
     return res.status(500).json({ message: "Server error", success: false });
   }
 });
-
-
 
 router.post("/forgot-password/:id/:token", async (req, res) => {
   const { id, token } = req.params;
-  const {password}=req.body;
+  const { password } = req.body;
   try {
     const oldUser = await User.findOne({ _id: id });
     if (!oldUser) {
-      return res.status(400).json({ message: "User Not Exists!", success: false });
+      return res
+        .status(400)
+        .json({ message: "User Not Exists!", success: false });
     }
 
-   // const secret = JWT_SECRET + oldUser.password;
-   const secret = process.env.JWT_SECRET + oldUser.password;
+    // const secret = JWT_SECRET + oldUser.password;
+    const secret = process.env.JWT_SECRET + oldUser.password;
     try {
       jwt.verify(token, secret);
-      const encryptedPassword=await bcrypt.hash(password,10);
-      await User.updateOne({
-        _id:id,
-
-      },
-      {
-        $set:{
-          password:encryptedPassword,
+      const encryptedPassword = await bcrypt.hash(password, 10);
+      await User.updateOne(
+        {
+          _id: id,
         },
-      }
-    )
-    res.status(200).json({message:"Password Update",success:true});
+        {
+          $set: {
+            password: encryptedPassword,
+          },
+        }
+      );
+      res.status(200).json({ message: "Password Update", success: true });
     } catch (error) {
-      return res.status(400).json({ message: "Something Went Wrong", success: false });
+      return res
+        .status(400)
+        .json({ message: "Something Went Wrong", success: false });
     }
   } catch (error) {
     return res.status(500).json({ message: "Server error", success: false });
   }
 });
-
-
 
 router.get("/check-credit", verifyToken, async (req, res) => {
   try {
     const { userId, role } = req;
     let user;
+    let adminUser; // For storing admin details if the role is subuser
 
     if (role === "admin") {
+      // Find the user directly if they are an admin
       user = await User.findById(userId);
     } else if (role === "subuser") {
+      // Find the subuser
       user = await SubUser.findById(userId);
+      if (user && user.adminId) {
+        // Find the corresponding admin using adminId from the subuser document
+        adminUser = await User.findById(user.adminId);
+      }
     }
 
-    if (!user) {
+    if (!user || (role === "subuser" && !adminUser)) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the user has at least one credit
-    if (user.credits < 1 || user.credit < 1) {
+    // Check if credits are sufficient
+    const credits = role === "admin" ? user.credits : user.credit;
+    if (credits < 1) {
       return res.status(403).json({ message: "Insufficient credits" });
     }
 
-    res.status(200).json({ message: "Sufficient credits available" });
+    // Respond with vapiPhoneNumberId if available
+    const response = {
+      message: "Sufficient credits available",
+      vapiPhoneNumberId:
+        role === "admin" ? user.vapiPhoneNumberId : adminUser.vapiPhoneNumberId,
+      userId: userId,
+    };
+
+    res.status(200).json(response);
   } catch (error) {
     console.error("Error checking credits: ", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -764,31 +777,43 @@ router.post("/check-bulk-credit", verifyToken, async (req, res) => {
     const { userId, role } = req;
     const { callCount } = req.body; // Number of calls to be made in bulk
 
-    let user;
+    let user, adminData;
 
     if (role === "admin") {
       user = await User.findById(userId);
     } else if (role === "subuser") {
-      user = await SubUser.findById(userId);
+      user = await SubUser.findById(userId).populate("adminId"); // Get subuser and populate admin details
+
+      if (user && user.adminId) {
+        // Retrieve admin's information if subuser has an associated admin
+        adminData = await User.findById(user.adminId);
+      }
     }
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the user has enough credits for the bulk call
-    const availableCredits = user.credits || user.credit;
+    // Determine available credits (for subuser, check own or admin's credits)
+    const availableCredits =
+      user.credits || user.credit || (adminData ? adminData.credits : 0);
 
     if (availableCredits >= callCount) {
-      // Return success message without deducting credits
+      // Return success message including vapiPhoneNumberId from user or admin
       return res.json({
         message: "Sufficient credits available",
         remainingCredits: availableCredits,
+        vapiPhoneNumberId:
+          user.vapiPhoneNumberId ||
+          (adminData ? adminData.vapiPhoneNumberId : null),
       });
     } else {
-      return res
-        .status(403)
-        .json({ message: "Insufficient credits for bulk call" });
+      return res.status(403).json({
+        message: "Insufficient credits for bulk call",
+        vapiPhoneNumberId:
+          user.vapiPhoneNumberId ||
+          (adminData ? adminData.vapiPhoneNumberId : null),
+      });
     }
   } catch (error) {
     console.error("Error checking credits for bulk call:", error);
@@ -894,6 +919,555 @@ router.post("/updateProfilePic", upload.single("image"), async (req, res) => {
     res.status(500).json({ status: "error", message: error.message });
   }
 });
+
+router.post("/request-demo", verifyToken, async (req, res) => {
+  const { timePeriod } = req.body;
+  try {
+    console.log(req.userId);
+    const user = await User.findById(req.userId);
+    console.log(user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.demoCall >= 3) {
+      return res.status(403).json({ message: "Demo call limit exceeded" });
+    }
+    user.demoCall += 1;
+    await user.save();
+    return res.status(200).json({ message: "Demo requested successfully" });
+  } catch (error) {
+    console.error("Error requesting demo:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error. Please try again later." });
+  }
+});
+
+const { VapiClient } = require("@vapi-ai/server-sdk");
+const client1 = new VapiClient({
+  token: "22576079-730d-4707-b8ab-f780113249f3",
+});
+
+router.post("/config", async (req, res) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { twilioSid, twilioToken, twilioNum } =
+      req.body;
+    user.twilioSid = twilioSid;
+    user.twilioToken = twilioToken;
+    user.twilioNum = twilioNum;
+    await user.save();
+
+    let vapiResponse;
+    try {
+      // Attempt to create a new phone number in the Vapi API
+      vapiResponse = await client1.phoneNumbers.create({
+        provider: "twilio",
+        number: twilioNum,
+        twilioAccountSid: twilioSid,
+        twilioAuthToken: twilioToken,
+      });
+      user.vapiPhoneNumberId = vapiResponse.id;
+      user.vapiSipUri = vapiResponse.sipUri;
+    } catch (error) {
+      // Check if the error is due to an existing phone number
+      if (
+        error.statusCode === 400 &&
+        error.body.message.includes("Existing Phone Number")
+      ) {
+        // Extract the existing phone number ID from the error message
+        const existingPhoneNumberId = error.body.message.match(
+          /Existing Phone Number ([\w-]+)/
+        )[1];
+
+        // If the phone number already exists, retrieve its details
+        const existingPhoneNumber = await client1.phoneNumbers.get(
+          existingPhoneNumberId
+        );
+        user.vapiPhoneNumberId = existingPhoneNumber.id;
+        user.vapiSipUri = existingPhoneNumber.sipUri;
+      } else {
+        // If it's a different error, rethrow it
+        throw error;
+      }
+    }
+
+    await user.save();
+    res.status(200).json({
+      message: "Configuration saved and Vapi details added successfully!",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "An error occurred", error });
+  }
+});
+
+router.get("/get-twilio-data", verifyToken, async (req, res) => {
+  try {
+    const { userId, role } = req;
+    const { days } = req.query; // Get 'days' parameter from query string
+
+    let twilioSid, twilioToken;
+    const daysBack = parseInt(days) || 1;
+    if (role === "admin") {
+      const adminUser = await User.findById(userId);
+      if (!adminUser)
+        return res.status(404).json({ message: "Admin not found" });
+      twilioSid = adminUser.twilioSid;
+      twilioToken = adminUser.twilioToken;
+    } else if (role === "subuser") {
+      const subUser = await SubUser.findById(userId);
+      if (!subUser)
+        return res.status(404).json({ message: "Subuser not found" });
+      const admin = await User.findById(subUser.adminId);
+      if (!admin)
+        return res.status(404).json({ message: "Admin for subuser not found" });
+      twilioSid = admin.twilioSid;
+      twilioToken = admin.twilioToken;
+    }
+
+    if (!twilioSid || !twilioToken) {
+      return res.status(400).json({ message: "Twilio credentials missing" });
+    }
+
+    // Date range for filtering messages (based on 'days' parameter)
+    const today = new Date();
+    const formattedEndDate = today.toISOString().split("T")[0];
+    const startDate = new Date();
+    startDate.setDate(today.getDate() - daysBack); // Get messages from 'days' before
+    const formattedStartDate = startDate.toISOString().split("T")[0];
+
+    // Fetch the messages from Twilio API
+    const twilioResponse = await axios.get(
+      `https://api.twilio.com/2010-04-01/Accounts/${twilioSid}/Messages.json?DateSent>=${formattedStartDate}&DateSent<=${formattedEndDate}`,
+      {
+        auth: {
+          username: twilioSid,
+          password: twilioToken,
+        },
+      }
+    );
+
+    // Return the last 3 messages
+    const messages = twilioResponse.data.messages.slice(0, 3);
+    res.status(200).json({
+      success: true,
+      messages,
+      total: twilioResponse.data.messages.length,
+    });
+  } catch (error) {
+    console.error(`Error fetching Twilio messages: ${error.message}`);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch Twilio messages" });
+  }
+});
+
+router.get("/get-call-data", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ error: "Authorization token missing" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+
+    // Find user or sub-user
+    let user = await User.findById(userId);
+    if (!user) {
+      const subUser = await SubUser.findById(userId);
+      if (!subUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      user = await User.findById(subUser.adminId);
+      if (!user) {
+        return res.status(404).json({ error: "Admin user not found" });
+      }
+    }
+
+    // Ensure Twilio and VAPI configuration exists
+    const { twilioNum, twilioSid, twilioToken, vapiPhoneNumberId } = user;
+    if (!twilioNum || !twilioSid || !twilioToken || !vapiPhoneNumberId) {
+      return res
+        .status(404)
+        .json({ error: "Configuration missing for this user" });
+    }
+
+    // Initialize Twilio Client
+    const twilioClient = new twilio(twilioSid, twilioToken);
+
+    // Fetch call data from Twilio
+    const twilioCalls = await twilioClient.calls.list({
+      limit: 500,
+    });
+    const sortedCalls = twilioCalls
+      .sort(
+        (a, b) =>
+          new Date(b.startTime || b.createdAt) -
+          new Date(a.startTime || a.createdAt)
+      )
+      .slice(0, 7);
+
+    res.status(200).json({
+      totalCalls: twilioCalls.length,
+      latestCalls: sortedCalls,
+    });
+  } catch (error) {
+    console.error("Error fetching call logs:", error);
+    res.status(500).json({ error: "Error fetching call logs" });
+  }
+});
+
+router.get("/get-call-data-all", async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ error: "Authorization token missing" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+
+    // Find user or sub-user
+    let user = await User.findById(userId);
+    if (!user) {
+      const subUser = await SubUser.findById(userId);
+      if (!subUser) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      user = await User.findById(subUser.adminId);
+      if (!user) {
+        return res.status(404).json({ error: "Admin user not found" });
+      }
+    }
+
+    // Ensure Twilio and VAPI configuration exists
+    const { twilioNum, twilioSid, twilioToken, vapiPhoneNumberId } = user;
+    if (!twilioNum || !twilioSid || !twilioToken || !vapiPhoneNumberId) {
+      return res
+        .status(404)
+        .json({ error: "Configuration missing for this user" });
+    }
+
+    // Initialize Twilio Client
+    const twilioClient = new twilio(twilioSid, twilioToken);
+
+    // Fetch call data from Twilio
+    const twilioCalls = await twilioClient.calls.list({
+      limit: 500,
+    });
+
+    res.status(200).json({
+      latestCalls: twilioCalls,
+    });
+  } catch (error) {
+    console.error("Error fetching call logs:", error);
+    res.status(500).json({ error: "Error fetching call logs" });
+  }
+});
+
+router.post("/transcript", async (req, res) => {
+  const { callSid } = req.body;
+  if (!callSid) return res.status(400).json({ error: "Call SID is required" });
+
+  try {
+    const vapiResponse = await client1.calls.list();
+
+    const callDetails = vapiResponse.find(
+      (call) => call.phoneCallProviderId === callSid
+    );
+
+    if (callDetails) {
+      res.json({
+        transcript: callDetails.transcript || "Transcript not available",
+        summary: callDetails.analysis?.summary || "Summary not available",
+      });
+    } else {
+      res.status(404).json({ error: "Call not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching transcript data:", error);
+    res.status(500).json({ error: "Failed to fetch transcript" });
+  }
+});
+
+router.get("/admin/users", async (req, res) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+
+    if (user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied: Admins only" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "An error occurred", error });
+  }
+});
+
+router.put("/admin/users", async (req, res) => {
+  try {
+    const token = req.headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { twilioSid, twilioToken, twilioNum } = req.body;
+    let credentialsUpdated = false;
+
+    if (
+      user.twilioSid !== twilioSid ||
+      user.twilioToken !== twilioToken ||
+      user.twilioNum !== twilioNum
+    ) {
+      user.twilioSid = twilioSid;
+      user.twilioToken = twilioToken;
+      user.twilioNum = twilioNum;
+      credentialsUpdated = true;
+    }
+
+    if (credentialsUpdated) {
+      let vapiResponse;
+      try {
+        vapiResponse = await client1.phoneNumbers.create({
+          provider: "twilio",
+          number: twilioNum,
+          twilioAccountSid: twilioSid,
+          twilioAuthToken: twilioToken,
+        });
+
+        user.vapiPhoneNumberId = vapiResponse.id;
+        user.vapiSipUri = vapiResponse.sipUri;
+      } catch (error) {
+        // Specific handling for invalid phone number format
+        if (
+          error.statusCode === 400 &&
+          error.body.message.includes("number must be a valid phone number")
+        ) {
+          return res.status(400).json({
+            message:
+              "Invalid phone number format. Please enter the phone number in E.164 format (e.g., +1xxxxxxxxxx).",
+          });
+        } else if (
+          error.statusCode === 400 &&
+          error.body.message.includes("Existing Phone Number")
+        ) {
+          const existingPhoneNumberId = error.body.message.match(
+            /Existing Phone Number ([\w-]+)/
+          )[1];
+
+          const existingPhoneNumber = await client1.phoneNumbers.get(
+            existingPhoneNumberId
+          );
+          user.vapiPhoneNumberId = existingPhoneNumber.id;
+          user.vapiSipUri = existingPhoneNumber.sipUri;
+        } else {
+          throw error;
+        }
+      }
+
+      await user.save();
+      return res.status(200).json({
+        message: "Configuration saved and Vapi details added successfully!",
+      });
+    } else {
+      await user.save();
+      return res.status(200).json({
+        message: "Configuration saved successfully!",
+      });
+    }
+  } catch (error) {
+    console.error("An error occurred:", error);
+    res.status(500).json({ message: "An error occurred", error });
+  }
+});
+
+
+
+router.get("/get-mail-data", verifyToken, async (req, res) => {
+  const { userId, role } = req; 
+  console.log(userId)
+  // Correctly extracting userId and role
+  console.log("Come");
+  const days = parseInt(req.query.days) || 0;
+
+  try {
+    let mailData;
+    let adminUser;
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+    if (role === "admin") {
+      // Fetch mail data for the admin user
+      adminUser = await User.findById(userId);
+      console.log(adminUser)
+      console.log("Here")
+      if (!adminUser) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+    } else if (role === "subuser") {
+      const subUser = await SubUser.findById(userId);
+      if (!subUser) {
+        return res.status(404).json({ message: "Sub-user not found" });
+      }
+      adminUser = await User.findById(subUser.adminId);
+      if (!adminUser) {
+        return res.status(404).json({ message: "Admin user not found" });
+      }
+
+      console.log("Hee")
+      console.log(adminUser);
+     
+    } else {
+      return res.status(403).json({ message: "Unauthorized access" });
+    }
+    const sendGridApiKey = adminUser.sendGridApiKey;
+    const sendGridData = await fetchSendGridData(sendGridApiKey, startDate);
+    
+    console.log(sendGridData);
+    return res.status(200).json({ sendGridData });
+  } catch (error) {
+    console.error("Failed to retrieve mail data:", error.message);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Function to fetch email data from SendGrid
+async function fetchSendGridData(apiKey, startDate) {
+  const sendGridApiUrl = `https://api.sendgrid.com/v3/messages`; // Example endpoint
+  try {
+    const response = await axios.get(sendGridApiUrl, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      params: {
+        start_time: startDate.toISOString(),
+      },
+    });
+    console.log(response.data); // Log the response data
+    return response.data; // Return the data received from SendGrid
+  } catch (error) {
+    console.error("Error fetching data from SendGrid:", error.message);
+    throw new Error("Failed to fetch data from SendGrid");
+  }
+}
+router.delete("/admin/users/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    console.log(id)
+    console.log("Heerereeeee")
+    // Use $unset to remove only specific fields
+    await User.findByIdAndUpdate(id, {
+      $unset: {
+        twilioSid: "",
+        twilioToken: "",
+        twilioNum: "",
+        vapiPhoneNumberId: "",
+        vapiSipUri: "",
+      }
+    });
+
+    res.status(200).json({ message: "Specified fields removed successfully" });
+  } catch (error) {
+    console.error("Error removing specified fields:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+router.post("/config-mail", async (req, res) => {
+  try {
+    // Extract the token from the Authorization header
+    const token = req.headers.authorization.split(" ")[1];
+    if (!token) return res.status(403).json({ message: "Authorization token required" });
+
+    // Verify and decode the token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId; // Ensure 'userId' was included in your token payload
+
+    // Fetch the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Extract SendGrid details from request body
+    const { sendGridEmail, sendGridApiKey } = req.body;
+
+    // Update user's SendGrid configuration
+    user.sendGridEmail = sendGridEmail;
+    user.sendGridApiKey = sendGridApiKey;
+
+    // Save the updated user data
+    await user.save();
+
+    return res.status(200).json({ message: "Configuration added successfully!" });
+  } catch (error) {
+    console.error("Error in config-mail route:", error);
+    return res.status(500).json({ message: "An error occurred while adding configuration", error });
+  }
+});
+
+// Route to delete specific fields (sendGridApiKey and sendGridEmail) for a user by ID
+router.delete("/admin/sendgrid/:userId", verifyToken, async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Use MongoDB $unset operator to remove the specific fields
+    await User.findByIdAndUpdate(userId, {
+      $unset: {
+        sendGridApiKey: "",
+        sendGridEmail: "",
+      },
+    });
+
+    return res.status(200).json({ message: "SendGrid configuration removed successfully" });
+  } catch (error) {
+    console.error("Error deleting SendGrid configuration:", error);
+    return res.status(500).json({ message: "An error occurred while deleting SendGrid configuration", error });
+  }
+});
+
+// Route to update SendGrid email and API key for a user by ID
+router.put("/admin/sendgrid/update/:userId", verifyToken, async (req, res) => {
+  const { userId } = req.params;
+  const { sendGridEmail, sendGridApiKey } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.sendGridEmail = sendGridEmail || user.sendGridEmail;
+    user.sendGridApiKey = sendGridApiKey || user.sendGridApiKey;
+
+    await user.save();
+
+    return res.status(200).json({ message: "SendGrid configuration updated successfully" });
+  } catch (error) {
+    console.error("Error updating SendGrid configuration:", error);
+    return res.status(500).json({ message: "An error occurred while updating SendGrid configuration", error });
+  }
+});
+
 
 router.get("/home", authMiddleware, (req, res) => {
   res.flash("Welcome to home page");

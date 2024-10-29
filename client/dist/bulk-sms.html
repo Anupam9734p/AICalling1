@@ -126,12 +126,6 @@
                   </a>
                 </li>
 
-                <li class="sidebar-item">
-                  <a href="sms-email.html" class="sidebar-link">
-                    <i class="bi bi-envelope-fill"></i>
-                    <span>SMS & Email</span>
-                  </a>
-                </li>
               </div>
 
               <div id="admin-super_admin" style="display: none">
@@ -147,6 +141,20 @@
                     <span>Appointment</span>
                   </a>
                 </li>
+                <li class="sidebar-item" style="display: none;" id="edit-config">
+                  <a href="Edit-Config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect Twilio</span>
+                  </a>
+                </li>
+                <li class="sidebar-item" style="display: none;" id="send-config">
+                  <a href="sendgrid-config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect SendGrid</span>
+                  </a>
+                </li>
+
+
               </div>
             </ul>
           </div>
@@ -296,12 +304,6 @@
         window.location.href = "login.html";
       });
 
-
-
-
-
-
-
       function arrayBufferToBase64(buffer) {
         let binary = "";
         const bytes = new Uint8Array(buffer);
@@ -315,6 +317,10 @@
 
         if (fileInput.files.length === 0) {
           alert("Please upload an XLSX file.");
+          return;
+        }
+        if (additionalInfo === "") {
+          alert("All field required");
           return;
         }
 
@@ -337,8 +343,8 @@
         reader.readAsArrayBuffer(fileInput.files[0]);
       }
       function sendToBackend(dataToSend) {
-         fetch("https://aicalling-demo.onrender.com/api/send-sms", {
-      //  fetch("http://localhost:3000/api/send-sms", {
+          fetch("https://aicalling-demo.onrender.com/api/send-sms", {
+       // fetch("http://localhost:3000/api/send-sms", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -349,20 +355,37 @@
           .then((response) => response.json())
           .then((data) => {
             console.log("Success:", data);
-            Swal.fire({
-              icon: "success",
-              title: "Success",
-              text: data.message,
-              toast: true,
-              position: "top-end",
-              showConfirmButton: false,
-              timer: 3000,
-              timerProgressBar: true,
-              didOpen: (toast) => {
-                toast.addEventListener("mouseenter", Swal.stopTimer);
-                toast.addEventListener("mouseleave", Swal.resumeTimer);
-              },
-            });
+            if (data.success) {
+              Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: data.message,
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                  toast.addEventListener("mouseenter", Swal.stopTimer);
+                  toast.addEventListener("mouseleave", Swal.resumeTimer);
+                },
+              });
+            } else {
+              Swal.fire({
+                icon: "error",
+                title: "error",
+                text: "Internal Server Error...",
+                toast: true,
+                position: "top-end",
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                  toast.addEventListener("mouseenter", Swal.stopTimer);
+                  toast.addEventListener("mouseleave", Swal.resumeTimer);
+                },
+              });
+            }
           })
           .catch((error) => {
             console.error("Error:", error);
@@ -394,8 +417,8 @@
         showLoader();
         try {
           const response = await fetch(
-            // "https://aicalling-osdb.onrender.com/api/auth/validate",
-          //  "http://localhost:3000/api/auth/validate",
+          //   "https://aicalling-osdb.onrender.com/api/auth/validate",
+           // "http://localhost:3000/api/auth/validate",
                "https://aicalling-demo.onrender.com/api/auth/validate",
             {
               method: "GET",
@@ -412,24 +435,30 @@
           }
 
           const data = await response.json();
-                
-      const profileImg = document.getElementById("profileDropdown");
-          if (data.data.profileImage && data.data.profileImage.buffer) {
 
-            console.log("Come")
-             const base64String = arrayBufferToBase64(
+          const profileImg = document.getElementById("profileDropdown");
+          if (data.data.profileImage && data.data.profileImage.buffer) {
+            console.log("Come");
+            const base64String = arrayBufferToBase64(
               data.data.profileImage.buffer.data
-             );
+            );
             const mimeType = data.data.profileImage.contentType;
             profileImg.src = `data:${mimeType};base64,${base64String}`;
           } else {
             console.log("Using default profile image");
-         }
+          }
           if (!data.valid) {
             // If token is not valid, redirect to login page
             window.location.href = "login.html";
           }
           const role = data.role;
+          const editConfig = document.getElementById("edit-config");
+          const sendConfig = document.getElementById("send-config");
+          if(role === "admin")
+          {
+               editConfig.style.display="block"
+                sendConfig.style.display="block"
+          }
           if (role === "admin" || role === "super_admin") {
             document.getElementById("admin-super_admin").style.display =
               "block";

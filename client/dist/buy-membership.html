@@ -253,12 +253,6 @@ button:hover {
                   </a>
                 </li>
   
-                <li class="sidebar-item">
-                  <a href="sms-email.html" class="sidebar-link">
-                    <i class="bi bi-envelope-fill"></i>
-                    <span>SMS & Email</span>
-                  </a>
-                </li>
               </div>
               <div id="admin-super_admin" style="display: none">
                 <li class="sidebar-item">
@@ -271,6 +265,18 @@ button:hover {
                   <a href="appointment.html" class="sidebar-link">
                     <i class="bi bi-calendar-check-fill"></i>
                     <span>Appointment</span>
+                  </a>
+                </li>
+                <li class="sidebar-item" style="display: none;" id="edit-config">
+                  <a href="Edit-Config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect Twilio</span>
+                  </a>
+                </li>
+                <li class="sidebar-item" style="display: none;" id="send-config">
+                  <a href="sendgrid-config.html" class="sidebar-link">
+                    <i class="bi bi-calendar-check-fill"></i>
+                    <span>Connect SendGrid</span>
                   </a>
                 </li>
               </div>
@@ -553,6 +559,13 @@ button:hover {
             window.location.href = "login.html";
           }
           const role = data.data.role;
+          const editConfig = document.getElementById("edit-config");
+          const sendConfig = document.getElementById("send-config");
+          if(role === "admin")
+          {
+               editConfig.style.display="block"
+               sendConfig.style.display="block"
+          }
           if (role === "admin" || role === "super_admin") {
             document.getElementById("admin-super_admin").style.display =
               "block";
@@ -683,8 +696,8 @@ margin-right: auto;
     return; 
   }
 
-  fetch("http://localhost:3000/api/auth/payment", {
- // fetch("https://aicalling-demo.onrender.com/api/auth/payment", {
+ // fetch("http://localhost:3000/api/auth/payment", {
+  fetch("https://aicalling-demo.onrender.com/api/auth/payment", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
