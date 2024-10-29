@@ -337,6 +337,19 @@
 
         const role = data.role;
 
+        const profileImg = document.getElementById("profileDropdown");
+          if (data.data.profileImage && data.data.profileImage.buffer) {
+
+            console.log("Come")
+             const base64String = arrayBufferToBase64(
+              data.data.profileImage.buffer.data
+             );
+            const mimeType = data.data.profileImage.contentType;
+            profileImg.src = `data:${mimeType};base64,${base64String}`;
+          } else {
+            console.log("Using default profile image");
+         }
+
         //console.log(role);
         const editConfig = document.getElementById("edit-config");
         const sendConfig = document.getElementById("send-config");
@@ -564,18 +577,7 @@ margin-right: auto;
         const data = await response.json();
 
             console.log(data.admins)
-    const profileImg = document.getElementById("profileDropdown");
-        //   if (data.data.profileImage && data.data.profileImage.buffer) {
 
-        //     console.log("Come")
-        //      const base64String = arrayBufferToBase64(
-        //       data.data.profileImage.buffer.data
-        //      );
-        //     const mimeType = data.data.profileImage.contentType;
-        //     profileImg.src = `data:${mimeType};base64,${base64String}`;
-        //   } else {
-        //     console.log("Using default profile image");
-        //  }
 
         console.log("All admin users with sub-users:", data);
 
