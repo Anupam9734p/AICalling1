@@ -1299,73 +1299,98 @@ router.put("/admin/users", async (req, res) => {
 });
 
 
+const clientmail = require("@sendgrid/client");
+clientmail.setDefaultRequest('qs', { limit: 5, offset: 15 });
 
 router.get("/get-mail-data", verifyToken, async (req, res) => {
-  const { userId, role } = req; 
-  console.log(userId)
-  // Correctly extracting userId and role
-  console.log("Come");
-  const days = parseInt(req.query.days) || 0;
+  const { userId, role } = req;
+  const days = parseInt(req.query.days) || 15; // Default to 15 days if no value provided
 
   try {
-    let mailData;
     let adminUser;
-    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
     if (role === "admin") {
-      // Fetch mail data for the admin user
       adminUser = await User.findById(userId);
-      console.log(adminUser)
-      console.log("Here")
-      if (!adminUser) {
-        return res.status(404).json({ message: "Admin user not found" });
-      }
+      if (!adminUser) return res.status(404).json({ message: "Admin user not found" });
     } else if (role === "subuser") {
       const subUser = await SubUser.findById(userId);
-      if (!subUser) {
-        return res.status(404).json({ message: "Sub-user not found" });
-      }
+      if (!subUser) return res.status(404).json({ message: "Sub-user not found" });
       adminUser = await User.findById(subUser.adminId);
-      if (!adminUser) {
-        return res.status(404).json({ message: "Admin user not found" });
-      }
-
-      console.log("Hee")
-      console.log(adminUser);
-     
+      if (!adminUser) return res.status(404).json({ message: "Admin user not found" });
     } else {
       return res.status(403).json({ message: "Unauthorized access" });
     }
-    const sendGridApiKey = adminUser.sendGridApiKey;
-    const sendGridData = await fetchSendGridData(sendGridApiKey, startDate);
-    
-    console.log(sendGridData);
-    return res.status(200).json({ sendGridData });
+
+    // Calculate the date based on the dynamic days value
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Filter mainCount to get entries within the specified range
+    const recentEmailData = adminUser.mainCount.filter((entry) => entry.date >= startDate);
+
+    res.status(200).json({ emailData: recentEmailData });
   } catch (error) {
     console.error("Failed to retrieve mail data:", error.message);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 });
 
-// Function to fetch email data from SendGrid
-async function fetchSendGridData(apiKey, startDate) {
-  const sendGridApiUrl = `https://api.sendgrid.com/v3/messages`; // Example endpoint
+
+
+
+
+async function testSendGridApiKey(apiKey) {
+  if (!apiKey || typeof apiKey !== "string" || apiKey.trim() === "") {
+    console.error("Invalid API Key. Ensure the API key is correctly set and not empty.");
+    return null;
+  }
+
+  const sendGridApiUrl = `https://api.sendgrid.com/v3/user/account`;
+
   try {
+    console.log("Testing API Key (first 4 chars):", apiKey.slice(0, 4) + "****");
+
     const response = await axios.get(sendGridApiUrl, {
       headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-      params: {
-        start_time: startDate.toISOString(),
+        Authorization: `Bearer ${apiKey.trim()}`,
       },
     });
-    console.log(response.data); // Log the response data
-    return response.data; // Return the data received from SendGrid
+
+    console.log("Account data retrieved successfully:", response.data);
+
+    clientmail.setApiKey(apiKey);
+    const request = {
+      url: '/v3/mail_settings',
+      method: 'GET',
+    };
+
+    // Fetch mail settings
+    const [mailResponse, mailBody] = await clientmail.request(request);
+    console.log("Mail settings retrieved successfully:", mailBody);
+
+    return {
+      accountData: response.data,
+      mailSettings: mailBody,
+    };
+
   } catch (error) {
-    console.error("Error fetching data from SendGrid:", error.message);
-    throw new Error("Failed to fetch data from SendGrid");
+    console.error("Authorization test failed:", error.message, error.response?.data);
+
+    if (error.response?.status === 403) {
+      console.error("Access forbidden: Verify that your API key has Full Access permissions in SendGrid.");
+    } else if (error.response?.status === 401) {
+      console.error("Unauthorized: The API key may be incorrect, inactive, or expired.");
+    }
+    return null;
   }
 }
+
+
+
+
+
+
+
 router.delete("/admin/users/:id", async (req, res) => {
   try {
     const { id } = req.params;

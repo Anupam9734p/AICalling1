@@ -1021,7 +1021,7 @@
 
           const mailData = await mailRes.json();
 
-          console.log(mailData)
+          console.log(mailData.emailData.length)
           const response = await fetch(
           // "http://localhost:3000/api/auth/get-call-data",
             "https://aicalling-demo.onrender.com/api/auth/get-call-data",
@@ -1075,7 +1075,7 @@
                 name: "SMS",
                 data: [TotalTwiloData ? TotalTwiloData : 0],
               },
-              { name: "Emails", data: [0] },
+              { name: "Emails", data: [mailData.emailData.length ? mailData.emailData.length : 0] },
             ],
           };
 
