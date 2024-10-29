@@ -184,6 +184,24 @@
                     <span>Connect Twilio</span>
                   </a>
                 </li>
+
+
+                <div id="bulk-email-sms" style="display: none">
+                  <li class="sidebar-item">
+                    <a href="bulk-call-email.html" class="sidebar-link">
+                      <i class="fa-solid fa-envelope"></i>
+                      <span>Send Bulk Email</span>
+                    </a>
+                  </li>
+                  <li class="sidebar-item">
+                    <a href="bulk-sms.html" class="sidebar-link">
+                      <i class="fa-solid fa-comments"></i>
+                      <span>Send Bulk SMS</span>
+                    </a>
+                  </li>
+                </div>
+                
+
                 <li class="sidebar-item" style="display: none;" id="send-config">
                   <a href="sendgrid-config.html" class="sidebar-link">
                     <i class="bi bi-calendar-check-fill"></i>
@@ -411,23 +429,18 @@
               "block";
           }
 
+          if (role === "super_admin" || role === "admin" || role === "subuser") {
+  document.getElementById("admin-subuser-features").style.display = "block";
+  document.getElementById("bulk-email-sms").style.display = "block"; 
+}
+
+
           if (role === "admin" || role === "subuser" ||  role === "super_admin") {
             const dropdownMenu = document.getElementById("dropdownMenu");
 
             const adminItems = `
-     <li>
-        <a class="dropdown-item" href="bulk-call-email.html">
-          <i class="fa-solid fa-envelope"></i> Send Bulk Email
-        </a>
-      </li>
-      <li>
-        <a class="dropdown-item" href="bulk-sms.html">
-          <i class="fa-solid fa-comments"></i> Send Bulk SMS
-        </a>
-      </li>
-      <li>
-       
-      </li>
+    
+    
     `;
 
             // Insert admin items before the logout button
