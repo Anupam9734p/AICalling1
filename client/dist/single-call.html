@@ -285,9 +285,9 @@
                               <option value="" disabled selected>
                                 Select an option
                               </option>
-                              <option value="Provide guidance on selling a home, including pricing strategies, staging tips, and marketing advice to attract buyers quickly and maximize profit.">Home Sellers</option>
-                              <option value="Offer essential advice for home buyers, covering budgeting, mortgage options, and tips for evaluating properties to make a confident purchase.">Home Buyers</option>
-                              <option value="Provide insights for real estate investors and wholesalers, including strategies for finding profitable properties, negotiation tips, and exit strategies for maximizing ROI.">
+                              <option value="Home Sellers">Home Sellers</option>
+                              <option value="Home Buyers">Home Buyers</option>
+                              <option value="Real Estate Investor / Wholesaler">
                                 Real Estate Investor / Wholesaler
                               </option>
                               <option value="Custom">Custom</option>
@@ -585,7 +585,44 @@ margin-right: auto;
       const selectedCategory = categorySelect.value;
       const customValue = customValueInput.value;
       const prompt = selectedCategory === "Custom" ? customValue : selectedCategory;
-      console.log(prompt);
+      let callPrompt;
+      if (!prompt) {
+  Swal.fire({
+    icon: "error",
+    text: "Please select an option or enter a custom prompt.",
+  });
+} else {  
+  // Setting up the call based on the selected option
+   callPrompt = selectedCategory === "Home Sellers" 
+    ? `Greeting: "Hello, is this the owner of [Property Address]?" (If yes, proceed. If no, politely end the call.)\n
+      Qualifying Questions:\n
+      Motivation: "Can you tell me why you're considering selling your property?"\n
+      Property Condition: "Can you share a bit about the property's condition, such as the roof, A/C, or recent upgrades?"\n
+      Timeframe: "When are you looking to sell? Do you have a specific timeframe?"\n
+      Price: "What price are you hoping to get for the property?"\n
+      Additional Needs: "Is there anything specific you might need help with during the selling process?"\n
+      Closing: "Thank you for sharing. I'll review this with my team and follow up soon. Have a great day!"`
+    : selectedCategory === "Home Buyers" 
+    ? `Greeting: "Hello, I understand you’re interested in buying a property. Is this a good time to speak?" (If yes, proceed. If no, ask for a convenient time to follow up.)\n
+      Qualifying Questions:\n
+      Budget: "Could you share your budget range for the property you’re interested in?"\n
+      Property Type: "What type of property are you looking for (e.g., single-family, condo)?"\n
+      Location: "Do you have a preferred location or neighborhood in mind?"\n
+      Additional Requirements: "Are there any specific features or amenities you’re looking for?"\n
+      Closing: "Thank you for your time. I’ll review this and follow up with some options. Have a great day!"`
+    : selectedCategory === "Real Estate Investor / Wholesaler"
+    ? `Greeting: "Hello, I understand you're exploring investment opportunities in real estate. Is this a good time to speak?" (If yes, proceed. If no, ask for a convenient time to follow up.)\n
+      Qualifying Questions:\n
+      Investment Goals: "Could you tell me about your investment goals? Are you interested in long-term holds, fix-and-flips, or wholesaling?"\n
+      Budget: "What is your investment budget, or do you have a specific price range in mind?"\n
+      Preferred Location: "Are there any specific locations or neighborhoods you're interested in investing in?"\n
+      Additional Needs: "Are there any other specific requirements or amenities you’re looking for in investment properties?"\n
+      Closing: "Thank you for sharing. I'll review this with my team and follow up soon with suitable options. Have a great day!"`
+    : prompt;
+}
+
+console.log(prompt);
+console.log(callPrompt);
       if (selectedLanguage === "") {
         Swal.fire({
           icon: "error",
@@ -668,7 +705,7 @@ margin-right: auto;
                     messages: [
                       {
                         role: "system",
-                        content: prompt,
+                        content: callPrompt,
                       },
                     ],
                     knowledgeBase: {
