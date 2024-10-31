@@ -477,7 +477,7 @@ router.post("/forgot-password", async (req, res) => {
     // Generate token with secret that includes the user's password hash
     const secret = process.env.JWT_SECRET + user.password;
     const token = jwt.sign({ email: user.email, id: user._id }, secret, {
-      expiresIn: "5m",
+      expiresIn: "30m",
     });
 
     // Password reset link
@@ -540,7 +540,7 @@ router.post("/forgot-password", async (req, res) => {
               <p>We received a request to reset your password for your account on <strong>Mazer</strong>.</p>
               <p>To reset your password, please click the link below:</p>
               <a href="${link}" class="button">Reset Password</a>
-              <p>This link will expire in <strong>5 minutes</strong>.</p>
+              <p>This link will expire in <strong>30 minutes</strong>.</p>
               <p>If you did not request a password reset, please ignore this email.</p>
               <p>Thank you!</p>
               <div class="footer">
