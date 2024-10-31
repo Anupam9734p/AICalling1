@@ -127,7 +127,40 @@ const sendEmail = async (to, subject, text) => {
       from: `"AI Calling Service" <${EMAIL_USER}>`,
       to,
       subject,
-      text,
+      html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+          body { font-family: Arial, sans-serif; color: #333; background-color: #f4f4f9; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 20px auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+          h1 { color: #4CAF50; }
+          p { line-height: 1.6; }
+          .details { background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 20px 0; }
+          .cta { display: block; text-align: center; color: white; background-color: #4CAF50; padding: 12px; border-radius: 5px; text-decoration: none; font-weight: bold; margin: 20px 0; }
+          .footer { font-size: 0.85em; color: #888; text-align: center; margin-top: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>Payment Successful!</h1>
+          <p>Dear Customer,</p>
+          <p>Your subscription has been successfully activated.</p>
+          <div class="details">
+            <p><strong>Subscription Plan:</strong> ${text.plan}</p>
+            <p><strong>Amount Credited:</strong> ${text.amount} credits</p>
+          </div>
+          <p>Thank you for choosing Mazer!</p>
+          <a class="cta" href="https://yourwebsite.com">Go to Your Dashboard</a>
+          <div class="footer">
+            <p>If you have any questions, feel free to contact us at support@yourwebsite.com.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
     });
     console.log(`Email sent to ${to}`);
   } catch (error) {
@@ -263,7 +296,10 @@ router.get("/success/:email/:payment/:amount", async (req, res) => {
     await user.save();
 
     // Send payment success email
-    await sendEmail(email, "Payment Successful", `Your ${payment} subscription was successful. You have been credited with ${amount} credits.`);
+   // await sendEmail(email, "Payment Successful", `Your ${payment} subscription was successful. You have been credited with ${amount} credits.`);
+
+   await sendEmail(email, "Payment Successful from Mazer", { plan: payment, amount: amount });
+
 
     res.redirect("https://ai-calling-demo-otyj.vercel.app/paymentSuccess.html");
   } catch (err) {

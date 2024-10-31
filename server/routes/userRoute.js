@@ -485,7 +485,7 @@ router.post("/forgot-password", async (req, res) => {
 
     const msg = {
       to: email,
-      from: "choudhardiv@gmail.com", // Your verified sender email
+      from: "choudhardiv@gmail.com", 
       subject: "Password Reset - Mazer",
       html: `
       <!DOCTYPE html>
