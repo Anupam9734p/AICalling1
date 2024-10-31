@@ -215,29 +215,27 @@
           </div>
         </header>
 
-        <div class="page-heading">
-          <div class="page-title">
-            <div class="row">
-              <div class="col-12 col-md-6 order-md-1 order-last">
-                <h3>Make Bulk Call</h3>
-              </div>
-              <div class="col-12 col-md-6 order-md-2 order-first">
-                <nav
-                  aria-label="breadcrumb"
-                  class="breadcrumb-header float-start float-lg-end"
-                >
-                  <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                      <a href="index.html">Dashboard</a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">
-                      Bulk Call
-                    </li>
-                  </ol>
-                </nav>
-              </div>
-            </div>
+        <div class="row">
+          <div class="col-12 col-md-6 order-md-1 order-last">
+            <h3>Make Bulk Call</h3>
+            <button onclick="downloadSampleFile()" class="btn btn-primary float-end">
+              Download Sample File
+            </button>
           </div>
+          <div class="col-12 col-md-6 order-md-2 order-first">
+          
+            <nav aria-label="breadcrumb" class="breadcrumb-header float-start float-lg-end">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                  <a href="index.html">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">
+                  Bulk Call
+                </li>
+              </ol>
+            </nav>
+          </div>
+        </div>
 
           <!-- Basic Horizontal form layout section start -->
           <!-- Bulk Call Form -->
@@ -451,6 +449,10 @@
         window.location.href = "login.html";
       });
 
+      function downloadSampleFile() {
+    window.location.href = "https://aicalling-demo.onrender.com/api/auth/download-call";
+  }
+
       async function validateToken() {
         const token = localStorage.getItem("token");
 
@@ -463,8 +465,8 @@
         try {
           const response = await fetch(
             // "https://aicalling-osdb.onrender.com/api/auth/validate",
-             "https://aicalling-demo.onrender.com/api/auth/validate",
-            //"http://localhost:3000/api/auth/validate",
+            "https://aicalling-demo.onrender.com/api/auth/validate",
+           // "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {

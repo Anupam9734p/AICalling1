@@ -312,8 +312,8 @@
       try {
         const response = await fetch(
           //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-          "https://aicalling-demo.onrender.com/api/auth/validate",
-        //  "http://localhost:3000/api/auth/validate",
+         "https://aicalling-demo.onrender.com/api/auth/validate",
+       //   "http://localhost:3000/api/auth/validate",
           {
             method: "GET",
             headers: {
@@ -336,6 +336,19 @@
         console.log(data);
 
         const role = data.role;
+
+            const profileImg = document.getElementById("profileDropdown");
+          if (data.data.profileImage && data.data.profileImage.buffer) {
+
+            console.log("Come")
+             const base64String = arrayBufferToBase64(
+              data.data.profileImage.buffer.data
+             );
+            const mimeType = data.data.profileImage.contentType;
+            profileImg.src = `data:${mimeType};base64,${base64String}`;
+          } else {
+            console.log("Using default profile image");
+         }
 
         //console.log(role);
         const editConfig = document.getElementById("edit-config");
@@ -542,7 +555,7 @@ margin-right: auto;
           "none";
         const response = await fetch(
           "https://aicalling-demo.onrender.com/api/auth/admins",
-       //   "http://localhost:3000/api/auth/admins",
+       // "http://localhost:3000/api/auth/admins",
           {
             method: "GET",
             headers: {
@@ -563,19 +576,8 @@ margin-right: auto;
 
         const data = await response.json();
 
-            
-    const profileImg = document.getElementById("profileDropdown");
-          if (data.data.profileImage && data.data.profileImage.buffer) {
+            console.log(data.admins)
 
-            console.log("Come")
-             const base64String = arrayBufferToBase64(
-              data.data.profileImage.buffer.data
-             );
-            const mimeType = data.data.profileImage.contentType;
-            profileImg.src = `data:${mimeType};base64,${base64String}`;
-          } else {
-            console.log("Using default profile image");
-         }
 
         console.log("All admin users with sub-users:", data);
 
@@ -593,6 +595,7 @@ margin-right: auto;
                         <td>${admin.email || "No email found"}</td>
                         <td>${admin.phone || "No phone found"}</td>
                         <td>${admin.credits || "No credit available"}</td>
+                        <td>${"N/A"}</td>
                         <td>${admin.role || "Admin"}</td>
                     `;
 
