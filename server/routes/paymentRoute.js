@@ -153,7 +153,7 @@ const sendEmail = async (to, subject, text) => {
             <p><strong>Amount Credited:</strong> ${text.amount} credits</p>
           </div>
           <p>Thank you for choosing Mazer!</p>
-          <a class="cta" href="https://yourwebsite.com">Go to Your Dashboard</a>
+          <a class="cta" href="https://ai-calling-demo-otyj.vercel.app/login.html">Go To Login </a>
           <div class="footer">
             <p>If you have any questions, feel free to contact us at support@yourwebsite.com.</p>
           </div>
