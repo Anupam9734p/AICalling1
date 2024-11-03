@@ -27,13 +27,7 @@ const VAPI_API_KEY = process.env.VAPI_API_KEY;
 const API_URL = "https://api.vapi.ai/call";
 const sgMail = require("@sendgrid/mail");
 sgMail.setApiKey("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");
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "arijitghosh1203@gmail.com",
-    pass: "hryc yasr hlft mjsi",
-  },
-});
+
 router.post("/signup", async (req, res) => {
   const { name, email, password, phone } = req.body;
 

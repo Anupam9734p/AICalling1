@@ -59,13 +59,7 @@ router.post("/demo-transcript", async (req, res) => {
   }
 });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "arijitghosh1203@gmail.com",
-    pass: "hryc yasr hlft mjsi",
-  },
-});
+
 
 router.post("/send-emails", verifyToken, async (req, res) => {
   const { users, additionalInput } = req.body; // Extract users and additional input from request body
