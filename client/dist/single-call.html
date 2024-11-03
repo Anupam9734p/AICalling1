@@ -594,7 +594,7 @@ margin-right: auto;
 } else {  
   // Setting up the call based on the selected option
    callPrompt = selectedCategory === "Home Sellers" 
-    ? `Greeting: "Hello ${name}, is this the owner of [Property Address]?" (If yes, proceed. If no, politely end the call.)\n
+    ? `Greeting: "Hello ${firstName}, is this the owner of [Property Address]?" (If yes, proceed. If no, politely end the call.)\n
       Qualifying Questions:\n
       Motivation: "Can you tell me why you're considering selling your property?"\n
       Property Condition: "Can you share a bit about the property's condition, such as the roof, A/C, or recent upgrades?"\n
@@ -603,7 +603,7 @@ margin-right: auto;
       Additional Needs: "Is there anything specific you might need help with during the selling process?"\n
       Closing: "Thank you for sharing. I'll review this with my team and follow up soon. Have a great day!"`
     : selectedCategory === "Home Buyers" 
-    ? `Greeting: "Hello ${name}, I understand you’re interested in buying a property. Is this a good time to speak?" (If yes, proceed. If no, ask for a convenient time to follow up.)\n
+    ? `Greeting: "Hello ${firstName}, I understand you’re interested in buying a property. Is this a good time to speak?" (If yes, proceed. If no, ask for a convenient time to follow up.)\n
       Qualifying Questions:\n
       Budget: "Could you share your budget range for the property you’re interested in?"\n
       Property Type: "What type of property are you looking for (e.g., single-family, condo)?"\n
@@ -611,7 +611,7 @@ margin-right: auto;
       Additional Requirements: "Are there any specific features or amenities you’re looking for?"\n
       Closing: "Thank you for your time. I’ll review this and follow up with some options. Have a great day!"`
     : selectedCategory === "Real Estate Investor / Wholesaler"
-    ? `Greeting: "Hello${name}, I understand you're exploring investment opportunities in real estate. Is this a good time to speak?" (If yes, proceed. If no, ask for a convenient time to follow up.)\n
+    ? `Greeting: "Hello${firstName}, I understand you're exploring investment opportunities in real estate. Is this a good time to speak?" (If yes, proceed. If no, ask for a convenient time to follow up.)\n
       Qualifying Questions:\n
       Investment Goals: "Could you tell me about your investment goals? Are you interested in long-term holds, fix-and-flips, or wholesaling?"\n
       Budget: "What is your investment budget, or do you have a specific price range in mind?"\n
