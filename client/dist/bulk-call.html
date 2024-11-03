@@ -595,80 +595,196 @@
       window.onload = validateToken;
 
       function processBulkCalls() {
-        const fileInput = document.getElementById("file-upload");
-        //const prompt = document.getElementById("prompt").value;
-        const selectedCategory = categorySelect.value;
-        const customValue =  customValueInput.value;
-        let promptText;
-      if (!prompt) {
-  Swal.fire({
-    icon: "error",
-    text: "Please select an option or enter a custom prompt.",
-  });
-} else {  
-  // Setting up the call based on the selected option
-  promptText = selectedCategory === "Home Sellers" 
-    ? `Greeting: "Hello, is this the owner of [Property Address]?" (If yes, proceed. If no, politely end the call.)\n
-      Qualifying Questions:\n
-      Motivation: "Can you tell me why you're considering selling your property?"\n
-      Property Condition: "Can you share a bit about the property's condition, such as the roof, A/C, or recent upgrades?"\n
-      Timeframe: "When are you looking to sell? Do you have a specific timeframe?"\n
-      Price: "What price are you hoping to get for the property?"\n
-      Additional Needs: "Is there anything specific you might need help with during the selling process?"\n
-      Closing: "Thank you for sharing. I'll review this with my team and follow up soon. Have a great day!"`
-    : selectedCategory === "Home Buyers" 
-    ? `Greeting: "Hello, I understand you’re interested in buying a property. Is this a good time to speak?" (If yes, proceed. If no, ask for a convenient time to follow up.)\n
-      Qualifying Questions:\n
-      Budget: "Could you share your budget range for the property you’re interested in?"\n
-      Property Type: "What type of property are you looking for (e.g., single-family, condo)?"\n
-      Location: "Do you have a preferred location or neighborhood in mind?"\n
-      Additional Requirements: "Are there any specific features or amenities you’re looking for?"\n
-      Closing: "Thank you for your time. I’ll review this and follow up with some options. Have a great day!"`
-    : selectedCategory === "Real Estate Investor / Wholesaler"
-    ? `Greeting: "Hello, I understand you're exploring investment opportunities in real estate. Is this a good time to speak?" (If yes, proceed. If no, ask for a convenient time to follow up.)\n
-      Qualifying Questions:\n
-      Investment Goals: "Could you tell me about your investment goals? Are you interested in long-term holds, fix-and-flips, or wholesaling?"\n
-      Budget: "What is your investment budget, or do you have a specific price range in mind?"\n
-      Preferred Location: "Are there any specific locations or neighborhoods you're interested in investing in?"\n
-      Additional Needs: "Are there any other specific requirements or amenities you’re looking for in investment properties?"\n
-      Closing: "Thank you for sharing. I'll review this with my team and follow up soon with suitable options. Have a great day!"`
-    : prompt;
-}
-console.log(promptText)
-        if (fileInput.files.length === 0) {
-          alert("Please upload a CSV or Excel file.");
-          return;
-        }
+    const fileInput = document.getElementById("file-upload");
+    const selectedCategory = categorySelect.value;
+    const customValue = customValueInput.value;
 
-        const file = fileInput.files[0];
-        const fileName = file.name.toLowerCase();
+    // Check if file is selected
+    if (fileInput.files.length === 0) {
+        alert("Please upload a CSV or Excel file.");
+        return;
+    }
 
-        if (fileName.endsWith(".csv")) {
-          // Handle CSV file
-          const reader = new FileReader();
-          reader.onload = function (e) {
+    const file = fileInput.files[0];
+    const fileName = file.name.toLowerCase();
+
+    // Set up file reading based on format
+    if (fileName.endsWith(".csv")) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
             const text = e.target.result;
             const data = csvToArray(text);
-            initiateCalls(data, promptText);
-          };
-          reader.readAsText(file);
-        } else if (fileName.endsWith(".xlsx")) {
-          // Handle Excel (.xlsx) file
-          const reader = new FileReader();
-          reader.onload = function (e) {
+            initiateCalls(data, selectedCategory);
+        };
+        reader.readAsText(file);
+    } else if (fileName.endsWith(".xlsx")) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: "array" });
-            const sheetName = workbook.SheetNames[0]; // Get the first sheet
+            const sheetName = workbook.SheetNames[0];
             const sheet = workbook.Sheets[sheetName];
-            const json = XLSX.utils.sheet_to_json(sheet); // Convert sheet to JSON
-            const userName = json.name;
-            initiateCalls(json, promptText);
-          };
-          reader.readAsArrayBuffer(file);
-        } else {
-          alert("Unsupported file format. Please upload a CSV or Excel file.");
+            const json = XLSX.utils.sheet_to_json(sheet);
+            initiateCalls(json, selectedCategory);
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        alert("Unsupported file format. Please upload a CSV or Excel file.");
+    }
+}
+
+async function initiateCalls(users, selectedCategory) {
+    const callCount = users.length;
+    const response = await fetch(
+        "https://aicalling-demo.onrender.com/api/auth/check-bulk-credit",
+        {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ callCount }),
         }
-      }
+    );
+
+    if (response.ok) {
+        const data = await response.json();
+        if (!data.vapiPhoneNumberId) {
+            Swal.fire({
+                icon: "error",
+                title: "No Credentials Found",
+                text: "No credentials found",
+            });
+            return;
+        }
+
+        Swal.fire({
+            icon: "success",
+            title: "Credits Available",
+            text: `You have sufficient credits to proceed with ${callCount} calls.`,
+        });
+
+        users.forEach((user) => {
+            const nameKey = Object.keys(user).find(
+                (key) => key.trim().toLowerCase() === "name"
+            );
+            const phoneNumberKey = Object.keys(user).find(
+                (key) => key.trim().toLowerCase() === "phone number"
+            );
+
+            const userName = user[nameKey];
+            let phoneNumber = user[phoneNumberKey];
+            if (typeof phoneNumber !== "string") {
+                phoneNumber = String(phoneNumber);
+            }
+            const formattedPhoneNumber = `+${phoneNumber.replace(/[^\d]/g, "")}`;
+
+            // Constructing dynamic promptText based on selected category and userName
+            const promptText =
+                selectedCategory === "Home Sellers"
+                    ? `Greeting: "Hello ${userName}, is this the owner of [Property Address]?" (If yes, proceed. If no, politely end the call.)\n
+                        Qualifying Questions:\n
+                        Motivation: "Can you tell me why you're considering selling your property?"\n
+                        Property Condition: "Can you share a bit about the property's condition, such as the roof, A/C, or recent upgrades?"\n
+                        Timeframe: "When are you looking to sell? Do you have a specific timeframe?"\n
+                        Price: "What price are you hoping to get for the property?"\n
+                        Additional Needs: "Is there anything specific you might need help with during the selling process?"\n
+                        Closing: "Thank you for sharing. I'll review this with my team and follow up soon. Have a great day!"`
+                    : selectedCategory === "Home Buyers"
+                    ? `Greeting: "Hello ${userName}, I understand you’re interested in buying a property. Is this a good time to speak?"\n
+                        Qualifying Questions:\n
+                        Budget: "Could you share your budget range for the property you’re interested in?"\n
+                        Property Type: "What type of property are you looking for (e.g., single-family, condo)?"\n
+                        Location: "Do you have a preferred location or neighborhood in mind?"\n
+                        Additional Requirements: "Are there any specific features or amenities you’re looking for?"\n
+                        Closing: "Thank you for your time. I’ll review this and follow up with some options. Have a great day!"`
+                    : selectedCategory === "Real Estate Investor / Wholesaler"
+                    ? `Greeting: "Hello ${userName}, I understand you're exploring investment opportunities in real estate. Is this a good time to speak?"\n
+                        Qualifying Questions:\n
+                        Investment Goals: "Could you tell me about your investment goals? Are you interested in long-term holds, fix-and-flips, or wholesaling?"\n
+                        Budget: "What is your investment budget, or do you have a specific price range in mind?"\n
+                        Preferred Location: "Are there any specific locations or neighborhoods you're interested in investing in?"\n
+                        Additional Needs: "Are there any other specific requirements or amenities you’re looking for in investment properties?"\n
+                        Closing: "Thank you for sharing. I'll review this with my team and follow up soon with suitable options. Have a great day!"`
+                    : customValue;
+
+            const selectedLanguage = document.getElementById("language").value;
+            if (!selectedLanguage) {
+                Swal.fire({
+                    icon: "error",
+                    text: "Please select a language first",
+                });
+                return;
+            }
+
+
+
+            console.log(promptText)
+            // Prepare callOptions for each user
+            const callOptions = {
+                method: "POST",
+                headers: {
+                    Authorization: "22576079-730d-4707-b8ab-f780113249f3",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: `Bulk call to ${userName}`,
+                    phoneNumberId: data.vapiPhoneNumberId,
+                    customer: {
+                        number: formattedPhoneNumber,
+                    },
+                    assistant: {
+                        transcriber: {
+                            provider: "deepgram",
+                            model: "nova-2",
+                            language: "en-AU",
+                            smartFormat: false,
+                        },
+                        model: {
+                            provider: "openai",
+                            model: "gpt-4",
+                            messages: [
+                                {
+                                    role: "system",
+                                    content: promptText,
+                                },
+                            ],
+                        },
+                    },
+                }),
+            };
+
+            // Initiate each call
+            fetch("https://api.vapi.ai/call", callOptions)
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(`Call to ${userName} initiated:`, data);
+                    const callSid = data.id;
+                    updateCredit(localStorage.getItem("token"));
+                    updateCallResults(
+                        userName,
+                        formattedPhoneNumber,
+                        "Call initiated successfully"
+                    );
+                    pollCallStatus(callSid, userName, formattedPhoneNumber);
+                })
+                .catch((error) => {
+                    console.error("Error initiating call to", userName, ":", error);
+                    updateCallResults(
+                        userName,
+                        formattedPhoneNumber,
+                        "Failed to initiate call"
+                    );
+                });
+        });
+    } else {
+        Swal.fire({
+            icon: "error",
+            title: "No Credits Available",
+            text: "No Credits Available",
+        });
+    }
+}
 
       function csvToArray(str, delimiter = ",") {
         const headers = str.slice(0, str.indexOf("\n")).split(delimiter);
@@ -716,132 +832,6 @@ console.log(promptText)
         const bytes = new Uint8Array(buffer);
         bytes.forEach((b) => (binary += String.fromCharCode(b)));
         return window.btoa(binary);
-      }
-
-      async function initiateCalls(users, prompt) {
-        const callCount = users.length; // Total number of calls to be made
-
-        console.log(prompt);
-        const response = await fetch(
-       //   "http://localhost:3000/api/auth/check-bulk-credit",
-              "https://aicalling-demo.onrender.com/api/auth/check-bulk-credit",
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ callCount }),
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.vapiPhoneNumberId === "") {
-            Swal.fire({
-              icon: "error",
-              title: "No Credentials Found",
-              text: "No credentitals found",
-            });
-          }
-          Swal.fire({
-            icon: "success",
-            title: "Credits Available",
-            text: `You have sufficient credits to proceed with ${callCount} calls.`,
-          });
-          users.forEach((user) => {
-            console.log(JSON.stringify(user) + "hello user");
-            if (!user || Object.keys(user).length === 0) {
-              console.log(`Skipping empty or undefined row at index ${index}`);
-              return; // Skip this row if it's empty or undefined
-            }
-
-            const nameKey = Object.keys(user).find(
-              (key) => key.trim().toLowerCase() === "name"
-            );
-            const phoneNumberKey = Object.keys(user).find(
-              (key) => key.trim().toLowerCase() === "phone number"
-            );
-
-            const name = user[nameKey];
-            let phoneNumber = user[phoneNumberKey];
-            if (typeof phoneNumber !== "string") {
-              phoneNumber = String(phoneNumber); // Convert phone number to string if it's not
-            }
-            console.log(phoneNumber);
-            let formattedPhoneNumber = `+${phoneNumber.replace(/[^\d]/g, "")}`;
-            const selectedLanguage = document.getElementById("language").value;
-            if (selectedLanguage == "") {
-              Swal.fire({
-                icon: "error",
-                text: "Please select a language First",
-              });
-              return;
-            }
-            const callOptions = {
-              method: "POST",
-              headers: {
-                Authorization: "22576079-730d-4707-b8ab-f780113249f3",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                name: `Bulk call to ${name}`,
-                // phoneNumberId: "d51cf9b6-a9de-4e9d-acf7-734ea03a8eac",
-                phoneNumberId: data.vapiPhoneNumberId,
-                customer: {
-                  number: formattedPhoneNumber,
-                },
-                assistant: {
-                  transcriber: {
-                    provider: "deepgram",
-                    model: "nova-2",
-                    language: "en-AU",
-                    smartFormat: false,
-                  },
-                  model: {
-                    provider: "openai",
-                    model: "gpt-4",
-                    messages: [
-                      {
-                        role: "system",
-                        content: prompt,
-                      },
-                    ],
-                  },
-                },
-              }),
-            };
-
-            fetch("https://api.vapi.ai/call", callOptions)
-              .then((response) => response.json())
-              .then((data) => {
-                console.log(`Call to ${name} initiated:`, data);
-                const callSid = data.id;
-                updateCredit(localStorage.getItem("token")); // Assuming 'id' is the unique identifier for the call
-                updateCallResults(
-                  name,
-                  formattedPhoneNumber,
-                  "Call initiated successfully"
-                );
-                // Start polling for call status
-                pollCallStatus(callSid, name, formattedPhoneNumber);
-              })
-              .catch((error) => {
-                console.error("Error initiating call to", name, ":", error);
-                updateCallResults(
-                  name,
-                  formattedPhoneNumber,
-                  "Failed to initiate call"
-                );
-              });
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "No Credits Available",
-            text: "No Credits Available",
-          });
-        }
       }
 
       function pollCallStatus(callSid, name, phoneNumber) {
