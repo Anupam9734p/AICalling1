@@ -596,9 +596,9 @@
 
       function processBulkCalls() {
         const fileInput = document.getElementById("file-upload");
-         const prompt = document.getElementById("prompt").value;
+        //const prompt = document.getElementById("prompt").value;
         const selectedCategory = categorySelect.value;
-        const customValue = customValueInput.value;
+        const customValue =  customValueInput.value;
         let promptText;
       if (!prompt) {
   Swal.fire({
@@ -661,6 +661,7 @@ console.log(promptText)
             const sheetName = workbook.SheetNames[0]; // Get the first sheet
             const sheet = workbook.Sheets[sheetName];
             const json = XLSX.utils.sheet_to_json(sheet); // Convert sheet to JSON
+            const userName = json.name;
             initiateCalls(json, promptText);
           };
           reader.readAsArrayBuffer(file);
