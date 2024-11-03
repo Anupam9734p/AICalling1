@@ -1489,7 +1489,7 @@ router.put("/admin/sendgrid/update/:userId", verifyToken, async (req, res) => {
 
 const path = require("path")
 router.get("/download-call", (req, res) => {
-  const filePath = path.join(__dirname, "../sample/ai_sms.xlsx"); // Path to your sample file
+  const filePath = path.join(__dirname, "../sample/ai-sample-file.xlsx"); // Path to your sample file
   res.download(filePath, "sample-call.xlsx", (err) => {
     if (err) {
       console.error("Error downloading file:", err);
@@ -1498,7 +1498,7 @@ router.get("/download-call", (req, res) => {
   });
 });
 router.get("/download-sms", (req, res) => {
-  const filePath = path.join(__dirname, "../sample/ai_sms.xlsx"); // Path to your sample file
+  const filePath = path.join(__dirname, "../sample/ai-sample-file.xlsx"); // Path to your sample file
   res.download(filePath, "sample-sms.xlsx", (err) => {
     if (err) {
       console.error("Error downloading file:", err);
@@ -1507,7 +1507,7 @@ router.get("/download-sms", (req, res) => {
   });
 });
 router.get("/download-mail", (req, res) => {
-  const filePath = path.join(__dirname, "../sample/demo_mail.xlsx"); // Path to your sample file
+  const filePath = path.join(__dirname, "../sample/demo_mail-server.xlsx"); // Path to your sample file
   res.download(filePath, "sample-mail.xlsx", (err) => {
     if (err) {
       console.error("Error downloading file:", err);
