@@ -494,42 +494,7 @@
         const data = await response.json();
         return data;
       }
-      // async function updateCallLogs() {
-      //     try {
-      //         const response = await fetch('/api/calls');
-      //         const data = await response.json();
-      //         const tableBody = document.querySelector('#call-logs-table tbody');
-      //         tableBody.innerHTML = ''; // Clear existing rows
 
-      //         for (const call of data) {
-      //             const row = document.createElement('tr');
-      //             row.innerHTML = `
-      //                 <td>${new Date(call.createdAt).toLocaleString()}</td>
-      //                 <td>${new Date(call.endedAt).toLocaleString()}</td>
-      //                 <td>${call.status}</td>
-      //                 <td>${call.customer?.number || 'N/A'}</td>
-      //                 <td>
-      //                     <button class="btn btn-primary btn-sm show-transcript" data-transcript="${call.transcript || 'N/A'}">
-      //                         Show Transcript
-      //                     </button>
-      //                 </td>
-      //                 <td>
-      //                     <button class="btn btn-info btn-sm show-summary" data-summary="${call.analysis?.summary || 'N/A'}">
-      //                         Show Summary
-      //                     </button>
-      //                 </td>
-      //                 <td>${call.extractedInfo?.name || 'N/A'}</td>
-      //                 <td>${call.extractedInfo?.email || 'N/A'}</td>
-      //                 <td>${call.extractedInfo?.phone || 'N/A'}</td>
-      //             `;
-      //             tableBody.appendChild(row);
-      //         }
-
-      //         addModalEventListeners();
-      //     } catch (err) {
-      //         console.error(err);
-      //     }
-      // }
       async function updateCallLogs() {
         const response = await fetch(
           //  "http://localhost:3000/api/auth/get-call-data-all",
@@ -670,43 +635,60 @@
         const modal = document.getElementById("myModal");
         if (event.target === modal) closeModal();
       });
-
-      // function addModalEventListeners() {
-      //   const modal = document.getElementById("myModal");
-      //   const modalTitle = document.getElementById("modalTitle");
-      //   const modalContent = document.getElementById("modalContent");
-      //   const span = document.getElementsByClassName("close")[0];
-
-      //   document.querySelectorAll(".show-transcript").forEach((button) => {
-      //     button.addEventListener("click", function () {
-      //       modalTitle.textContent = "Transcript";
-      //       modalContent.textContent = this.getAttribute("data-transcript");
-      //       modal.style.display = "block";
-      //     });
-      //   });
-
-      //   document.querySelectorAll(".show-summary").forEach((button) => {
-      //     button.addEventListener("click", function () {
-      //       modalTitle.textContent = "Summary";
-      //       modalContent.textContent = this.getAttribute("data-summary");
-      //       modal.style.display = "block";
-      //     });
-      //   });
-
-      //   span.onclick = function () {
-      //     modal.style.display = "none";
-      //   };
-
-      //   window.onclick = function (event) {
-      //     if (event.target == modal) {
-      //       modal.style.display = "none";
-      //     }
-      //   };
-      // }
-
-      // Update call logs initially and then every 60 seconds
       updateCallLogs();
       setInterval(updateCallLogs, 60000);
+
+
+      async function analyzeTranscript(transcript, userDetails) {
+        const openAiResponse = await fetch("https://api.openai.com/v1/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer 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`
+          },
+          body: JSON.stringify({
+            model: "gpt-3.5-turbo",
+            prompt: `Analyze the following transcript and respond with "yes" or "no" only if the user is interested in buying a service:\n\n${transcript}`,
+            max_tokens: 5,
+          })
+        });
+      
+        const result = await openAiResponse.json();
+        const answer = result.choices[0].text.trim().toLowerCase();
+      
+        if (answer === "yes") {
+          sendEmailToAdmin(userDetails);
+        }
+      }
+
+      function sendEmailToAdmin(userDetails) {
+        // Assuming you have a function or service set up to send emails
+        const emailContent = `
+          User is interested in buying a service.
+          Name: ${userDetails.name}
+          Phone Number: ${userDetails.phone}
+        `;
+      
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            to: "sachinparmar98134@gmail.com",
+            subject: "Interested User Alert",
+            message: emailContent
+          })
+        }).then(response => {
+          if (response.ok) {
+            console.log("Email sent successfully");
+          } else {
+            console.error("Failed to send email");
+          }
+        });
+      }
+      
+      
     </script>
   </body>
 </html>
