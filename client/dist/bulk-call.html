@@ -462,7 +462,7 @@
           const response = await fetch(
             // "https://aicalling-osdb.onrender.com/api/auth/validate",
             "https://aicalling-demo.onrender.com/api/auth/validate",
-           // "http://localhost:3000/api/auth/validate",
+         //   "http://localhost:3000/api/auth/validate",
             {
               method: "GET",
               headers: {
@@ -637,6 +637,7 @@ async function initiateCalls(users, selectedCategory) {
     const callCount = users.length;
     const response = await fetch(
         "https://aicalling-demo.onrender.com/api/auth/check-bulk-credit",
+     //   "http://localhost:3000/api/auth/check-bulk-credit",
         {
             method: "POST",
             headers: {
@@ -671,8 +672,13 @@ async function initiateCalls(users, selectedCategory) {
             const phoneNumberKey = Object.keys(user).find(
                 (key) => key.trim().toLowerCase() === "phone number"
             );
+            const address = Object.keys(user).find(
+                (key) => key.trim().toLowerCase() === "address"
+            );
 
             const userName = user[nameKey];
+            const addressUser = user[address]
+            console.log(addressUser)
             let phoneNumber = user[phoneNumberKey];
             if (typeof phoneNumber !== "string") {
                 phoneNumber = String(phoneNumber);
@@ -680,33 +686,33 @@ async function initiateCalls(users, selectedCategory) {
             const formattedPhoneNumber = `+${phoneNumber.replace(/[^\d]/g, "")}`;
 
             // Constructing dynamic promptText based on selected category and userName
-            const promptText =
-                selectedCategory === "Home Sellers"
-                    ? `Greeting: "Hello ${userName}, is this the owner of [Property Address]?" (If yes, proceed. If no, politely end the call.)\n
-                        Qualifying Questions:\n
-                        Motivation: "Can you tell me why you're considering selling your property?"\n
-                        Property Condition: "Can you share a bit about the property's condition, such as the roof, A/C, or recent upgrades?"\n
-                        Timeframe: "When are you looking to sell? Do you have a specific timeframe?"\n
-                        Price: "What price are you hoping to get for the property?"\n
-                        Additional Needs: "Is there anything specific you might need help with during the selling process?"\n
-                        Closing: "Thank you for sharing. I'll review this with my team and follow up soon. Have a great day!"`
-                    : selectedCategory === "Home Buyers"
-                    ? `Greeting: "Hello ${userName}, I understand you’re interested in buying a property. Is this a good time to speak?"\n
-                        Qualifying Questions:\n
-                        Budget: "Could you share your budget range for the property you’re interested in?"\n
-                        Property Type: "What type of property are you looking for (e.g., single-family, condo)?"\n
-                        Location: "Do you have a preferred location or neighborhood in mind?"\n
-                        Additional Requirements: "Are there any specific features or amenities you’re looking for?"\n
-                        Closing: "Thank you for your time. I’ll review this and follow up with some options. Have a great day!"`
-                    : selectedCategory === "Real Estate Investor / Wholesaler"
-                    ? `Greeting: "Hello ${userName}, I understand you're exploring investment opportunities in real estate. Is this a good time to speak?"\n
-                        Qualifying Questions:\n
-                        Investment Goals: "Could you tell me about your investment goals? Are you interested in long-term holds, fix-and-flips, or wholesaling?"\n
-                        Budget: "What is your investment budget, or do you have a specific price range in mind?"\n
-                        Preferred Location: "Are there any specific locations or neighborhoods you're interested in investing in?"\n
-                        Additional Needs: "Are there any other specific requirements or amenities you’re looking for in investment properties?"\n
-                        Closing: "Thank you for sharing. I'll review this with my team and follow up soon with suitable options. Have a great day!"`
-                    : customValue;
+            const promptText = selectedCategory === "Home Sellers"
+    ? `Greeting: "Hello ${userName || "there"}, ${addressUser ? `is this the owner of ${addressUser}?` : "are you the property owner?"} (If yes, proceed. If no, politely end the call.)\n
+        Qualifying Questions:\n
+        Motivation: "Can you tell me why you're considering selling your property?"\n
+        Property Condition: "Can you share a bit about the property's condition, such as the roof, A/C, or recent upgrades?"\n
+        Timeframe: "When are you looking to sell? Do you have a specific timeframe?"\n
+        Price: "What price are you hoping to get for the property?"\n
+        Additional Needs: "Is there anything specific you might need help with during the selling process?"\n
+        Closing: "Thank you for sharing. I'll review this with my team and follow up soon. Have a great day!"`
+    : selectedCategory === "Home Buyers"
+    ? `Greeting: "Hello ${userName || "there"}, I understand you’re interested in buying a property. Is this a good time to speak?"\n
+        Qualifying Questions:\n
+        Budget: "Could you share your budget range for the property you’re interested in?"\n
+        Property Type: "What type of property are you looking for (e.g., single-family, condo)?"\n
+        Location: "Do you have a preferred location or neighborhood in mind?"\n
+        Additional Requirements: "Are there any specific features or amenities you’re looking for?"\n
+        Closing: "Thank you for your time. I’ll review this and follow up with some options. Have a great day!"`
+    : selectedCategory === "Real Estate Investor / Wholesaler"
+    ? `Greeting: "Hello ${userName || "there"}, I understand you're exploring investment opportunities in real estate. Is this a good time to speak?"\n
+        Qualifying Questions:\n
+        Investment Goals: "Could you tell me about your investment goals? Are you interested in long-term holds, fix-and-flips, or wholesaling?"\n
+        Budget: "What is your investment budget, or do you have a specific price range in mind?"\n
+        Preferred Location: "Are there any specific locations or neighborhoods you're interested in investing in?"\n
+        Additional Needs: "Are there any other specific requirements or amenities you’re looking for in investment properties?"\n
+        Closing: "Thank you for sharing. I'll review this with my team and follow up soon with suitable options. Have a great day!"`
+    : customValue;
+
 
             const selectedLanguage = document.getElementById("language").value;
             if (!selectedLanguage) {
@@ -803,7 +809,7 @@ async function initiateCalls(users, selectedCategory) {
         try {
           // Fetch the update-credit API endpoint
           const response = await fetch(
-            // "http://localhost:3000/api/auth/update-credit",
+           //  "http://localhost:3000/api/auth/update-credit",
            "https://aicalling-demo.onrender.com/api/auth/update-credit",
             {
               method: "GET",

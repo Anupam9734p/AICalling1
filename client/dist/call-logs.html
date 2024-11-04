@@ -497,7 +497,7 @@
 
       async function updateCallLogs() {
         const response = await fetch(
-          //  "http://localhost:3000/api/auth/get-call-data-all",
+         //   "http://localhost:3000/api/auth/get-call-data-all",
           "https://aicalling-demo.onrender.com/api/auth/get-call-data-all",
           {
             method: "GET",
@@ -562,7 +562,7 @@
         try {
           showLoader();
           const response = await fetch(
-            //    "http://localhost:3000/api/auth/transcript",
+         //    "http://localhost:3000/api/auth/transcript",
             "https://aicalling-demo.onrender.com/api/auth/transcript",
             {
               method: "POST",
@@ -575,6 +575,7 @@
           );
 
           const data = await response.json();
+          console.log(data)
           hideLoader();
           if (response.ok) {
             document.getElementById("modalTitle").textContent = title;
@@ -656,6 +657,7 @@
         const result = await openAiResponse.json();
         const answer = result.choices[0].text.trim().toLowerCase();
       
+        console.log(answer)
         if (answer === "yes") {
           sendEmailToAdmin(userDetails);
         }

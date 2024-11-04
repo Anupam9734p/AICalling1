@@ -450,7 +450,7 @@ async function validateToken() {
           const response = await fetch(
             // "https://aicalling-osdb.onrender.com/api/auth/validate",
             "https://aicalling-demo.onrender.com/api/auth/validate",
-        // "http://localhost:3000/api/auth/validate",
+     //    "http://localhost:3000/api/auth/validate",
 
             {
               method: "GET",
@@ -653,7 +653,7 @@ console.log(callPrompt);
 
       try {
      //  const response = await fetch("http://localhost:3000/api/auth/check-credit", {
-       const response = await fetch("https://aicalling-demo.onrender.com/api/auth/check-credit", {
+      const response = await fetch("https://aicalling-demo.onrender.com/api/auth/check-credit", {
           method: "GET",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -727,6 +727,7 @@ if (callResponse.ok) {
   console.log(`Call to ${firstName} initiated:`, callData);
   updateCallResults(firstName, formattedPhoneNumber, "Call initiated successfully");
   pollCallStatus(callSid, firstName, formattedPhoneNumber);
+  await getTranscript()
 } else {
   // Handle different status codes here
   if (callResponse.status === 400) {
@@ -799,8 +800,8 @@ if (callResponse.ok) {
     const updateCredit = async (token) => {
   try {
     // Fetch the update-credit API endpoint
-  //  const response = await fetch("http://localhost:3000/api/auth/update-credit", {
-   const response = await fetch("https://aicalling-demo.onrender.com/api/auth/update-credit", {
+   // const response = await fetch("http://localhost:3000/api/auth/update-credit", {
+  const response = await fetch("https://aicalling-demo.onrender.com/api/auth/update-credit", {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -858,7 +859,7 @@ if (callResponse.ok) {
         })
           .then((response) => response.json())
           .then((data) => {
-            console.log(`Status for call ${callSid}:, data`);
+            console.log(`Status for call ${callSid}:,`,data);
             const status = data.status; // Call status
             const endedReason = data.endedReason; // Reason why call ended
 
@@ -957,10 +958,18 @@ if (callResponse.ok) {
 };
 
 async function getTranscript() {
+  const options = {
+    method: 'GET',
+    headers: {
+        Authorization: 'Bearer 22576079-730d-4707-b8ab-f780113249f3'
+    }
+};
+
     try {
         const response = await fetch('https://api.vapi.ai/call', options);
         const data = await response.json();
 
+        console.log(data)
         if (data.length > 0) {
             // Find the call with the most recent 'updatedAt' timestamp
             const latestCall = data.reduce((latest, call) => {
