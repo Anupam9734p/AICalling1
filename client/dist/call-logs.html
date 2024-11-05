@@ -496,49 +496,96 @@
       }
 
       async function updateCallLogs() {
-        const response = await fetch(
-         //   "http://localhost:3000/api/auth/get-call-data-all",
-          "https://aicalling-demo.onrender.com/api/auth/get-call-data-all",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        console.log("Checking for new call logs...");
+        try {
+          const response = await fetch(
+            "https://aicalling-demo.onrender.com/api/auth/get-call-data-all",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
 
-        const data = await response.json();
-        console.log(data);
-        const tableBody = document.querySelector("#call-logs-table tbody");
-        tableBody.innerHTML = ""; // Clear existing rows
-        data.latestCalls.forEach((call) => {
-          const row = document.createElement("tr");
-          row.setAttribute("data-sid", call.sid); // Attach callSid
-          row.innerHTML = `
-      <td>${new Date(call.dateCreated).toLocaleString()}</td>
-      <td>${new Date(call.endTime).toLocaleString()}</td>
-      <td>${call.status}</td>
-      <td>${call.to || "N/A"}</td>
-      <td>
-        <button class="btn btn-primary btn-sm show-transcript" data-transcript="${
-          call.transcript || "N/A"
-        }">
-          Show Transcript
-        </button>
-      </td>
-      <td>
-        <button class="btn btn-info btn-sm show-summary" data-summary="${
-          call.analysis?.summary || "N/A"
-        }">
-          Show Summary
-        </button>
-      </td>
-    `;
-          tableBody.appendChild(row);
-        });
+          const data = await response.json();
+          console.log(`Found ${data.latestCalls.length} call logs to process`);
+          
+          const tableBody = document.querySelector("#call-logs-table tbody");
+          tableBody.innerHTML = "";
+          
+          // Process calls in parallel using Promise.all
+          const processPromises = data.latestCalls.map(async (call) => {
+            if (call.status === "completed" && !call.analyzed && call.transcript) {
+              console.log(`Processing call ${call.sid}...`);
+              try {
+                console.log(`Analyzing transcript for call ${call.sid}`);
+                const isInterested = await analyzeTranscript(call.transcript);
+                console.log(`Call ${call.sid} analysis result: ${isInterested ? 'Interested' : 'Not interested'}`);
+                
+                if (isInterested) {
+                  const userDetails = {
+                    name: call.userName || "Unknown",
+                    phone: call.to || "N/A"
+                  };
+                  console.log(`User showed interest - sending admin notification for: ${userDetails.name}`);
+                  await sendEmailToAdmin(userDetails);
+                }
+                
+                // Mark call as analyzed
+                await fetch(
+                  "https://aicalling-demo.onrender.com/api/auth/mark-call-analyzed",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    body: JSON.stringify({ callSid: call.sid }),
+                  }
+                );
+                console.log(`Call ${call.sid} marked as analyzed`);
+              } catch (error) {
+                console.error(`Error processing call ${call.sid}:`, error);
+              }
+            }
 
-        // Re-add event listeners for the modal
-        addModalEventListeners();
+            // Create table row
+            const row = document.createElement("tr");
+            row.setAttribute("data-sid", call.sid);
+            row.innerHTML = `
+              <td>${new Date(call.dateCreated).toLocaleString()}</td>
+              <td>${new Date(call.endTime).toLocaleString()}</td>
+              <td>${call.status}</td>
+              <td>${call.to || "N/A"}</td>
+              <td>
+                <button class="btn btn-primary btn-sm show-transcript" data-transcript="${
+                  call.transcript || "N/A"
+                }">
+                  Show Transcript
+                </button>
+              </td>
+              <td>
+                <button class="btn btn-info btn-sm show-summary" data-summary="${
+                  call.analysis?.summary || "N/A"
+                }">
+                  Show Summary
+                </button>
+              </td>
+            `;
+            return row;
+          });
+
+          // Wait for all calls to be processed
+          const rows = await Promise.all(processPromises);
+          rows.forEach(row => tableBody.appendChild(row));
+          
+          // Re-add event listeners for the modal
+          addModalEventListeners();
+          console.log("Call log processing completed");
+        } catch (error) {
+          console.error("Error updating call logs:", error);
+        }
       }
 
       function addModalEventListeners() {
@@ -637,60 +684,156 @@
         if (event.target === modal) closeModal();
       });
       updateCallLogs();
-      setInterval(updateCallLogs, 60000);
+      setInterval(updateCallLogs, 30000); // Check every 30 seconds
 
 
-      async function analyzeTranscript(transcript, userDetails) {
-        const openAiResponse = await fetch("https://api.openai.com/v1/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer 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`
-          },
-          body: JSON.stringify({
-            model: "gpt-3.5-turbo",
-            prompt: `Analyze the following transcript and respond with "yes" or "no" only if the user is interested in buying a service:\n\n${transcript}`,
-            max_tokens: 5,
-          })
-        });
-      
-        const result = await openAiResponse.json();
-        const answer = result.choices[0].text.trim().toLowerCase();
-      
-        console.log(answer)
-        if (answer === "yes") {
-          sendEmailToAdmin(userDetails);
+      async function analyzeTranscript(transcript) {
+        console.log("Analyzing transcript with Gemini AI...");
+        try {
+          const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": "AIzaSyC69aKaZ_3alRkaN1wOV3YFKK9ZFn8yxVE"
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: `Analyze this call transcript and determine if the user shows interest in buying or discussing services further. Respond with ONLY 'yes' or 'no', nothing else:\n\n${transcript}`
+                }]
+              }]
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`Gemini API error: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+          console.log("Gemini response:", data);
+
+          // Extract the response text from Gemini's response structure
+          const answer = data.candidates[0].content.parts[0].text.trim().toLowerCase();
+          console.log(`Analysis result: ${answer}`);
+          
+          return answer === 'yes';
+        } catch (error) {
+          console.error("Error analyzing transcript with Gemini:", error);
+          return false;
         }
       }
 
-      function sendEmailToAdmin(userDetails) {
-        // Assuming you have a function or service set up to send emails
-        const emailContent = `
-          User is interested in buying a service.
-          Name: ${userDetails.name}
-          Phone Number: ${userDetails.phone}
-        `;
-      
-        fetch("/api/send-email", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            to: "sachinparmar98134@gmail.com",
-            subject: "Interested User Alert",
-            message: emailContent
-          })
-        }).then(response => {
-          if (response.ok) {
-            console.log("Email sent successfully");
-          } else {
-            console.error("Failed to send email");
+      async function sendEmailToAdmin(userDetails) {
+        console.log("Attempting to send email notifications to admins...");
+        
+        try {
+          // First, get the SendGrid configuration
+          const configResponse = await fetch(
+            "https://aicalling-demo.onrender.com/api/auth/sendgrid/config",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              }
+            }
+          );
+
+          if (!configResponse.ok) {
+            throw new Error("Failed to get SendGrid configuration");
           }
-        });
+
+          // Now send the email using the SendGrid API endpoint
+          const response = await fetch(
+            "https://aicalling-demo.onrender.com/api/auth/sendgrid/send",  // Updated endpoint
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({
+                to: "sachinparmar0246@gmail.com", // Replace with admin email
+                from: "choudhardiv@gmail.com", // This should be your verified sender email
+                subject: "New Interest Alert",
+                html: `
+                  <h2>New Interest Alert</h2>
+                  <p>A user has shown interest in your services during a recent call.</p>
+                  
+                  <h3>User Details:</h3>
+                  <p><strong>Name:</strong> ${userDetails.name}</p>
+                  <p><strong>Phone:</strong> ${userDetails.phone}</p>
+                  
+                  <p>Please follow up with this lead as soon as possible.</p>
+                `
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Failed to send email: ${response.statusText}`);
+          }
+          
+          const data = await response.json();
+          console.log("Email notification sent successfully:", data);
+          return true;
+
+        } catch (error) {
+          console.error("Error sending email notification:", error);
+          // Show error to user
+          alert(`Failed to send email notification: ${error.message}`);
+          return false;
+        }
       }
       
       
+      // Update the test function to include more detailed logging
+      async function testTranscriptAnalysis() {
+        try {
+          console.log("Starting transcript analysis test...");
+          
+          // Sample transcript showing interest
+          const interestedTranscript = `
+            User: Hi, I'm interested in learning more about your services.
+            AI: Hello! I'd be happy to tell you about our services. We offer AI-powered calling solutions.
+            User: That sounds exactly what I need. How much does it cost?
+            AI: Our pricing starts at $99/month. Would you like to discuss the details?
+            User: Yes, I'd definitely like to know more. Can someone contact me about this?
+            AI: Absolutely! I'll make sure our team reaches out to you soon.
+          `;
+
+          console.log("Analyzing interested transcript...");
+          const interestedResult = await analyzeTranscript(interestedTranscript);
+          console.log("Interest detected:", interestedResult);
+          
+          if (interestedResult) {
+            console.log("Testing email notification...");
+            const testUserDetails = {
+              name: "Test User",
+              phone: "+1234567890"
+            };
+            
+            try {
+              const emailResult = await sendEmailToAdmin(testUserDetails);
+              console.log("Email notification result:", emailResult);
+            } catch (emailError) {
+              console.error("Email test failed:", emailError);
+              alert("Email test failed: " + emailError.message);
+            }
+          }
+
+        } catch (error) {
+          console.error("Test failed:", error);
+          alert("Test failed: " + error.message);
+        }
+      }
+
+      // Add a test button to the UI
+      const testButton = document.createElement('button');
+      testButton.textContent = 'Run Transcript Analysis Test';
+      testButton.className = 'btn btn-primary m-3';
+      testButton.onclick = testTranscriptAnalysis;
+      document.querySelector('.page-title').appendChild(testButton);
     </script>
   </body>
 </html>
