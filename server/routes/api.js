@@ -345,25 +345,27 @@ const verifyTokenEmail = async (req, res, next) => {
     return res.status(400).json({ message: "Invalid or expired token" });
   }
 };
-const sendgridEmail = require("@sendgrid/mail");
+const sendgridEmail1 = require("@sendgrid/mail");
 // Route to send email
 router.post("/send-email-property", verifyTokenEmail, async (req, res) => {
   const { subject, message } = req.body;
 
+  console.log(req)
+  console.log("Come")
   try {
     // Initialize SendGrid with the API key from the authenticated user
-    sendgridEmail.setApiKey(req.sendGridApiKey);
+    sendgridEmail1.setApiKey(req.sendGridApiKey);
 
     // Define the email options
     const emailOptions = {
-      to: "arijit1087.be22@chitkarauniversity.edu.in",            // Recipient email from middleware
+      to:  req.recipientEmail,            // Recipient email from middleware
       from: req.sendGridEmail,           // Sender's email (admin's SendGrid email)
       subject: subject || "Notification from Service",
       text: message || "This is a test email sent via SendGrid.",
     };
 
     // Send the email
-    await sendgridEmail.send(emailOptions);
+    await sendgridEmail1.send(emailOptions);
 
     res.status(200).json({ message: "Email sent successfully." });
   } catch (error) {
