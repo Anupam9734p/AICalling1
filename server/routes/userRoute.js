@@ -1195,6 +1195,62 @@ router.post("/transcript", async (req, res) => {
   }
 });
 
+
+router.post("/transcript-all", verifyToken, async (req, res) => {
+  try {
+    let twilioConfig, vapiConfig;
+
+    console.log("Come")
+    if (req.role === "subuser") {
+      // If user is a subuser, fetch their admin's configuration
+      const subUser = await SubUser.findById(req.userId).populate("adminId");
+      if (!subUser || !subUser.adminId) {
+        return res.status(404).json({ error: "Admin configuration not found for subuser" });
+      }
+      const admin = subUser.adminId;
+
+      twilioConfig = {
+        sid: admin.twilioSid,
+        token: admin.twilioToken,
+        num: admin.twilioNum,
+      };
+      vapiConfig = admin.vapiPhoneNumberId;
+    } else {
+      // Fetch config directly from the user if they are not a subuser
+      const user = await User.findById(req.userId);
+      twilioConfig = {
+        sid: user.twilioSid,
+        token: user.twilioToken,
+        num: user.twilioNum,
+      };
+      vapiConfig = user.vapiPhoneNumberId;
+    }
+
+    // Validate Twilio/VAPI configuration
+    if (!twilioConfig.sid || !twilioConfig.token || !twilioConfig.num || !vapiConfig) {
+      return res.status(404).json({ error: "Configuration missing for this user" });
+    }
+
+    // Initialize Twilio Client
+    const twilioClient = new twilio(twilioConfig.sid, twilioConfig.token);
+
+    // Fetch call data from Twilio
+    const twilioCalls = await twilioClient.calls.list({ limit: 500 });
+
+    // Fetch call transcripts from VAPI client (assuming client1 is correctly configured)
+    const vapiResponse = await client1.calls.list();
+    const transcripts = vapiResponse.map(call => ({
+      transcript: call.transcript || "Transcript not available",
+      summary: call.analysis?.summary || "Summary not available",
+    }));
+
+   // console.log(transcripts)
+    res.status(200).json({ twilioCalls, transcripts });
+  } catch (error) {
+    console.error("Error fetching call data:", error);
+    res.status(500).json({ error: "Error fetching call logs" });
+  }
+});
 router.get("/admin/users", async (req, res) => {
   try {
     const token = req.headers.authorization.split(" ")[1];

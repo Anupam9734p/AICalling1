@@ -79,6 +79,7 @@
         padding: 15px;
         width: 100%;
       }
+
       .profile-img {
         width: 40px;
         height: 40px;
@@ -95,13 +96,15 @@
         min-width: 150px;
         text-align: center;
       }
+
       .dropdown-item {
         display: flex;
         align-items: center;
       }
 
       .dropdown-item i {
-        margin-right: 8px; /* Adds space between the icon and text */
+        margin-right: 8px;
+        /* Adds space between the icon and text */
       }
 
       .dropdown-divider {
@@ -341,8 +344,8 @@
         try {
           const response = await fetch(
             // "https://aicalling-osdb.onrender.com/api/auth/validate",
-             "https://aicalling-demo.onrender.com/api/auth/validate",
-           // "http://localhost:3000/api/auth/validate",
+           "https://aicalling-demo.onrender.com/api/auth/validate",
+           //  "http://localhost:3000/api/auth/validate",
 
             {
               method: "GET",
@@ -482,8 +485,8 @@
 
       async function processTranscriptWithOpenAI(transcript) {
         const response = await fetch(
-           "https://aicalling-demo.onrender.com/api/process-transcript",
-       //   "http://localhost:3000/api/process-transcript",
+          "https://aicalling-demo.onrender.com/api/process-transcript",
+          //   "http://localhost:3000/api/process-transcript",
           {
             method: "POST",
             headers: {
@@ -500,8 +503,8 @@
         console.log("Checking for new call logs...");
         try {
           const response = await fetch(
-              "https://aicalling-demo.onrender.com/api/auth/get-call-data-all",
-          //  "http://localhost:3000/api/auth/get-call-data-all",
+            "https://aicalling-demo.onrender.com/api/auth/get-call-data-all",
+          //   "http://localhost:3000/api/auth/get-call-data-all",
             {
               method: "GET",
               headers: {
@@ -546,8 +549,8 @@
 
                 // Mark call as analyzed
                 await fetch(
-                 "https://aicalling-demo.onrender.com/api/auth/mark-call-analyzed",
-                 // "http://localhost:3000/api/auth/mark-call-analyzed",
+                  "https://aicalling-demo.onrender.com/api/auth/mark-call-analyzed",
+                  // "http://localhost:3000/api/auth/mark-call-analyzed",
                   {
                     method: "POST",
                     headers: {
@@ -622,8 +625,8 @@
         try {
           showLoader();
           const response = await fetch(
-          //  "http://localhost:3000/api/auth/transcript",
-             "https://aicalling-demo.onrender.com/api/auth/transcript",
+            //  "http://localhost:3000/api/auth/transcript",
+            "https://aicalling-demo.onrender.com/api/auth/transcript",
             {
               method: "POST",
               headers: {
@@ -699,8 +702,46 @@
       updateCallLogs();
       setInterval(updateCallLogs, 30000); // Check every 30 seconds
 
+      async function fetchAndAnalyzeTranscripts() {
+        try {
+          console.log("Come hereeee")
+          const response = await fetch(
+          //  "http://localhost:3000/api/auth/transcript-all",
+            "https://aicalling-demo.onrender.com/api/auth/transcript-all",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+              body: JSON.stringify({}),
+            }
+          );
+
+          const data = await response.json();
+          console.log("Fetched Transcripts:", data);
+
+          if (!Array.isArray(data.transcripts)) {
+            console.error("Invalid transcripts data format");
+            return;
+          }
+
+          for (const transcriptData of data.transcripts) {
+            const transcript = transcriptData.transcript;
+            const result = await analyzeTranscript(transcript);
+            console.log(
+              `Transcript Analysis Result: ${
+                result ? "Interested" : "Not Interested"
+              }`
+            );
+          }
+        } catch (error) {
+          console.error("Error fetching and analyzing transcripts:", error);
+        }
+      }
+
+      // Analyze individual transcript using Gemini AI
       async function analyzeTranscript(transcript) {
-        console.log("Analyzing transcript with Gemini AI...");
         try {
           const response = await fetch(
             "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
@@ -731,84 +772,23 @@
           const data = await response.json();
           console.log("Gemini response:", data);
 
-          // Extract the response text from Gemini's response structure
           const answer = data.candidates[0].content.parts[0].text
             .trim()
             .toLowerCase();
-          console.log(`Analysis result: ${answer}`);
-
-          return answer === "yes";
+            const user = {
+              name:"Arijit",
+              phone:"1234"
+            }
+            console.log(answer)
+          if(answer === "yes")
+          {
+            sendEmailToAdmin(user)
+          }
         } catch (error) {
           console.error("Error analyzing transcript with Gemini:", error);
           return false;
         }
       }
-
-      // async function sendEmailToAdmin(userDetails) {
-      //   console.log("Attempting to send email notifications to admins...");
-
-      //   try {
-      //     // First, get the SendGrid configuration
-      //     const configResponse = await fetch(
-      //       "https://aicalling-demo.onrender.com/api/auth/sendgrid/config",
-      //       {
-      //         method: "GET",
-      //         headers: {
-      //           Authorization: `Bearer ${localStorage.getItem("token")}`,
-      //         }
-      //       }
-      //     );
-
-      //     if (!configResponse.ok) {
-      //       throw new Error("Failed to get SendGrid configuration");
-      //     }
-
-      //     // Now send the email using the SendGrid API endpoint
-      //     const response = await fetch(
-      //       "https://aicalling-demo.onrender.com/api/auth/sendgrid/send",  // Updated endpoint
-      //       {
-      //         method: "POST",
-      //         headers: {
-      //           "Content-Type": "application/json",
-      //           Authorization: `Bearer ${localStorage.getItem("token")}`,
-      //         },
-      //         body: JSON.stringify({
-      //           to: "sachinparmar0246@gmail.com", // Replace with admin email
-      //           from: "choudhardiv@gmail.com", // This should be your verified sender email
-      //           subject: "New Interest Alert",
-      //           html: `
-      //             <h2>New Interest Alert</h2>
-      //             <p>A user has shown interest in your services during a recent call.</p>
-
-      //             <h3>User Details:</h3>
-      //             <p><strong>Name:</strong> ${userDetails.name}</p>
-      //             <p><strong>Phone:</strong> ${userDetails.phone}</p>
-
-      //             <p>Please follow up with this lead as soon as possible.</p>
-      //           `
-      //         }),
-      //       }
-      //     );
-
-      //     if (!response.ok) {
-      //       const errorData = await response.json();
-      //       throw new Error(errorData.message || `Failed to send email: ${response.statusText}`);
-      //     }
-
-      //     const data = await response.json();
-      //     console.log("Email notification sent successfully:", data);
-      //     return true;
-
-      //   } catch (error) {
-      //     console.error("Error sending email notification:", error);
-      //     // Show error to user
-      //     alert(`Failed to send email notification: ${error.message}`);
-      //     return false;
-      //   }
-      // }
-
-      // Update the test function to include more detailed logging
-
       function sendEmailToAdmin(userDetails) {
         // Get the token from local storage
         const token = localStorage.getItem("token");
@@ -826,7 +806,7 @@
 
         // Send request to server with token included in headers
         fetch("https://aicalling-demo.onrender.com/api/send-email-property", {
-     //   fetch("http://localhost:3000/api/send-email-property", {
+          //   fetch("http://localhost:3000/api/send-email-property", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -896,7 +876,7 @@
       const testButton = document.createElement("button");
       testButton.textContent = "Run Transcript Analysis Test";
       testButton.className = "btn btn-primary m-3";
-      testButton.onclick = testTranscriptAnalysis;
+      testButton.onclick = fetchAndAnalyzeTranscripts;
       document.querySelector(".page-title").appendChild(testButton);
     </script>
   </body>
