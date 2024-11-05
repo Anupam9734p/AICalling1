@@ -59,8 +59,6 @@ router.post("/demo-transcript", async (req, res) => {
   }
 });
 
-
-
 router.post("/send-emails", verifyToken, async (req, res) => {
   const { users, additionalInput } = req.body; // Extract users and additional input from request body
   const { userId, role } = req; // Extract userId and role from the request
@@ -245,6 +243,132 @@ router.post("/send-sms", verifyToken, async (req, res) => {
   } catch (error) {
     console.error(`Failed to send messages: ${error.message}`);
     res.status(500).send({ success: false, error: error.message });
+  }
+});
+
+const verifyTokenSms = async (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Access denied" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded.userId;
+    req.role = decoded.role; // Either 'admin' or 'subuser'
+
+    if (req.role === "subuser") {
+      // Find subuser and populate admin's credentials
+      const subUser = await SubUser.findById(req.userId).populate("adminId");
+      if (!subUser) {
+        return res.status(404).json({ message: "Subuser not found" });
+      }
+
+      // Attach admin credentials to request
+      req.credentials = {
+        twilioToken: subUser.adminId.twilioToken,
+        twilioSid: subUser.adminId.twilioSid,
+        twilioNum: subUser.adminId.twilioNum,
+      };
+    } else {
+      // For admin, attach admin's own credentials
+      const adminUser = await User.findById(req.userId);
+      req.credentials = {
+        twilioToken: adminUser.twilioToken,
+        twilioSid: adminUser.twilioSid,
+        twilioNum: adminUser.twilioNum,
+      };
+    }
+    next();
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    return res.status(400).json({ message: "Invalid or expired token" });
+  }
+};
+router.post("/send-sms-property", verifyTokenSms, async (req, res) => {
+  console.log("Comer")
+  const { toNumber, message } = req.body;
+
+  // Use Twilio credentials from req.credentials
+  const { twilioSid, twilioToken, twilioNum } = req.credentials;
+  const client = require("twilio")(twilioSid, twilioToken);
+
+  try {
+    const sms = await client.messages.create({
+      body: message,
+      from: twilioNum,
+      to: toNumber,
+    });
+
+    res.status(200).json({ message: "SMS sent successfully", sms });
+  } catch (error) {
+    console.error("Error sending SMS:", error);
+    res.status(500).json({ message: "Failed to send SMS" });
+  }
+});
+
+const verifyTokenEmail = async (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Access denied" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = decoded.userId;
+    req.role = decoded.role; // Either 'admin' or 'subuser'
+
+    if (req.role === "subuser") {
+      // Find subuser and populate admin's credentials
+      const subUser = await SubUser.findById(req.userId).populate("adminId");
+      if (!subUser || !subUser.adminId) {
+        return res.status(404).json({ message: "Subuser or admin not found" });
+      }
+
+      // Attach admin's SendGrid credentials to request
+      req.sendGridApiKey = subUser.adminId.sendGridApiKey;
+      req.sendGridEmail = subUser.adminId.sendGridEmail;
+      req.recipientEmail = subUser.adminId.email; // Set the recipient as the admin's email
+    } else {
+      // For admin, attach admin's own credentials and email
+      const adminUser = await User.findById(req.userId);
+      if (!adminUser) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+      req.sendGridApiKey = adminUser.sendGridApiKey;
+      req.sendGridEmail = adminUser.sendGridEmail;
+      req.recipientEmail = adminUser.email; // Set the recipient as the admin's email
+    }
+    next();
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    return res.status(400).json({ message: "Invalid or expired token" });
+  }
+};
+const sendgridEmail = require("@sendgrid/mail");
+// Route to send email
+router.post("/send-email-property", verifyTokenEmail, async (req, res) => {
+  const { subject, message } = req.body;
+
+  try {
+    // Initialize SendGrid with the API key from the authenticated user
+    sendgridEmail.setApiKey(req.sendGridApiKey);
+
+    // Define the email options
+    const emailOptions = {
+      to: "arijit1087.be22@chitkarauniversity.edu.in",            // Recipient email from middleware
+      from: req.sendGridEmail,           // Sender's email (admin's SendGrid email)
+      subject: subject || "Notification from Service",
+      text: message || "This is a test email sent via SendGrid.",
+    };
+
+    // Send the email
+    await sendgridEmail.send(emailOptions);
+
+    res.status(200).json({ message: "Email sent successfully." });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ message: "Failed to send email", error: error.message });
   }
 });
 
