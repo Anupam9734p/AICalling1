@@ -45,7 +45,7 @@ router.post("/signup", async (req, res) => {
     // Prepare email content
     const msg = {
       to: email,
-      from: "choudhardiv@gmail.com", // Your verified sender email
+      from: "choudhardiv@gmail.com",
       subject: "Your OTP for Signup - OTP Mazer",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px; background-color: #f9f9f9;">
