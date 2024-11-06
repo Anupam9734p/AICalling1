@@ -1,499 +1,452 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ai Calling</title>
-    <link rel="stylesheet" type="text/css" href="login.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
-    />
 
-    <script
-      src="https://kit.fontawesome.com/64d58efce2.js"
-      crossorigin="anonymous"
-    ></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ai Calling</title>
+  <link rel="stylesheet" type="text/css" href="login.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
 
-    <style>
-      /* Message Styles */
-      .message {
-        position: fixed; /* Position fixed to stay at the top */
-        top: 20px; /* Adjust spacing from the top */
-        left: 50%;
-        transform: translateX(-50%); /* Center the message */
-        padding: 10px 20px; /* Padding around the message */
-        border-radius: 5px; /* Rounded corners */
-        z-index: 1001; /* Ensure it’s above other elements */
-        color: white; /* Text color */
-        display: none; /* Hidden by default */
-        transition: opacity 0.5s; /* Smooth transition */
+  <script src="https://kit.fontawesome.com/64d58efce2.js" crossorigin="anonymous"></script>
+
+  <style>
+    /* Message Styles */
+    .message {
+      position: fixed;
+      /* Position fixed to stay at the top */
+      top: 20px;
+      /* Adjust spacing from the top */
+      left: 50%;
+      transform: translateX(-50%);
+      /* Center the message */
+      padding: 10px 20px;
+      /* Padding around the message */
+      border-radius: 5px;
+      /* Rounded corners */
+      z-index: 1001;
+      /* Ensure it’s above other elements */
+      color: white;
+      /* Text color */
+      display: none;
+      /* Hidden by default */
+      transition: opacity 0.5s;
+      /* Smooth transition */
+    }
+
+    /* Success Message Style */
+    .message.success {
+      background-color: green;
+      /* Green background for success */
+    }
+
+    /* Error Message Style */
+    .message.error {
+      background-color: red;
+      /* Red background for error */
+    }
+
+    /* Info Message Style */
+    .message.info {
+      background-color: blue;
+      /* Blue background for info */
+    }
+
+    /* Close Button */
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      position: absolute;
+      right: 10px;
+      top: 10px;
+    }
+
+    /* Animation keyframes */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
       }
 
-      /* Success Message Style */
-      .message.success {
-        background-color: green; /* Green background for success */
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+        transform: translateY(0);
       }
 
-      /* Error Message Style */
-      .message.error {
-        background-color: red; /* Red background for error */
+      to {
+        opacity: 0;
+        transform: translateY(-20px);
       }
+    }
 
-      /* Info Message Style */
-      .message.info {
-        background-color: blue; /* Blue background for info */
-      }
+    .otp-section {
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
 
-      /* Close Button */
-      .close-btn {
-        background: transparent;
-        border: none;
-        color: white;
-        font-size: 16px;
-        cursor: pointer;
-        position: absolute;
-        right: 10px;
-        top: 10px;
-      }
+    .otp-section .input-field {
+      position: relative;
+      margin-bottom: 15px;
+    }
 
-      /* Animation keyframes */
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(-20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
+    .otp-section .input-field i {
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      color: #888;
+    }
 
-      @keyframes fadeOut {
-        from {
-          opacity: 1;
-          transform: translateY(0);
-        }
-        to {
-          opacity: 0;
-          transform: translateY(-20px);
-        }
-      }
+    .otp-section input {
+      width: calc(100% - 40px);
+      padding: 10px;
+      padding-left: 40px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
 
-      .otp-section {
-        margin-top: 20px;
-        padding: 20px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        background-color: #f9f9f9;
-      }
+    .otp-section .btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
 
-      .otp-section .input-field {
-        position: relative;
-        margin-bottom: 15px;
-      }
+    .flex-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-      .otp-section .input-field i {
-        position: absolute;
-        top: 50%;
-        left: 10px;
-        transform: translateY(-50%);
-        color: #888;
-      }
+    .btn {
+      cursor: pointer;
+    }
 
-      .otp-section input {
-        width: calc(100% - 40px);
-        padding: 10px;
-        padding-left: 40px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        font-size: 16px;
-      }
+    /* Modal Background */
+    .otp-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      /* Semi-transparent background */
+      display: flex;
+      width: 100%;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      /* Ensure modal is on top */
+    }
 
-      .otp-section .btn {
-        width: 100%;
-        padding: 10px;
-        background-color: #4caf50;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-      }
-      .flex-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
+    /* Blur Effect for the modal background */
+    .otp-modal:before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      backdrop-filter: blur(5px);
+      /* Adjust blur intensity */
+      z-index: -1;
+      /* Place behind the modal content */
+    }
 
-      .btn {
-        cursor: pointer;
-      }
-      /* Modal Background */
-      .otp-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
-        display: flex;
-        width: 100%;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000; /* Ensure modal is on top */
-      }
+    /* Modal Content */
+    .otp-modal-content {
+      background: white;
+      /* Background color for modal content */
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      width: 500px;
+      /* Adjust width to a larger size */
+      max-width: 90%;
+      /* Ensure it remains responsive */
+    }
 
-      /* Blur Effect for the modal background */
-      .otp-modal:before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        backdrop-filter: blur(5px); /* Adjust blur intensity */
-        z-index: -1; /* Place behind the modal content */
-      }
+    /* Additional styling for smooth transition (optional) */
+    .otp-modal-content {
+      transition: all 0.3s ease;
+      /* Smooth transition for modal content */
+    }
 
-      /* Modal Content */
+    .close-btn {
+      border: 2px solid #ccc;
+      /* Add a border for visibility */
+      border-radius: 5px;
+      /* Optional: add rounded corners */
+      float: right;
+      margin-right: 37rem;
+      margin-top: 10rem;
+      padding: 10px 20px;
+      /* Increase padding for larger button size */
+      font-size: 18px;
+      /* Increase font size for better visibility */
+      cursor: pointer;
+      transition: background 0.3s;
+      /* Smooth transition for hover effect */
+    }
+
+    .close-btn:hover {
+      background: #f0f0f0;
+      /* Optional: change background on hover */
+    }
+
+    @media (max-width: 768px) {
       .otp-modal-content {
-        background: white; /* Background color for modal content */
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        width: 500px; /* Adjust width to a larger size */
-        max-width: 90%; /* Ensure it remains responsive */
+        width: 90%;
       }
+    }
 
-      /* Additional styling for smooth transition (optional) */
-      .otp-modal-content {
-        transition: all 0.3s ease; /* Smooth transition for modal content */
-      }
+    .social-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1rem;
+      /* Adjust margin as needed */
+    }
 
-      .close-btn {
-        border: 2px solid #ccc; /* Add a border for visibility */
-        border-radius: 5px; /* Optional: add rounded corners */
-        float: right;
-        margin-right: 37rem;
-        margin-top: 10rem;
-        padding: 10px 20px; /* Increase padding for larger button size */
-        font-size: 18px; /* Increase font size for better visibility */
-        cursor: pointer;
-        transition: background 0.3s; /* Smooth transition for hover effect */
-      }
+    .social-text {
+      margin: 0 1rem;
+      /* Space between the text and icons */
+    }
+  </style>
+</head>
 
-      .close-btn:hover {
-        background: #f0f0f0; /* Optional: change background on hover */
-      }
+<body>
+  <div class="container">
+    <div id="message" class="message"></div>
 
-      @media (max-width: 768px) {
-        .otp-modal-content {
-          width: 90%;
-        }
-      }
+    <div id="otpModal" class="otp-modal" style="display: none">
+      <div class="otp-modal-content">
+        <h2 class="title">Verify OTP</h2>
+        <div class="input-field">
+          <i class="fas fa-key"></i>
+          <input type="number" id="otp" placeholder="Enter OTP" required />
+        </div>
+        <button id="verifyOtpButton" class="btn solid">Verify OTP</button>
+        <div id="otpMessage" class="message"></div>
+      </div>
+    </div>
 
-      .social-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-top: 1rem; /* Adjust margin as needed */
-      }
-
-      .social-text {
-        margin: 0 1rem; /* Space between the text and icons */
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="container">
-      <div id="message" class="message"></div>
-
-      <div id="otpModal" class="otp-modal" style="display: none">
+    <form action="" id="forgotPasswordForm">
+      <div id="forgotPasswordModal" class="otp-modal" style="display: none">
         <div class="otp-modal-content">
-          <h2 class="title">Verify OTP</h2>
+          <h2 class="title">Forgot Password</h2>
           <div class="input-field">
-            <i class="fas fa-key"></i>
-            <input type="number" id="otp" placeholder="Enter OTP" required />
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="forgotEmail" placeholder="Enter your email" required />
           </div>
-          <button id="verifyOtpButton" class="btn solid">Verify OTP</button>
-          <div id="otpMessage" class="message"></div>
+          <button id="sendResetButton" class="btn solid">
+            Send Reset Link
+          </button>
+          <button class="close-btn" id="closeForgotPasswordModal">
+            &times;
+          </button>
+          <div id="forgotPasswordMessage" class="message"></div>
         </div>
       </div>
+    </form>
 
-      <form action="" id="forgotPasswordForm">
-        <div id="forgotPasswordModal" class="otp-modal" style="display: none">
-          <div class="otp-modal-content">
-            <h2 class="title">Forgot Password</h2>
-            <div class="input-field">
-              <i class="fas fa-envelope"></i>
-              <input
-                type="email"
-                id="forgotEmail"
-                placeholder="Enter your email"
-                required
-              />
-            </div>
-            <button id="sendResetButton" class="btn solid">
-              Send Reset Link
-            </button>
-            <button class="close-btn" id="closeForgotPasswordModal">
-              &times;
-            </button>
-            <div id="forgotPasswordMessage" class="message"></div>
+    <div class="forms-container">
+      <div class="signin-signup">
+        <form id="loginForm" class="sign-in-form">
+          <div id="loginMessage" class="message"></div>
+
+          <h2 class="title">Sign In</h2>
+
+          <div class="input-field">
+            <i class="fas fa-user"></i>
+            <input type="email" id="loginEmail" placeholder="Email" required />
           </div>
-        </div>
-      </form>
 
-      <div class="forms-container">
-        <div class="signin-signup">
-          <form id="loginForm" class="sign-in-form">
-            <div id="loginMessage" class="message"></div>
-
-            <h2 class="title">Sign In</h2>
-
-            <div class="input-field">
-              <i class="fas fa-user"></i>
-              <input
-                type="email"
-                id="loginEmail"
-                placeholder="Email"
-                required
-              />
-            </div>
-
-            <div class="input-field">
-              <i class="fas fa-lock"></i>
-              <input
-                type="password"
-                id="loginPassword"
-                placeholder="Password"
-                required
-              />
-              <i
-                class="far fa-eye"
-                id="toggleLoginPassword"
-                style="
+          <div class="input-field">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="loginPassword" placeholder="Password" required />
+            <i class="far fa-eye" id="toggleLoginPassword" style="
                   cursor: pointer;
                   position: absolute;
                   right: 10px;
                   top: 50%;
                   transform: translateY(-50%);
-                "
-              ></i>
-            </div>
+                "></i>
+          </div>
 
-            <div
-              style="
+          <div style="
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 gap: 10px;
-              "
-            >
-              <input type="submit" value="Login" class="btn solid" />
-            </div>
+              ">
+            <input type="submit" value="Login" class="btn solid" />
+          </div>
 
-            <p style="text-align: center; margin-top: 15px">
-              <a href="#" id="forgotPasswordBtn">Forgot Password?</a>
+          <p style="text-align: center; margin-top: 15px">
+            <a href="#" id="forgotPasswordBtn">Forgot Password?</a>
+          </p>
+        </form>
+
+        <form id="signupForm" class="sign-up-form">
+          <div id="signupMessage" class="message"></div>
+          <h2 class="title">Sign Up</h2>
+
+          <div class="input-field">
+            <i class="fas fa-user"></i>
+            <input type="text" id="name" placeholder="Full Name" required />
+          </div>
+          <div class="input-field">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="email" placeholder="Email" required />
+          </div>
+
+          <div class="input-field">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="password" placeholder="Password" required />
+            <i class="far fa-eye" id="toggleSignupPassword" style="
+                  cursor: pointer;
+                  position: absolute;
+                  right: 10px;
+                  top: 50%;
+                  transform: translateY(-50%);
+                "></i>
+          </div>
+
+          <div class="input-field">
+            <i class="fas fa-phone"></i>
+            <input type="number" id="countryCode" placeholder="+1" maxlength="4" required
+              style="width: 70px; margin-right: 10px" />
+            <input type="number" id="phone" placeholder="Phone Number" max="9999999999" required />
+          </div>
+
+          <div style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 10px;
+              ">
+            <input type="submit" value="Sign Up" class="btn solid" />
+          </div>
+        </form>
+      </div>
+
+      <div class="panels-container">
+        <div class="panel left-panel">
+          <div class="content">
+            <img src="./assets/images/logo/logo.png" class="image" alt="" />
+            <h3 style="color: black">New here?</h3>
+            <p style="color: black">
+              Sign up to access all features of our website!
             </p>
-          </form>
-
-          <form id="signupForm" class="sign-up-form">
-            <div id="signupMessage" class="message"></div>
-            <h2 class="title">Sign Up</h2>
-
-            <div class="input-field">
-              <i class="fas fa-user"></i>
-              <input type="text" id="name" placeholder="Full Name" required />
-            </div>
-            <div class="input-field">
-              <i class="fas fa-envelope"></i>
-              <input type="email" id="email" placeholder="Email" required />
-            </div>
-
-            <div class="input-field">
-              <i class="fas fa-lock"></i>
-              <input
-                type="password"
-                id="password"
-                placeholder="Password"
-                required
-              />
-              <i
-                class="far fa-eye"
-                id="toggleSignupPassword"
-                style="
-                  cursor: pointer;
-                  position: absolute;
-                  right: 10px;
-                  top: 50%;
-                  transform: translateY(-50%);
-                "
-              ></i>
-            </div>
-
-            <div class="input-field">
-              <i class="fas fa-phone"></i>
-              <input
-                type="number"
-                id="countryCode"
-                placeholder="+1"
-                maxlength="4"
-                required
-                style="width: 70px; margin-right: 10px"
-              />
-              <input
-                type="number"
-                id="phone"
-                placeholder="Phone Number"
-                max="9999999999"
-                required
-              />
-            </div>
-
-            <div
-              style="
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 10px;
-              "
-            >
-              <input type="submit" value="Sign Up" class="btn solid" />
-            </div>
-          </form>
-        </div>
-
-        <div class="panels-container">
-          <div class="panel left-panel">
-            <div class="content">
-              <img src="./assets/images/logo/logo.png" class="image" alt="" />
-              <h3 style="color: black">New here?</h3>
-              <p style="color: black">
-                Sign up to access all features of our website!
-              </p>
-              <button
-                class="btn transparent"
-                id="sign-up-btn"
-                style="background-color: black"
-              >
-                Sign Up
-              </button>
-            </div>
+            <button class="btn transparent" id="sign-up-btn" style="background-color: black">
+              Sign Up
+            </button>
           </div>
-          <div class="panel right-panel">
-            <div class="content">
-              <img src="./assets/images/logo/logo.png" class="image" alt="" />
-              <h3 style="color: black">Already have an account?</h3>
-              <p style="color: black">
-                Log in to continue your journey with us!
-              </p>
-              <button
-                class="btn transparent"
-                id="sign-in-btn"
-                style="background-color: black"
-              >
-                Sign In
-              </button>
-            </div>
+        </div>
+        <div class="panel right-panel">
+          <div class="content">
+            <img src="./assets/images/logo/logo.png" class="image" alt="" />
+            <h3 style="color: black">Already have an account?</h3>
+            <p style="color: black">
+              Log in to continue your journey with us!
+            </p>
+            <button class="btn transparent" id="sign-in-btn" style="background-color: black">
+              Sign In
+            </button>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- JavaScript for handling API calls -->
-    <script src="loader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-      const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
-      const forgotPasswordModal = document.getElementById(
-        "forgotPasswordModal"
-      );
-      const closeForgotPasswordModal = document.getElementById(
-        "closeForgotPasswordModal"
-      );
+  <!-- JavaScript for handling API calls -->
+  <script src="loader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+    const forgotPasswordModal = document.getElementById(
+      "forgotPasswordModal"
+    );
+    const closeForgotPasswordModal = document.getElementById(
+      "closeForgotPasswordModal"
+    );
 
-      // Show forgot password modal
-      forgotPasswordBtn.addEventListener("click", (e) => {
-        e.preventDefault(); // Prevent the default anchor behavior
-        forgotPasswordModal.style.display = "flex"; // Show modal
-      });
+    // Show forgot password modal
+    forgotPasswordBtn.addEventListener("click", (e) => {
+      e.preventDefault(); // Prevent the default anchor behavior
+      forgotPasswordModal.style.display = "flex"; // Show modal
+    });
 
-      // Close forgot password modal
-      closeForgotPasswordModal.addEventListener("click", () => {
-        forgotPasswordModal.style.display = "none"; // Hide modal
-      });
-
-
+    // Close forgot password modal
+    closeForgotPasswordModal.addEventListener("click", () => {
+      forgotPasswordModal.style.display = "none"; // Hide modal
+    });
 
 
-      
-      // Optional: Close modal when clicking outside of the modal content
-      window.addEventListener("click", (event) => {
-        if (event.target === forgotPasswordModal) {
-          forgotPasswordModal.style.display = "none";
-        }
-      });
 
-      document
-        .getElementById("sendResetButton")
-        .addEventListener("click", async (e) => {
-          e.preventDefault();
-          const email = document.getElementById("forgotEmail").value;
 
-          if (email) {
-            try {
-              const response = await fetch("https://aicalling-demo.onrender.com/api/auth/forgot-password",{
+
+    // Optional: Close modal when clicking outside of the modal content
+    window.addEventListener("click", (event) => {
+      if (event.target === forgotPasswordModal) {
+        forgotPasswordModal.style.display = "none";
+      }
+    });
+
+    document
+      .getElementById("sendResetButton")
+      .addEventListener("click", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("forgotEmail").value;
+
+        if (email) {
+          try {
+            const response = await fetch("https://aicalling-demo.onrender.com/api/auth/forgot-password", {
               // const response = await fetch("http://localhost:3000/api/auth/forgot-password", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ email }),
-                }
-              );
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ email }),
+            }
+            );
 
-              const result = await response.json();
+            const result = await response.json();
 
-              if (result.status === "Success") {
-                Swal.fire({
-                  position: "top-end",
-                  icon: "success",
-                  title: `Reset link sent to ${email}.`,
-                  showConfirmButton: false,
-                  timer: 3000, // duration in ms
-                });
-                console.log("Reset link:", result.link);
-                forgotPasswordModal.style.display = "none";
-              } else {
-                Swal.fire({
-                  position: "top-end",
-                  icon: "success",
-                  title: `Reset link sent to ${email}.`,
-                  showConfirmButton: false,
-                  timer: 3000,
-                  customClass: {
-                    popup: "custom-toast",
-                  },
-                  willOpen: () => {
-                    const popup = Swal.getPopup();
-                    popup.style.width = "300px";
-                    popup.style.padding = "10px";
-                    popup.style.borderRadius = "10px";
-                  },
-                });
-              }
-            } catch (error) {
-              console.log("Error: " + error);
+            if (result.status === "Success") {
               Swal.fire({
                 position: "top-end",
-                icon: "error",
-                title: "An error occurred. Please try again.",
+                icon: "success",
+                title: `Reset link sent to ${email}.`,
+                showConfirmButton: false,
+                timer: 3000, // duration in ms
+              });
+              console.log("Reset link:", result.link);
+              forgotPasswordModal.style.display = "none";
+            } else {
+              Swal.fire({
+                position: "top-end",
+                icon: "success",
+                title: `Reset link sent to ${email}.`,
                 showConfirmButton: false,
                 timer: 3000,
                 customClass: {
@@ -507,11 +460,12 @@
                 },
               });
             }
-          } else {
+          } catch (error) {
+            console.log("Error: " + error);
             Swal.fire({
               position: "top-end",
-              icon: "warning",
-              title: "Please enter your email.",
+              icon: "error",
+              title: "An error occurred. Please try again.",
               showConfirmButton: false,
               timer: 3000,
               customClass: {
@@ -522,260 +476,279 @@
                 popup.style.width = "300px";
                 popup.style.padding = "10px";
                 popup.style.borderRadius = "10px";
-              }, // duration in ms,
+              },
             });
           }
-        });
-
-      const signInBtn = document.getElementById("sign-in-btn");
-      const signUpBtn = document.getElementById("sign-up-btn");
-      const container = document.querySelector(".container");
-
-      signUpBtn.addEventListener("click", () => {
-        container.classList.add("sign-up-mode");
+        } else {
+          Swal.fire({
+            position: "top-end",
+            icon: "warning",
+            title: "Please enter your email.",
+            showConfirmButton: false,
+            timer: 3000,
+            customClass: {
+              popup: "custom-toast",
+            },
+            willOpen: () => {
+              const popup = Swal.getPopup();
+              popup.style.width = "300px";
+              popup.style.padding = "10px";
+              popup.style.borderRadius = "10px";
+            }, // duration in ms,
+          });
+        }
       });
 
-      signInBtn.addEventListener("click", () => {
-        container.classList.remove("sign-up-mode");
-      });
+    const signInBtn = document.getElementById("sign-in-btn");
+    const signUpBtn = document.getElementById("sign-up-btn");
+    const container = document.querySelector(".container");
 
-      const loginMessage = document.getElementById("loginMessage");
-      const signupMessage = document.getElementById("signupMessage");
-      const otpModal = document.getElementById("otpModal");
-      const otpMessage = document.getElementById("otpMessage");
-      function displayMessage(messageElement, message, type) {
-        console.log("Displaying message:", message);
-        messageElement.innerHTML = `
+    signUpBtn.addEventListener("click", () => {
+      container.classList.add("sign-up-mode");
+    });
+
+    signInBtn.addEventListener("click", () => {
+      container.classList.remove("sign-up-mode");
+    });
+
+    const loginMessage = document.getElementById("loginMessage");
+    const signupMessage = document.getElementById("signupMessage");
+    const otpModal = document.getElementById("otpModal");
+    const otpMessage = document.getElementById("otpMessage");
+    function displayMessage(messageElement, message, type) {
+      console.log("Displaying message:", message);
+      messageElement.innerHTML = `
         <button class="close-btn" aria-label="Close">&times;</button>
         ${message}
       `;
-        messageElement.className = `message ${type}`;
-        messageElement.style.display = "block";
-        const closeButton = messageElement.querySelector(".close-btn");
-        closeButton.onclick = () => {
-          messageElement.style.display = "none";
-        };
+      messageElement.className = `message ${type}`;
+      messageElement.style.display = "block";
+      const closeButton = messageElement.querySelector(".close-btn");
+      closeButton.onclick = () => {
+        messageElement.style.display = "none";
+      };
 
-        setTimeout(() => {
-          messageElement.style.display = "none";
-        }, 3000);
-      }
-      document
-        .getElementById("signupForm")
-        .addEventListener("submit", async function (event) {
-          event.preventDefault();
+      setTimeout(() => {
+        messageElement.style.display = "none";
+      }, 3000);
+    }
+    document
+      .getElementById("signupForm")
+      .addEventListener("submit", async function (event) {
+        event.preventDefault();
 
-          const name = document.getElementById("name").value;
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
-          const countryCode = document.getElementById("countryCode").value;
-          const phone = document.getElementById("phone").value;
-          if (phone.length > 10) {
-            alert("Phone number cannot be more than 10 digits.");
-            return; // Stop form submission if validation fails
-          }
-          // Combine country code and phone number
-          const fullPhoneNumber = `${countryCode}${phone}`;
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const countryCode = document.getElementById("countryCode").value;
+        const phone = document.getElementById("phone").value;
+        if (phone.length > 10) {
+          alert("Phone number cannot be more than 10 digits.");
+          return; // Stop form submission if validation fails
+        }
+        // Combine country code and phone number
+        const fullPhoneNumber = `${countryCode}${phone}`;
 
-          try {
-            const res = await fetch(
-             "https://aicalling-demo.onrender.com/api/auth/signup",
-           //    "http://localhost:3000/api/auth/signup",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  name,
-                  email,
-                  password,
-                  phone: fullPhoneNumber,
-                }),
-              }
-            );
-
-            const data = await res.json();
-            console.log(data);
-            if (res.ok) {
-              displayMessage(
-                signupMessage,
-                "OTP sent to your email. Please verify.",
-                "success"
-              );
-              otpModal.style.display = "flex";
-            } else {
-              displayMessage(signupMessage, data.message, "error");
+        try {
+          const res = await fetch(
+            "https://aicalling-demo.onrender.com/api/auth/signup",
+            //    "http://localhost:3000/api/auth/signup",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name,
+                email,
+                password,
+                phone: fullPhoneNumber,
+              }),
             }
-          } catch (error) {
-            console.error("Error during signup:", error);
-            displayMessage("An error occurred during signup.", "error");
-          }
-        });
+          );
 
-      document
-        .getElementById("verifyOtpButton")
-        .addEventListener("click", async function () {
-          const name = document.getElementById("name").value;
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
-          const phone = document.getElementById("phone").value;
-          const otp = document.getElementById("otp").value;
-
-          try {
-            const res = await fetch(
-              "https://aicalling-demo.onrender.com/api/auth/verify-otp",
-            //   "http://localhost:3000/api/auth/verify-otp",
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password, phone, otp }),
-              }
-            );
-
-            const data = await res.json();
-            if (res.ok) {
-              displayMessage(
-                signupMessage,
-                "Registration successful! Please log in.",
-                "success"
-              );
-
-              container.classList.remove("sign-up-mode");
-
-              otpModal.style.display = "none";
-            } else {
-              displayMessage(signupMessage, data.message, "error");
-            }
-          } catch (error) {
-            console.error("Error during OTP verification:", error);
+          const data = await res.json();
+          console.log(data);
+          if (res.ok) {
             displayMessage(
               signupMessage,
-              "An error occurred during OTP verification.",
-              "error"
+              "OTP sent to your email. Please verify.",
+              "success"
             );
+            otpModal.style.display = "flex";
+          } else {
+            displayMessage(signupMessage, data.message, "error");
           }
-        });
+        } catch (error) {
+          console.error("Error during signup:", error);
+          displayMessage("An error occurred during signup.", "error");
+        }
+      });
 
-      // function displayMessage(message, type) {
-      //   const messageElement = document.getElementById("message");
-      //   messageElement.textContent = message;
-      //   messageElement.className = `message ${type}`;
-      // }
+    document
+      .getElementById("verifyOtpButton")
+      .addEventListener("click", async function () {
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const phone = document.getElementById("phone").value;
+        const otp = document.getElementById("otp").value;
 
-      // function displayMessage(message, type) {
-      //   const messageElement = document.getElementById("message");
-      //   messageElement.textContent = message;
-      //   messageElement.className = type; // Apply CSS styles based on 'success' or 'error'
-      // }
+        try {
+          const res = await fetch(
+            "https://aicalling-demo.onrender.com/api/auth/verify-otp",
+            //   "http://localhost:3000/api/auth/verify-otp",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, email, password, phone, otp }),
+            }
+          );
 
-      // Handle Login form submission
-      // document.getElementById("loginForm").addEventListener("submit", async function (event) {
-      //     event.preventDefault();
-      //     const email = document.getElementById("loginEmail").value;
-      //     const password = document.getElementById("loginPassword").value;
-
-      //     try {
-      //         const res = await fetch("http://localhost:3000/api/auth/login", {
-      //             method: "POST",
-      //             headers: { "Content-Type": "application/json" },
-      //             body: JSON.stringify({ email, password }),
-      //         });
-
-      //         const data = await res.json();
-      //         if (data.success) {
-      //             localStorage.setItem("token", data.token);
-
-      //             localStorage.setItem("loginMessage", "Login successful!");
-
-      //                 window.location.href = "index.html"; // Redirect after a delay
-
-      //         } else {
-      //            displayMessage(loginMessage, "Login failed: " + data.message, "error");
-      //         }
-      //     } catch (error) {
-      //         console.error("Error during login:", error);
-      //         displayMessage(loginMessage, "An error occurred during login.", "error");
-      //     }
-      // });
-
-      // Handle Login form submission
-      document
-        .getElementById("loginForm")
-        .addEventListener("submit", async function (event) {
-          event.preventDefault();
-          const email = document.getElementById("loginEmail").value;
-          const password = document.getElementById("loginPassword").value;
-
-          try {
-     const res = await fetch("https://aicalling-demo.onrender.com/api/auth/login", {
-    //  const res = await fetch( "http://localhost:3000/api/auth/login",{
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-              }
+          const data = await res.json();
+          if (res.ok) {
+            displayMessage(
+              signupMessage,
+              "Registration successful! Please log in.",
+              "success"
             );
 
-            const data = await res.json();
-            console.log(data);
-            if (data.success) {
-              showLoader();
-              localStorage.setItem("token", data.token);
-              displayMessage(loginMessage, "Login successful!", "success");
-              setTimeout(() => {
-                window.location.href = "index.html";
-              }, 1000);
-            } else {
-              hideLoader();
-              displayMessage(
-                loginMessage,
-                "Login failed: " + data.message,
-                "error"
-              );
-            }
-          } catch (error) {
+            container.classList.remove("sign-up-mode");
+
+            otpModal.style.display = "none";
+          } else {
+            displayMessage(signupMessage, data.message, "error");
+          }
+        } catch (error) {
+          console.error("Error during OTP verification:", error);
+          displayMessage(
+            signupMessage,
+            "An error occurred during OTP verification.",
+            "error"
+          );
+        }
+      });
+
+    // function displayMessage(message, type) {
+    //   const messageElement = document.getElementById("message");
+    //   messageElement.textContent = message;
+    //   messageElement.className = `message ${type}`;
+    // }
+
+    // function displayMessage(message, type) {
+    //   const messageElement = document.getElementById("message");
+    //   messageElement.textContent = message;
+    //   messageElement.className = type; // Apply CSS styles based on 'success' or 'error'
+    // }
+
+    // Handle Login form submission
+    // document.getElementById("loginForm").addEventListener("submit", async function (event) {
+    //     event.preventDefault();
+    //     const email = document.getElementById("loginEmail").value;
+    //     const password = document.getElementById("loginPassword").value;
+
+    //     try {
+    //         const res = await fetch("http://localhost:3000/api/auth/login", {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify({ email, password }),
+    //         });
+
+    //         const data = await res.json();
+    //         if (data.success) {
+    //             localStorage.setItem("token", data.token);
+
+    //             localStorage.setItem("loginMessage", "Login successful!");
+
+    //                 window.location.href = "index.html"; // Redirect after a delay
+
+    //         } else {
+    //            displayMessage(loginMessage, "Login failed: " + data.message, "error");
+    //         }
+    //     } catch (error) {
+    //         console.error("Error during login:", error);
+    //         displayMessage(loginMessage, "An error occurred during login.", "error");
+    //     }
+    // });
+
+    // Handle Login form submission
+    document
+      .getElementById("loginForm")
+      .addEventListener("submit", async function (event) {
+        event.preventDefault();
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+
+        try {
+          const res = await fetch("https://aicalling-demo.onrender.com/api/auth/login", {
+            //  const res = await fetch( "http://localhost:3000/api/auth/login",{
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          }
+          );
+
+          const data = await res.json();
+          console.log(data);
+          if (data.success) {
+            showLoader();
+            localStorage.setItem("token", data.token);
+            displayMessage(loginMessage, "Login successful!", "success");
+            setTimeout(() => {
+              window.location.href = "index.html";
+            }, 1000);
+          } else {
             hideLoader();
-            console.error("Error during login:", error);
             displayMessage(
               loginMessage,
-              "An error occurred during login.",
+              "Login failed: " + data.message,
               "error"
             );
           }
-        });
-
-      //------
-      //---------->>>>>>Toggling password with eye button ----------->
-
-      const toggleLoginPassword = document.getElementById(
-        "toggleLoginPassword"
-      );
-      const loginPassword = document.getElementById("loginPassword");
-
-      toggleLoginPassword.addEventListener("click", function () {
-        const type =
-          loginPassword.getAttribute("type") === "password"
-            ? "text"
-            : "password";
-        loginPassword.setAttribute("type", type);
-
-        this.classList.toggle("fa-eye");
-        this.classList.toggle("fa-eye-slash");
+        } catch (error) {
+          hideLoader();
+          console.error("Error during login:", error);
+          displayMessage(
+            loginMessage,
+            "An error occurred during login.",
+            "error"
+          );
+        }
       });
 
-      const toggleSignupPassword = document.getElementById(
-        "toggleSignupPassword"
-      );
-      const signupPassword = document.getElementById("password");
+    //------
+    //---------->>>>>>Toggling password with eye button ----------->
 
-      toggleSignupPassword.addEventListener("click", function () {
-        const type =
-          signupPassword.getAttribute("type") === "password"
-            ? "text"
-            : "password";
-        signupPassword.setAttribute("type", type);
+    const toggleLoginPassword = document.getElementById(
+      "toggleLoginPassword"
+    );
+    const loginPassword = document.getElementById("loginPassword");
 
-        this.classList.toggle("fa-eye");
-        this.classList.toggle("fa-eye-slash");
-      });
-    </script>
-  </body>
+    toggleLoginPassword.addEventListener("click", function () {
+      const type =
+        loginPassword.getAttribute("type") === "password"
+          ? "text"
+          : "password";
+      loginPassword.setAttribute("type", type);
+
+      this.classList.toggle("fa-eye");
+      this.classList.toggle("fa-eye-slash");
+    });
+
+    const toggleSignupPassword = document.getElementById(
+      "toggleSignupPassword"
+    );
+    const signupPassword = document.getElementById("password");
+
+    toggleSignupPassword.addEventListener("click", function () {
+      const type =
+        signupPassword.getAttribute("type") === "password"
+          ? "text"
+          : "password";
+      signupPassword.setAttribute("type", type);
+
+      this.classList.toggle("fa-eye");
+      this.classList.toggle("fa-eye-slash");
+    });
+  </script>
+</body>
+
 </html>
