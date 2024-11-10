@@ -25,8 +25,9 @@ const client = twilio(accountSid, authToken);
 const axios = require("axios");
 const VAPI_API_KEY = process.env.VAPI_API_KEY;
 const API_URL = "https://api.vapi.ai/call";
+const   SENDGRID_API_KEY = process.env;
 const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey("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");
+sgMail.setApiKey(SENDGRID_API_KEY);
 
 router.post("/signup", async (req, res) => {
   const { name, email, password, phone } = req.body;
@@ -1568,7 +1569,7 @@ router.get("/download-sms", (req, res) => {
   });
 });
 router.get("/download-mail", (req, res) => {
-  const filePath = path.join(__dirname, "../sample/demo_mail-server.xlsx"); // Path to your sample file
+  const filePath = path.join(__dirname, "../sample/demo_mail-server.xlsx"); 
   res.download(filePath, "sample-mail.xlsx", (err) => {
     if (err) {
       console.error("Error downloading file:", err);
