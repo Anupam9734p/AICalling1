@@ -625,7 +625,7 @@ margin-right: auto;
             const options = {
               method: "POST",
               headers: {
-                Authorization: "Bearer 22576079-730d-4707-b8ab-f780113249f3",
+                Authorization: `Bearer ${callToken}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
@@ -793,7 +793,7 @@ margin-right: auto;
           const response = await fetch(`https://api.vapi.ai/call/${callSid}`, {
             method: "GET",
             headers: {
-              Authorization: "Bearer 22576079-730d-4707-b8ab-f780113249f3",
+              Authorization: `Bearer ${callToken}`,
             },
           });
 
@@ -963,7 +963,7 @@ margin-right: auto;
     const options = {
       method: 'GET',
       headers: {
-        Authorization: 'Bearer 22576079-730d-4707-b8ab-f780113249f3'
+        Authorization: `Bearer ${callToken}`
       }
     };
 
@@ -971,7 +971,7 @@ margin-right: auto;
       const options = {
         method: 'GET',
         headers: {
-          Authorization: 'Bearer 22576079-730d-4707-b8ab-f780113249f3'
+          Authorization: `Bearer ${callToken}`
         }
       };
 

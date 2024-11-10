@@ -845,7 +845,7 @@ async function initiateCalls(users, selectedCategory) {
           fetch(`https://api.vapi.ai/call/${callSid}`, {
             method: "GET",
             headers: {
-              Authorization: "Bearer 22576079-730d-4707-b8ab-f780113249f3",
+              Authorization: `Bearer ${callToken}`,
             },
           })
             .then((response) => response.json())

@@ -411,7 +411,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../env.js"></script>
     <script>
-      console.log(url);
+      console.log(url)
       const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
       const forgotPasswordModal = document.getElementById(
         "forgotPasswordModal"
@@ -446,16 +446,13 @@
 
           if (email) {
             try {
-              const response = await fetch(
-                `${url}/api/auth/forgot-password`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ email }),
-                }
-              );
+              const response = await fetch(`${url}/api/auth/forgot-password`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email }),
+              });
 
               const result = await response.json();
 
@@ -577,19 +574,16 @@
           const fullPhoneNumber = `${countryCode}${phone}`;
 
           try {
-            const res = await fetch(
-               `${url}/api/auth/signup`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  name,
-                  email,
-                  password,
-                  phone: fullPhoneNumber,
-                }),
-              }
-            );
+            const res = await fetch(`${url}/api/auth/signup`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name,
+                email,
+                password,
+                phone: fullPhoneNumber,
+              }),
+            });
 
             const data = await res.json();
             console.log(data);
@@ -619,14 +613,11 @@
           const otp = document.getElementById("otp").value;
 
           try {
-            const res = await fetch(
-             `${url}/api/auth/verify-otp`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, email, password, phone, otp }),
-              }
-            );
+            const res = await fetch(`${url}/api/auth/verify-otp`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name, email, password, phone, otp }),
+            });
 
             const data = await res.json();
             if (res.ok) {
@@ -652,7 +643,6 @@
           }
         });
 
-    
       document
         .getElementById("loginForm")
         .addEventListener("submit", async function (event) {
@@ -661,14 +651,11 @@
           const password = document.getElementById("loginPassword").value;
 
           try {
-            const res = await fetch(
-               `${url}/api/auth/login`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password }),
-              }
-            );
+            const res = await fetch(`${url}/api/auth/login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email, password }),
+            });
 
             const data = await res.json();
             console.log(data);
