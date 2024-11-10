@@ -312,6 +312,7 @@
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="loader.js"></script>
+    <script src="../env.js"></script>
     <script>
       const logoutBtn = document.getElementById("logout-btn");
 
@@ -343,9 +344,7 @@
         showLoader();
         try {
           const response = await fetch(
-            // "https://aicalling-osdb.onrender.com/api/auth/validate",
-           "https://aicalling-demo.onrender.com/api/auth/validate",
-           //  "http://localhost:3000/api/auth/validate",
+           `${url}/api/auth/validate`,
 
             {
               method: "GET",
@@ -485,8 +484,7 @@
 
       async function processTranscriptWithOpenAI(transcript) {
         const response = await fetch(
-          "https://aicalling-demo.onrender.com/api/process-transcript",
-          //   "http://localhost:3000/api/process-transcript",
+           `${url}/api/process-transcript`,
           {
             method: "POST",
             headers: {
@@ -503,8 +501,7 @@
         console.log("Checking for new call logs...");
         try {
           const response = await fetch(
-            "https://aicalling-demo.onrender.com/api/auth/get-call-data-all",
-          //   "http://localhost:3000/api/auth/get-call-data-all",
+             `${url}/api/auth/get-call-data-all`,
             {
               method: "GET",
               headers: {
@@ -549,8 +546,7 @@
 
                 // Mark call as analyzed
                 await fetch(
-                  "https://aicalling-demo.onrender.com/api/auth/mark-call-analyzed",
-                  // "http://localhost:3000/api/auth/mark-call-analyzed",
+                   `${url}/api/auth/mark-call-analyzed`,
                   {
                     method: "POST",
                     headers: {
@@ -625,8 +621,7 @@
         try {
           showLoader();
           const response = await fetch(
-            //  "http://localhost:3000/api/auth/transcript",
-            "https://aicalling-demo.onrender.com/api/auth/transcript",
+             `${url}/api/auth/transcript`,
             {
               method: "POST",
               headers: {
@@ -706,8 +701,7 @@
         try {
           console.log("Come hereeee")
           const response = await fetch(
-          //  "http://localhost:3000/api/auth/transcript-all",
-            "https://aicalling-demo.onrender.com/api/auth/transcript-all",
+          `${url}/api/auth/transcript-all`,
             {
               method: "POST",
               headers: {
@@ -806,8 +800,7 @@
   `;
 
         // Send request to server with token included in headers
-        fetch("https://aicalling-demo.onrender.com/api/send-email-property", {
-     //        fetch("http://localhost:3000/api/send-email-property", {
+        fetch( `${url}/api/send-email-property`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

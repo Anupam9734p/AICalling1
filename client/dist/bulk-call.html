@@ -420,6 +420,7 @@
 
     <script src="assets/js/main.js"></script>
     <script src="loader.js"></script>
+    <script src="../env.js"></script>
 
     <!-- Ensure JavaScript containing processBulkCalls function loads properly -->
     <script>
@@ -446,7 +447,7 @@
       });
 
       function downloadSampleFile() {
-    window.location.href = "https://aicalling-demo.onrender.com/api/auth/download-call";
+    window.location.href =  `${url}/api/auth/download-call`;
   }
 
       async function validateToken() {
@@ -460,9 +461,7 @@
         showLoader();
         try {
           const response = await fetch(
-            // "https://aicalling-osdb.onrender.com/api/auth/validate",
-            "https://aicalling-demo.onrender.com/api/auth/validate",
-         //   "http://localhost:3000/api/auth/validate",
+             `${url}/api/auth/validate`,
             {
               method: "GET",
               headers: {
@@ -636,8 +635,7 @@
 async function initiateCalls(users, selectedCategory) {
     const callCount = users.length;
     const response = await fetch(
-        "https://aicalling-demo.onrender.com/api/auth/check-bulk-credit",
-     //   "http://localhost:3000/api/auth/check-bulk-credit",
+         `${url}/api/auth/check-bulk-credit`,
         {
             method: "POST",
             headers: {
@@ -809,8 +807,7 @@ async function initiateCalls(users, selectedCategory) {
         try {
           // Fetch the update-credit API endpoint
           const response = await fetch(
-           //  "http://localhost:3000/api/auth/update-credit",
-           "https://aicalling-demo.onrender.com/api/auth/update-credit",
+            `${url}/api/auth/update-credit`,
             {
               method: "GET",
               headers: {
@@ -883,10 +880,7 @@ async function initiateCalls(users, selectedCategory) {
         const message = `Hello ${name}, Thank you for your time. We will schedule a meeting with you and provide you with an update soon. Reason for ending: ${
           endedReason || "Not provided"
         }.`;
-
-        //  fetch("https://aicalling-osdb.onrender.com/api/messages/send-sms", {
-        // fetch("http://localhost:3000/api/messages/send-sms", {
-        fetch("https://aicalling-demo.onrender.com/api/messages/send-sms", {
+        fetch(  `${url}/api/messages/send-sms`, {
           // Adjusted the endpoint to match the route path
           method: "POST",
           headers: {
@@ -957,10 +951,7 @@ async function initiateCalls(users, selectedCategory) {
 
         console.log("Latest Transcript:", demoTranscript);
 
-        // First, make a POST request to the `/api/demo-transcript` endpoint
-        //fetch('https://aicalling-osdb.onrender.com/api/demo-transcript', {
-        //  fetch("http://localhost:3000/api/demo-transcript", {
-        fetch("https://aicalling-demo.onrender.com/api/demo-transcript", {
+        fetch( `${url}/api/demo-transcript`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -1024,10 +1015,7 @@ async function initiateCalls(users, selectedCategory) {
               ).toISOString(), // 1 hour duration
             };
 
-            // Send event data to your event scheduling endpoint
-            // return fetch("https://aicalling-osdb.onrender.com/calendar/events", {
-            //   return fetch("http://localhost:3000/calendar/event", {
-            return fetch("https://aicalling-demo.onrender.com/calendar/event", {
+            return fetch( `${url}/calendar/event`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

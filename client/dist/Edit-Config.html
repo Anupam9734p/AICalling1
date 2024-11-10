@@ -446,6 +446,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../env.js"></script>
   <script>
     const logoutBtn = document.getElementById("logout-btn");
 
@@ -467,9 +468,7 @@
       showLoader();
       try {
         const response = await fetch(
-          //  "https://aicalling-osdb.onrender.com/api/auth/validate",
-           "https://aicalling-demo.onrender.com/api/auth/validate",
-        //  "http://localhost:3000/api/auth/validate",
+           `${url}/api/auth/validate`,
           {
             method: "GET",
             headers: {
@@ -610,8 +609,7 @@ margin-right: auto;
         try {
           // Send the form data to the backend using the fetch API
           const response = await fetch(
-         //   "http://localhost:3000/api/auth/config",
-               "https://aicalling-demo.onrender.com/api/auth/config",
+ `${url}/api/auth/config`,
             {
               method: "POST", // POST method for sending data
               headers: {
@@ -655,8 +653,7 @@ margin-right: auto;
 
       try {
         const response = await fetch(
-        //  "http://localhost:3000/api/auth/admin/users",
-            "https://aicalling-demo.onrender.com/api/auth/admin/users",
+        `${url}/api/auth/admin/users`,
           {
             method: "GET",
             headers: {
@@ -726,8 +723,7 @@ margin-right: auto;
       try {
         console.log(userId);
         const response = await fetch(
-        //  `http://localhost:3000/api/auth/admin/users/${userId}`,
-          `https://aicalling-demo.onrender.com/api/auth/admin/users/${userId}`,
+         `${url}/api/auth/admin/users/${userId}`,
           {
             method: "DELETE", // Correct placement of the HTTP method
             headers: {
@@ -759,7 +755,7 @@ margin-right: auto;
 
     try {
   //    const response = await fetch("http://localhost:3000/api/auth/admin/users", {
-      const response = await fetch("https://aicalling-demo.onrender.com/api/auth/admin/users", {
+      const response = await fetch( `${url}/api/auth/admin/users`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

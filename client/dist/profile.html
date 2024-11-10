@@ -276,6 +276,7 @@
     <script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="assets/vendors/perfect-scrollbar/perfect-scrollbar.min.js"></script>
     <script src="loader.js"></script>
+    <script src="../env.js"></script>
     <script>
       let editField = "";
 
@@ -321,8 +322,7 @@
         // Save data to the backend
         try {
           const response = await fetch(
-           // "http://localhost:3000/api/auth/update-profile",
-            "https://aicalling-demo.onrender.com/api/auth/update-profile",
+            `${url}/api/auth/update-profile`,
             {
               method: "POST",
               headers: {
@@ -360,8 +360,7 @@
 
         try {
           const response = await fetch(
-           // "http://localhost:3000/api/auth/validate-profile",
-              "https://aicalling-demo.onrender.com/api/auth/validate-profile",
+            `${url}/api/auth/validate-profile`,
             {
               method: "GET",
               headers: {
@@ -452,8 +451,7 @@
           showLoader()
           try {
             const response = await fetch(
-          //   "http://localhost:3000/api/auth/updateProfilePic",
-              "https://aicalling-demo.onrender.com/api/auth/updateProfilePic",
+           `${url}/api/auth/updateProfilePic`,
               {
                 method: "POST",
                 headers: {

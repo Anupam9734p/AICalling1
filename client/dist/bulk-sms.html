@@ -317,7 +317,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="assets/js/main.js"></script>
     <script src="loader.js"></script>
-
+    <script src="../env.js"></script>
     <script>
       const logoutBtn = document.getElementById("logout-btn");
 
@@ -365,8 +365,7 @@
         reader.readAsArrayBuffer(fileInput.files[0]);
       }
       function sendToBackend(dataToSend) {
-          fetch("https://aicalling-demo.onrender.com/api/send-sms", {
-      //  fetch("http://localhost:3000/api/send-sms", {
+          fetch( `${url}/api/send-sms`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -428,7 +427,7 @@
           });
       }
       function downloadSampleFile() {
-    window.location.href = "https://aicalling-demo.onrender.com/api/auth/download-sms";
+    window.location.href =  `${url}/api/auth/download-sms`;
   }
       async function validateToken() {
         const token = localStorage.getItem("token");
@@ -442,9 +441,7 @@
         showLoader();
         try {
           const response = await fetch(
-          //   "https://aicalling-osdb.onrender.com/api/auth/validate",
-       //   "http://localhost:3000/api/auth/validate",
-               "https://aicalling-demo.onrender.com/api/auth/validate",
+               `${url}/api/auth/validate`,
             {
               method: "GET",
               headers: {
