@@ -6,7 +6,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 exports.processTranscript = async (transcript) => {
     console.log('Transcript to be processed:', transcript);
     const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4o-mini",
         messages: [
             { role: "system", content: "Extract the following information from the transcript: name, email, phone number, date (in dd MMMM format), and time (in HH:mm 24-hour format). Format the output as JSON." },
             { role: "user", content: transcript }

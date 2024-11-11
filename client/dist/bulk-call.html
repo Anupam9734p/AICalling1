@@ -692,7 +692,9 @@ async function initiateCalls(users, selectedCategory) {
         Timeframe: "When are you looking to sell? Do you have a specific timeframe?"\n
         Price: "What price are you hoping to get for the property?"\n
         Additional Needs: "Is there anything specific you might need help with during the selling process?"\n
-        Closing: "Thank you for sharing. I'll review this with my team and follow up soon. Have a great day!"`
+        Closing: "Thank you for sharing. I'll review this with my team and follow up soon. Have a great day!
+        
+        you need to hangup the call only when user has shared all the information "`
     : selectedCategory === "Home Buyers"
     ? `Greeting: "Hello ${userName || "there"}, I understand you’re interested in buying a property. Is this a good time to speak?"\n
         Qualifying Questions:\n
@@ -700,7 +702,8 @@ async function initiateCalls(users, selectedCategory) {
         Property Type: "What type of property are you looking for (e.g., single-family, condo)?"\n
         Location: "Do you have a preferred location or neighborhood in mind?"\n
         Additional Requirements: "Are there any specific features or amenities you’re looking for?"\n
-        Closing: "Thank you for your time. I’ll review this and follow up with some options. Have a great day!"`
+        Closing: "Thank you for your time. I’ll review this and follow up with some options. Have a great day!
+        you need to hangup the call only when user has shared all the information "`
     : selectedCategory === "Real Estate Investor / Wholesaler"
     ? `Greeting: "Hello ${userName || "there"}, I understand you're exploring investment opportunities in real estate. Is this a good time to speak?"\n
         Qualifying Questions:\n
@@ -708,7 +711,10 @@ async function initiateCalls(users, selectedCategory) {
         Budget: "What is your investment budget, or do you have a specific price range in mind?"\n
         Preferred Location: "Are there any specific locations or neighborhoods you're interested in investing in?"\n
         Additional Needs: "Are there any other specific requirements or amenities you’re looking for in investment properties?"\n
-        Closing: "Thank you for sharing. I'll review this with my team and follow up soon with suitable options. Have a great day!"`
+        Closing: "Thank you for sharing. I'll review this with my team and follow up soon with suitable options. Have a great day!"
+        you need to hangup the call only when user has shared all the information 
+        
+        `
     : customValue;
 
 
@@ -746,7 +752,7 @@ async function initiateCalls(users, selectedCategory) {
                         },
                         model: {
                             provider: "openai",
-                            model: "gpt-3.5-turbo",
+                            model: "gpt-4o-mini",
                             messages: [
                                 {
                                     role: "system",
@@ -844,35 +850,50 @@ async function initiateCalls(users, selectedCategory) {
         const maxRetries = 20; // Maximum number of retries
 
         function checkStatus(retries) {
-          fetch(`https://api.vapi.ai/call/${callSid}`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${callToken}`,
-            },
-          })
-            .then((response) => response.json())
-            .then((data) => {
-              console.log(`Status for call ${callSid}:`, data);
-              const status = data.status; // Call status
-              const endedReason = data.endedReason; // Reason why call ended
-
-              if (status === "ended") {
-                // Send SMS only if call has ended
-                sendSMS(name, phoneNumber, endedReason);
-                scheduleAppointment();
-                // sendEmail("madhavbansal356@gmail.com", "Testing", "Hi, This mail is for testing purpose")
-              } else if (retries < maxRetries) {
-                setTimeout(() => checkStatus(retries + 1), pollInterval);
-              } else {
-                console.log(`Call ${callSid} did not complete in time.`);
-              }
+            fetch(`https://api.vapi.ai/call/${callSid}`, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${callToken}`,
+                },
             })
-            .catch((error) => {
-              console.error("Error checking call status:", error);
-              if (retries < maxRetries) {
-                setTimeout(() => checkStatus(retries + 1), pollInterval);
-              }
-            });
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(`Status for call ${callSid}:`, data);
+                    const status = data.status;
+                    const endedReason = data.endedReason;
+                    const transcript = data.transcript;
+
+                    if (status === "ended") {
+                        // Send both SMS and email when call ends
+                        sendSMS(name, phoneNumber, endedReason);
+                        
+                        // Prepare user details for email
+                        const userDetails = {
+                            name: name,
+                            phone: phoneNumber,
+                            callTime: new Date().toLocaleString(),
+                            callDuration: data.duration || "N/A",
+                            callId: callSid,
+                            transcript: transcript || "No transcript available"
+                        };
+                        
+                        // Send email to admin
+                        sendEmailToAdmin(userDetails);
+                        
+                        // Schedule appointment if needed
+                        scheduleAppointment();
+                    } else if (retries < maxRetries) {
+                        setTimeout(() => checkStatus(retries + 1), pollInterval);
+                    } else {
+                        console.log(`Call ${callSid} did not complete in time.`);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error checking call status:", error);
+                    if (retries < maxRetries) {
+                        setTimeout(() => checkStatus(retries + 1), pollInterval);
+                    }
+                });
         }
 
         checkStatus(0);
@@ -880,77 +901,87 @@ async function initiateCalls(users, selectedCategory) {
 
       async function sendEmailToAdmin(userDetails) {
         try {
-          const token = localStorage.getItem("token");
-          if (!token) {
-            throw new Error("No authentication token found");
-          }
-  
-          const emailContent = `
-  New Interested Lead Detected!
-  
-  Name: ${userDetails.name}
-  Phone Number: ${userDetails.phone}
-  Call Time: ${userDetails.callTime}
-  Call Duration: ${userDetails.callDuration}
-  Call ID: ${userDetails.callId}
-  
-  This user has shown interest in our services based on AI analysis of their conversation.
-  Please follow up as soon as possible.
-  
-  Transcript:
-  ${userDetails.transcript}
-      `;
-  
-          const response = await fetch("https://aicalling-demo.onrender.com/api/send-email-property", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              subject: "New Interested Lead Alert",
-              message: emailContent,
-            }),
-          });
-  
-          if (!response.ok) {
-            throw new Error(`Email send failed with status: ${response.status}`);
-          }
-  
-          return await response.json();
+            const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error("No authentication token found");
+            }
+
+            const emailContent = `
+New Interested Lead Detected!
+
+Name: ${userDetails.name}
+Phone Number: ${userDetails.phone}
+Call Time: ${userDetails.callTime}
+Call Duration: ${userDetails.callDuration}
+Call ID: ${userDetails.callId}
+
+This user has shown interest in our services based on AI analysis of their conversation.
+Please follow up as soon as possible.
+
+Transcript:
+${userDetails.transcript}
+            `;
+
+            const response = await fetch(`${url}/api/send-email-property`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    subject: "New Interested Lead Alert",
+                    message: emailContent,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Email send failed with status: ${response.status}`);
+            }
+
+            console.log("Email sent successfully");
+            return await response.json();
         } catch (error) {
-          console.error("Error sending email:", error);
-          throw error;
+            console.error("Error sending email:", error);
+            throw error;
         }
       }
-  
+
       function sendSMS(name, phoneNumber, endedReason) {
-        const message = `Hello ${name}, Thank you for your time. We will schedule a meeting with you and provide you with an update soon. Reason for ending: ${
-          endedReason || "Not provided"
-        }.`;
-        fetch(  `${url}/api/messages/send-sms`, {
-          // Adjusted the endpoint to match the route path
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            toNumber: phoneNumber,
-            message: message,
-          }),
+        const message = `Hello ${name}, Thank you for your time. We will schedule a meeting with you and provide you with an update soon. Reason for ending: ${endedReason || "Not provided"}.`;
+        
+        fetch(`${url}/api/messages/send-sms`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({
+                toNumber: phoneNumber,
+                message: message,
+            }),
         })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`Failed to send SMS: ${response.statusText}`);
-            }
-            return response.json();
-          })
-          .then((data) => {
-            console.log("SMS sent successfully:", data);
-          })
-          .catch((error) => {
-            console.error("Error sending SMS:", error.message);
-          });
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Failed to send SMS: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                console.log("SMS sent successfully:", data);
+                Swal.fire({
+                    icon: "success",
+                    title: "SMS Sent",
+                    text: "Follow-up SMS has been sent successfully.",
+                });
+            })
+            .catch((error) => {
+                console.error("Error sending SMS:", error.message);
+                Swal.fire({
+                    icon: "error",
+                    title: "SMS Failed",
+                    text: "Failed to send follow-up SMS.",
+                });
+            });
       }
 
       function updateCallResults(name, phoneNumber, status) {
