@@ -837,6 +837,7 @@ async function initiateCalls(users, selectedCategory) {
         return window.btoa(binary);
       }
 
+
       function pollCallStatus(callSid, name, phoneNumber) {
         const pollInterval = 30000; // 30 seconds
         const maxRetries = 20; // Maximum number of retries
@@ -876,6 +877,52 @@ async function initiateCalls(users, selectedCategory) {
         checkStatus(0);
       }
 
+      async function sendEmailToAdmin(userDetails) {
+        try {
+          const token = localStorage.getItem("token");
+          if (!token) {
+            throw new Error("No authentication token found");
+          }
+  
+          const emailContent = `
+  New Interested Lead Detected!
+  
+  Name: ${userDetails.name}
+  Phone Number: ${userDetails.phone}
+  Call Time: ${userDetails.callTime}
+  Call Duration: ${userDetails.callDuration}
+  Call ID: ${userDetails.callId}
+  
+  This user has shown interest in our services based on AI analysis of their conversation.
+  Please follow up as soon as possible.
+  
+  Transcript:
+  ${userDetails.transcript}
+      `;
+  
+          const response = await fetch("https://aicalling-demo.onrender.com/api/send-email-property", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              subject: "New Interested Lead Alert",
+              message: emailContent,
+            }),
+          });
+  
+          if (!response.ok) {
+            throw new Error(`Email send failed with status: ${response.status}`);
+          }
+  
+          return await response.json();
+        } catch (error) {
+          console.error("Error sending email:", error);
+          throw error;
+        }
+      }
+  
       function sendSMS(name, phoneNumber, endedReason) {
         const message = `Hello ${name}, Thank you for your time. We will schedule a meeting with you and provide you with an update soon. Reason for ending: ${
           endedReason || "Not provided"
