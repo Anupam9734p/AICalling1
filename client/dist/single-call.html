@@ -948,7 +948,7 @@ ${userDetails.transcript}
 
 
     function sendSMS(name, phoneNumber, endedReason) {
-      const message = `Hello ${name}, Thank you for your time. We will schedule a meeting with you and provide you with an update soon. Reason for ending: ${endedReason || "Not provided"}.`;
+      const message = `Hello ${name}, Thank you for your time. We will schedule a meeting with you and provide you with an update soon.`;
 
         fetch( `${url}/api/send-sms-property`, {  // Adjusted the endpoint to match the route path
         method: "POST",
