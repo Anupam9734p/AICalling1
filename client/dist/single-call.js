@@ -26,7 +26,7 @@ document.getElementById("call-form").addEventListener("submit", (e) => {
               },
               model: {
                 provider: "openai", // Ensure the provider is correctly set up
-                model: "gpt-4",
+                model: "gpt-3.5-turbo",
                 messages: [
                   {
                     role: "system",

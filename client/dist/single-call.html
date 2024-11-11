@@ -643,7 +643,7 @@ margin-right: auto;
                   },
                   model: {
                     provider: "openai",
-                    model: "gpt-4",
+                    model: "gpt-3.5-turbo",
                     messages: [
                       {
                         role: "system",
@@ -655,6 +655,7 @@ margin-right: auto;
                       fileIds: ["your-file-id"],
                     },
                   },
+                  endCallFunctionEnabled: true
                 },
               }),
             };
