@@ -947,41 +947,43 @@ ${userDetails.transcript}
       }
 
       function sendSMS(name, phoneNumber, endedReason) {
-        const message = `Hello ${name}, Thank you for your time. We will schedule a meeting with you and provide you with an update soon. Reason for ending: ${endedReason || "Not provided"}.`;
+        // Format the phone number if needed
+        const formattedNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber.replace(/\D/g, '')}`;
         
-        fetch(`${url}/api/messages/send-sms`, {
+        const message = `Hello ${name}, Thank you for your time. We will schedule a meeting with you and provide you with an update soon. Reason for ending: ${endedReason || "Not provided"}.`;
+
+        fetch(`${url}/api/send-sms-property`, {  // Changed to match the working endpoint
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                Authorization: `Bearer ${localStorage.getItem("token")}`
             },
             body: JSON.stringify({
-                toNumber: phoneNumber,
+                toNumber: formattedNumber,
                 message: message,
             }),
         })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error(`Failed to send SMS: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then((data) => {
-                console.log("SMS sent successfully:", data);
-                Swal.fire({
-                    icon: "success",
-                    title: "SMS Sent",
-                    text: "Follow-up SMS has been sent successfully.",
-                });
-            })
-            .catch((error) => {
-                console.error("Error sending SMS:", error.message);
-                Swal.fire({
-                    icon: "error",
-                    title: "SMS Failed",
-                    text: "Failed to send follow-up SMS.",
-                });
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error(`Failed to send SMS: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log("SMS sent successfully:", data);
+            Swal.fire({
+                icon: "success",
+                title: "SMS Sent",
+                text: "Follow-up SMS has been sent successfully.",
             });
+        })
+        .catch((error) => {
+            console.error("Error sending SMS:", error);
+            Swal.fire({
+                icon: "error",
+                text: error.message
+            });
+        });
       }
 
       function updateCallResults(name, phoneNumber, status) {
