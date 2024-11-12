@@ -950,7 +950,7 @@ ${userDetails.transcript}
         // Format the phone number if needed
         const formattedNumber = phoneNumber.startsWith('+') ? phoneNumber : `+${phoneNumber.replace(/\D/g, '')}`;
         
-        const message = `Hello ${name}, Thank you for your time. We will schedule a meeting with you and provide you with an update soon. Reason for ending: ${endedReason || "Not provided"}.`;
+        const message = `Hello ${name}, Thank you for your time. We will schedule a meeting with you and provide you with an update soon.`;
 
         fetch(`${url}/api/send-sms-property`, {  // Changed to match the working endpoint
             method: "POST",
